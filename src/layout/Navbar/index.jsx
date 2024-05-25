@@ -1,14 +1,12 @@
+// src/layout/Navbar.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <div className="navbar bg-base-100">
+    <div className="navbar bg-base-100 sticky top-0 z-40">
       <div className="navbar-start">
-        <label
-          htmlFor="my-drawer"
-          className="btn btn-ghost btn-circle drawer-button"
-        >
+        <label htmlFor="my-drawer" className="btn btn-ghost btn-circle drawer-button">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5"
@@ -26,9 +24,7 @@ const Navbar = () => {
         </label>
       </div>
       <div className="navbar-center">
-        <Link to="/" className="btn btn-ghost tevxt-xl">
-          PulsePay
-        </Link>
+        <Link to="/" className="btn btn-ghost text-xl">PulsePay</Link>
       </div>
       <div className="navbar-end">
         <button className="btn btn-ghost btn-circle">

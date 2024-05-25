@@ -5,14 +5,13 @@ const Drawer = () => {
   const drawerCheckboxRef = useRef(null);
 
   const handleLinkClick = () => {
-    debugger;
     if (drawerCheckboxRef.current) {
       drawerCheckboxRef.current.checked = false;
     }
   };
 
   return (
-    <div className="drawer">
+    <div className="drawer sticky top-0 z-50">
       <input id="my-drawer" type="checkbox" className="drawer-toggle" ref={drawerCheckboxRef} />
       <div className="drawer-content">
         {/* Content that will be covered by the drawer */}
