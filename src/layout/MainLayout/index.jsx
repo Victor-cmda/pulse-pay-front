@@ -1,12 +1,15 @@
 import React from "react";
-import {Navbar, Drawer} from "../../layout";
+import { Navbar, Drawer } from "../../layout";
+import { useLocation } from 'react-router-dom';
 
 const MainLayout = ({ children }) => {
+  const location = useLocation();
+  const isLoginRoute = location.pathname === "/login";
   return (
     <div>
-      <Navbar />
-      <Drawer />
-      <div >{children}</div>
+      {!isLoginRoute && <Navbar />}
+      {!isLoginRoute && <Drawer />}
+      <div>{children}</div>
     </div>
   );
 };

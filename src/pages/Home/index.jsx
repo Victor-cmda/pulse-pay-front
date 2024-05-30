@@ -3,10 +3,11 @@ import React from "react";
 const Home = () => {
   return (
     <div
-      className="hero min-h-screen"
+      className="hero"
       style={{
         backgroundImage:
-          "url(https://img.freepik.com/fotos-gratis/cliente-de-alto-angulo-pagando-com-dispositivo-nfc_23-2150690010.jpg?w=1380&t=st=1716607036~exp=1716607636~hmac=a438faef4654f7f4e7b868aa4a9c0dbc692fc19f1e00b82d2b25fd9a5098a4db)",
+          "url(https://img.freepik.com/free-photo/closeup-female-entrepreneur-using-laptop-credit-card-online-shopping-while-working-late-office_637285-2598.jpg?t=st=1717023486~exp=1717027086~hmac=cdcb69777039c5d9513ce32275ddd536e3269c4a086609163da9735e379a4555&w=2000)",
+        minHeight: "94vh"
       }}
     >
       <div className="hero-overlay bg-opacity-60"></div>
