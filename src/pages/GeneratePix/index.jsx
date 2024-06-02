@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ApiService from "../../services/ApiService";
+import PaymentService from "../../services/PaymentService";
 import QRCode from "qrcode.react";
 
 const GeneratePix = () => {
@@ -29,7 +29,7 @@ const GeneratePix = () => {
     setError(null);
 
     try {
-      const result = await ApiService.submitPayment(formData);
+      const result = await PaymentService.processPayment(formData);
       debugger;
       setPaymentResponse(result);
       console.log("Form data submitted: ", result);

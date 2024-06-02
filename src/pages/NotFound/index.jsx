@@ -1,8 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Result, Button } from "antd";
-import { Container } from "../../components";
-import styles from "./login.module.css"
 
 const NotFound = () => {
   return (

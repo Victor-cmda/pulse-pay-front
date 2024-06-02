@@ -25,9 +25,6 @@ const Drawer = () => {
         className="drawer-toggle"
         ref={drawerCheckboxRef}
       />
-      <div className="drawer-content">
-        {/* Content that will be covered by the drawer */}
-      </div>
       <div className="drawer-side">
         <label
           htmlFor="my-drawer"
@@ -65,6 +62,12 @@ const Drawer = () => {
               <Link to="/login" onClick={handleLinkClick}>
                 <KeyIcon className="size-5"/>
                 Login
+              </Link>
+            </li>
+            <li>
+              <Link to="/register" onClick={handleLinkClick}>
+                <KeyIcon className="size-5"/>
+                Registro
               </Link>
             </li>
           </ul>

@@ -1,9 +1,9 @@
 import React from "react";
 
-const Collapse = ({ title, children }) => {
+const CollapseOpened = ({ title, children }) => {
   return (
     <>
-      <details className="collapse collapse-arrow bg-base-200">
+      <details open className="collapse collapse-arrow bg-base-200">
         <summary className="collapse-title text-xl font-medium">
           {title}
         </summary>
@@ -15,4 +15,4 @@ const Collapse = ({ title, children }) => {
   );
 };
 
-export default Collapse
+export default CollapseOpened

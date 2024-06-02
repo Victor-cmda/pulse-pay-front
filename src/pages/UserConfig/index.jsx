@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Collapse, Container } from "../../components";
+import { CollapseOpened, Container } from "../../components";
 import {
   IdentificationIcon,
   ArrowRightCircleIcon,
@@ -41,38 +41,7 @@ const UserConfig = () => {
       {contextHolder}
       <Container>
         <Title>Configurações</Title>
-        <Collapse
-          title={
-            <div className="flex items-center space-x-2 ">
-              <IdentificationIcon className="size-7" />
-              <h1>Identificação no E-Commerce</h1>
-            </div>
-          }
-        >
-          <div className="divider"></div>
-          <div className="flex items-center space-x-2">
-            <label className="form-control w-full">
-              <h1>Identificador de Loja</h1>
-              <label className="flex items-center input input-bordered flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder=""
-                  className="w-full grow"
-                  ref={(el) => (inputRefs.current[0] = el)}
-                />
-                <ClipboardIcon
-                  className="w-6 h-6 text-gray-500 cursor-pointer ml-2"
-                  onClick={() => handleCopy(0)}
-                />
-              </label>
-              <div className="label">
-                <span className="label-text-alt">sellerId</span>
-              </div>
-            </label>
-          </div>
-        </Collapse>
-        <div className="divider"></div>
-        <Collapse
+        <CollapseOpened
           title={
             <div className="flex items-center space-x-2">
               <ChartPieIcon className="size-7" />
@@ -142,9 +111,9 @@ const UserConfig = () => {
               </div>
             </label>
           </label>
-        </Collapse>
+        </CollapseOpened>
         <div className="divider"></div>
-        <Collapse
+        <CollapseOpened
           title={
             <div className="flex items-center space-x-2">
               <ArrowRightCircleIcon className="size-7" />
@@ -184,7 +153,37 @@ const UserConfig = () => {
               />
             </label>
           </div>
-        </Collapse>
+        </CollapseOpened>
+        <div className="divider"></div>
+        <CollapseOpened
+          title={
+            <div className="flex items-center space-x-2 ">
+              <IdentificationIcon className="size-7" />
+              <h1>Identificação no E-Commerce</h1>
+            </div>
+          }
+        >
+          <div className="flex items-center space-x-2">
+            <label className="form-control w-full">
+              <h1>Identificador de Loja</h1>
+              <label className="flex items-center input input-bordered flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder=""
+                  className="w-full grow"
+                  ref={(el) => (inputRefs.current[0] = el)}
+                />
+                <ClipboardIcon
+                  className="w-6 h-6 text-gray-500 cursor-pointer ml-2"
+                  onClick={() => handleCopy(0)}
+                />
+              </label>
+              <div className="label">
+                <span className="label-text-alt">sellerId</span>
+              </div>
+            </label>
+          </div>
+        </CollapseOpened>
       </Container>
     </div>
   );
