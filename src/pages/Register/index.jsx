@@ -25,13 +25,18 @@ const Register = () => {
     name: "",
     surname: "",
     email: "",
+    confirmEmail: "",
     phone: "",
     password: "",
     confirmPassword: "",
+    CPF: "",
+    DDI: "",
   });
   const [isFormValid, setIsFormValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState("");
+  const [isCPF, setIsCPF] = useState(true);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,10 +44,12 @@ const Register = () => {
   }, [formData, currentStep]);
 
   const validateForm = () => {
-    const { name, surname, email, phone, password, confirmPassword } = formData;
+    const { name, CPF, surname, email, phone, password, confirmPassword } = formData;
     switch (currentStep) {
       case 0:
-        setIsFormValid(name.length > 0 && surname.length > 0);
+        setIsFormValid(
+          name.length > 0 && surname.length > 0 && (validateCPF(CPF) || validateCNPJ(CPF))
+        );
         break;
       case 1:
         setIsFormValid(email.includes("@") && phone.length > 0);
@@ -55,11 +62,93 @@ const Register = () => {
     }
   };
 
+  const validateCPF = (cpf) => {
+    cpf = cpf.replace(/[^\d]+/g, "");
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+    let sum = 0;
+    let remainder;
+    for (let i = 1; i <= 9; i++) {
+      sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cpf.substring(9, 10))) return false;
+
+    sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cpf.substring(10, 11))) return false;
+
+    return true;
+  };
+
+  const validateCNPJ = (cnpj) => {
+    cnpj = cnpj.replace(/[^\d]+/g, "");
+    if (cnpj.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+    let length = cnpj.length - 2;
+    let numbers = cnpj.substring(0, length);
+    let digits = cnpj.substring(length);
+    let sum = 0;
+    let pos = length - 7;
+    for (let i = length; i >= 1; i--) {
+      sum += numbers.charAt(length - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result != digits.charAt(0)) return false;
+
+    length = length + 1;
+    numbers = cnpj.substring(0, length);
+    sum = 0;
+    pos = length - 7;
+    for (let i = length; i >= 1; i--) {
+      sum += numbers.charAt(length - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result != digits.charAt(1)) return false;
+
+    return true;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
+    });
+  };
+
+  const handleCPFChange = (e) => {
+    const { value } = e.target;
+    const onlyNumbers = value.replace(/\D/g, "");
+
+    let formattedValue;
+    if (onlyNumbers.length <= 11) {
+      setIsCPF(true);
+      formattedValue = onlyNumbers
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    } else {
+      setIsCPF(false);
+      formattedValue = onlyNumbers
+        .replace(/(\d{2})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    }
+
+    setFormData({
+      ...formData,
+      CPF: formattedValue,
     });
   };
 
@@ -148,12 +237,41 @@ const Register = () => {
           </div>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Telefone</span>
+              <span className="label-text">Confirmação de E-mail</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Confirmação de E-mail"
+              name="confirmEmail"
+              className="input input-bordered"
+              value={formData.confirmEmail}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">DDI</span>
+            </label>
+            <input
+              type="text"
+              placeholder="DDI"
+              name="DDI"
+              className="input input-bordered"
+              value={formData.DDI}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Celular com DDD</span>
             </label>
             <input
               type="tel"
-              placeholder="Telefone"
+              placeholder="Celular com DDD"
               name="phone"
+              className="input input-bordered"
               className="input input-bordered"
               value={formData.phone}
               onChange={handleInputChange}
@@ -172,6 +290,7 @@ const Register = () => {
             <label className="label">
               <span className="label-text">Senha</span>
             </label>
+            <input
             <input
               type="password"
               placeholder="Senha"
