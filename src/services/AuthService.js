@@ -6,7 +6,7 @@ import {
 
 class AuthService {
   constructor() {
-    this.authClient = new AuthClient("https://localhost:7081");
+    this.authClient = new AuthClient("http://localhost:8081");
   }
 
   async register(username, email, password) {

@@ -30,7 +30,6 @@ const GeneratePix = () => {
 
     try {
       const result = await PaymentService.processPayment(formData);
-      debugger;
       setPaymentResponse(result);
       console.log("Form data submitted: ", result);
     } catch (error) {
