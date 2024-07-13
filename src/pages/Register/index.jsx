@@ -44,11 +44,14 @@ const Register = () => {
   }, [formData, currentStep]);
 
   const validateForm = () => {
-    const { name, CPF, surname, email, phone, password, confirmPassword } = formData;
+    const { name, CPF, surname, email, phone, password, confirmPassword } =
+      formData;
     switch (currentStep) {
       case 0:
         setIsFormValid(
-          name.length > 0 && surname.length > 0 && (validateCPF(CPF) || validateCNPJ(CPF))
+          name.length > 0 &&
+            surname.length > 0 &&
+            (validateCPF(CPF) || validateCNPJ(CPF))
         );
         break;
       case 1:
@@ -187,6 +190,20 @@ const Register = () => {
         <>
           <div className="form-control">
             <label className="label">
+              <span className="label-text">CPF</span>
+            </label>
+            <input
+              type="text"
+              placeholder="CPF"
+              name="CPF"
+              className="input input-bordered"
+              value={formData.CPF}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label">
               <span className="label-text">Nome</span>
             </label>
             <input
@@ -272,7 +289,6 @@ const Register = () => {
               placeholder="Celular com DDD"
               name="phone"
               className="input input-bordered"
-              className="input input-bordered"
               value={formData.phone}
               onChange={handleInputChange}
               required
@@ -290,7 +306,6 @@ const Register = () => {
             <label className="label">
               <span className="label-text">Senha</span>
             </label>
-            <input
             <input
               type="password"
               placeholder="Senha"
@@ -337,7 +352,10 @@ const Register = () => {
               histórico de vendas facilmente com nossa aplicação.
             </p>
           </div>
-          <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100" style={{minWidth: "47vh"}}>
+          <div
+            className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100"
+            style={{ minWidth: "47vh" }}
+          >
             <Container className="w-full max-w-md">
               <Steps current={currentStep} className="p-4">
                 {steps.map((step, index) => (
