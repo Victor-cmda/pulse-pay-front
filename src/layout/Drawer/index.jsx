@@ -5,7 +5,7 @@ import {
   InformationCircleIcon,
   AdjustmentsHorizontalIcon,
   CurrencyDollarIcon,
-  KeyIcon
+  KeyIcon, ChartBarIcon
 } from "@heroicons/react/24/solid";
 
 const Drawer = () => {
@@ -48,25 +48,31 @@ const Drawer = () => {
             </li>
             <li>
               <Link to="/gerar-pix" onClick={handleLinkClick}>
-                <CurrencyDollarIcon className="size-5"/>
+                <CurrencyDollarIcon className="size-5" />
                 Gerar Pix
               </Link>
             </li>
             <li>
               <Link to="/configuration" onClick={handleLinkClick}>
-                <AdjustmentsHorizontalIcon className="size-5"/>
+                <AdjustmentsHorizontalIcon className="size-5" />
                 Configurações
               </Link>
             </li>
             <li>
+              <Link to="/dashboard" onClick={handleLinkClick}>
+                <ChartBarIcon className="size-5" />
+                Dashboard
+              </Link>
+            </li>
+            <li>
               <Link to="/login" onClick={handleLinkClick}>
-                <KeyIcon className="size-5"/>
+                <KeyIcon className="size-5" />
                 Login
               </Link>
             </li>
             <li>
               <Link to="/register" onClick={handleLinkClick}>
-                <KeyIcon className="size-5"/>
+                <KeyIcon className="size-5" />
                 Registro
               </Link>
             </li>
