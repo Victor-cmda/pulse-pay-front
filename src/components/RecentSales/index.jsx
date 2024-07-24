@@ -11,7 +11,7 @@ const sales = [
 const RecentSales = () => {
   return (
     <div className="p-4 bg-white rounded-lg shadow-md">
-      <h2 className="text-lg font-bold mb-4">Recent Sales</h2>
+      <h2 className="text-lg font-bold mb-4">Pagamentos recentes</h2>
       <ul>
         {sales.map((sale, index) => (
           <li key={index} className="flex justify-between items-center mb-4">
