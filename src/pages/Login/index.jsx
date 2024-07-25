@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { Button } from "antd";
-import AuthService from "../../services/AuthService";
+import PulseService from "../../services/PulseService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -27,10 +27,9 @@ const Login = () => {
   const handleLogin = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    const result = await AuthService.login(email, password);
+    const result = await PulseService.login(email, password);
     setResponse(result.message);
     setIsLoading(false);
-
     if (result.success) {
       navigate("/");
     }

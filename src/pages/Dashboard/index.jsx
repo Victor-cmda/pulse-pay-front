@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col } from "antd";
 import { Container, OverviewCard, RecentSales } from "../../components";
 import {
@@ -8,8 +8,27 @@ import {
   LineChartDotsComponent,
 } from "../../components/Charts";
 import "./styles.css";
+import PulseService from "../../services/PulseService";
+import LoadingSkeleton from "../../components/LoadingSkeleton";
 
 export function Dashboard() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const dashboardData = await PulseService.getDashboard();
+      setData({ ...dashboardData.data });
+      if (dashboardData.success) {
+      } else {
+        console.error("Erro ao buscar dados da API:", result.message);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (!data) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <div>
       <Container>
@@ -49,18 +68,18 @@ export function Dashboard() {
         </Row>
         <Row gutter={[16, 16]} className="mt-8">
           <Col xs={24} md={12} lg={8}>
-            <BarChartComponent />
+            <BarChartComponent data={data.barChartData} />
           </Col>
           <Col xs={24} md={12} lg={8}>
-            <PieChartComponent />
+            <PieChartComponent data={data.pieChartData} />
           </Col>
           <Col xs={24} lg={8}>
-            <LineChartDotsComponent />
+            <LineChartDotsComponent data={data.lineChartDotsData} />
           </Col>
         </Row>
         <Row gutter={[16, 16]} className="mt-8">
           <Col span={24}>
-            <LineChartComponent />
+            <LineChartComponent data={data.lineChartData} />
           </Col>
         </Row>
       </Container>

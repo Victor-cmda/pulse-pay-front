@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/chart";
 
 const chartConfig = {
-  views: {
-    label: "Tipo de Pagamento",
+  transactions: {
+    label: "Transações",
   },
   credit: {
     label: "Crédito",
@@ -60,9 +60,10 @@ const LineChartComponent = ({ data }) => {
     <Card>
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Line Chart - Interactive</CardTitle>
+          <CardTitle>Transações nos últimos 30 dias</CardTitle>
           <CardDescription>
-            Showing total visitors for the last 3 months
+            Apresentando separadamente as transações de crédito, boleto bancário
+            e pix.
           </CardDescription>
         </div>
         <div className="flex">
@@ -100,7 +101,7 @@ const LineChartComponent = ({ data }) => {
                 right: 12,
               }}
             >
-              <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={true} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
@@ -109,7 +110,7 @@ const LineChartComponent = ({ data }) => {
                 minTickGap={32}
                 tickFormatter={(value) => {
                   const date = new Date(value);
-                  return date.toLocaleDateString("en-US", {
+                  return date.toLocaleDateString("pt-BR", {
                     month: "short",
                     day: "numeric",
                   });
@@ -119,9 +120,10 @@ const LineChartComponent = ({ data }) => {
                 content={
                   <ChartTooltipContent
                     className="w-[150px]"
-                    nameKey="views"
-                    labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString("en-US", {
+                    nameKey="transactions"
+                    labelFormatter={(value, props) => {
+                      const date = new Date(props[0].payload.date);
+                      return date.toLocaleDateString("pt-BR", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

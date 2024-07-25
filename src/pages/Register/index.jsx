@@ -8,7 +8,7 @@ import {
   EyeSlashIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/24/solid";
-import  AuthService  from "../../services/AuthService";
+import  PulseService  from "../../services/PulseService";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftOutlined,
@@ -173,7 +173,7 @@ const Register = () => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const result = await AuthService.register(formData);
+    const result = await PulseService.register(formData);
     setResponse(result.message);
     setIsLoading(false);
 

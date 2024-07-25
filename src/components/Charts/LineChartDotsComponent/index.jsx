@@ -6,15 +6,16 @@ import {
   Line,
   LineChart,
   XAxis,
+  YAxis,
   ResponsiveContainer,
 } from "recharts";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -23,50 +24,56 @@ import {
 } from "@/components/ui/chart";
 
 const LineChartDotsComponent = ({ data }) => {
-
   const chartConfig = {
     totalAmount: {
-      label: "Quantidade",
-      color: "hsl(var(--chart-1))",
+      label: "Total",
+      color: "hsl(221, 83%, 53%)",
     },
   };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Line Chart - Label</CardTitle>
+      <CardHeader className="items-center">
+        <CardTitle>Transações do dia atual</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <div className="chart-container mx-auto max-h-[250px]">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                accessibilityLayer
                 data={data}
                 margin={{
-                  top: 20,
-                  left: 12,
-                  right: 12,
+                  top: 12,
+                  bottom: 12,
                 }}
               >
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey="date"
+                  dataKey="hour"
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
                   tickFormatter={(value) => value.slice(0, 3)}
                 />
+                <YAxis
+                  domain={["auto", "auto"]}
+                  tickLine={true}
+                  axisLine={true}
+                  tickMargin={8}
+                  interval="preserveStartEnd"
+                  ticks={[-50, -25, 0, 25, 50, 75, 100]}
+                />
                 <ChartTooltip
-                  cursor={false}
+                  cursor={true}
                   content={<ChartTooltipContent indicator="line" />}
                 />
                 <Line
                   dataKey="totalAmount"
-                  type="natural"
-                  stroke="var(--color-desktop)"
+                  type="monotone"
+                  stroke={chartConfig.totalAmount.color}
                   strokeWidth={2}
                   dot={{
-                    fill: "var(--color-desktop)",
+                    fill: chartConfig.totalAmount.color,
                   }}
                   activeDot={{
                     r: 6,
@@ -74,26 +81,7 @@ const LineChartDotsComponent = ({ data }) => {
                 >
                   <LabelList
                     position="top"
-                    offset={12}
-                    className="fill-foreground"
-                    fontSize={12}
-                  />
-                </Line>
-                <Line
-                  dataKey="mobile"
-                  type="natural"
-                  stroke="var(--color-mobile)"
-                  strokeWidth={2}
-                  dot={{
-                    fill: "var(--color-mobile)",
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
-                >
-                  <LabelList
-                    position="top"
-                    offset={12}
+                    offset={10}
                     className="fill-foreground"
                     fontSize={12}
                   />
@@ -108,7 +96,7 @@ const LineChartDotsComponent = ({ data }) => {
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Apresentando transações realizadas no dia atual.
         </div>
       </CardFooter>
     </Card>

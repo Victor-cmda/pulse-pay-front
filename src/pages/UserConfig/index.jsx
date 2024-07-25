@@ -9,7 +9,7 @@ import {
   EyeSlashIcon,
 } from "@heroicons/react/24/solid";
 import { notification, Typography } from "antd";
-import  AuthService  from "../../services/AuthService";
+import PulseService from "../../services/PulseService";
 const { Title } = Typography;
 
 const UserConfig = () => {
@@ -19,11 +19,8 @@ const UserConfig = () => {
   const [configData, setConfigData] = useState(null);
 
   useEffect(() => {
-    console.log("UserConfig component mounted"); // Log para verificar montagem do componente
-
     const fetchData = async () => {
-      console.log("Fetching data from API"); // Log para verificar chamada da API
-      const result = await AuthService.getUserConfig();
+      const result = await PulseService.getConfigByUser();
       if (result.success) {
         setConfigData(result.data);
       } else {
@@ -31,7 +28,7 @@ const UserConfig = () => {
       }
     };
     fetchData();
-  }, []); // Certifique-se de que a dependência está correta (array vazio para rodar uma vez)
+  }, []);
 
   const openNotification = () => {
     api.info({
@@ -77,7 +74,7 @@ const UserConfig = () => {
                 type="text"
                 placeholder=""
                 className="w-full grow"
-                value={configData.clientId || ''}
+                value={configData.clientId || ""}
                 readOnly
                 ref={(el) => (inputRefs.current[1] = el)}
               />
@@ -94,7 +91,7 @@ const UserConfig = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder=""
                 className="w-full grow"
-                value={configData.clientSecret || ''}
+                value={configData.clientSecret || ""}
                 readOnly
                 ref={(el) => (inputRefs.current[2] = el)}
               />
@@ -126,7 +123,7 @@ const UserConfig = () => {
                 type="text"
                 placeholder=""
                 className="w-full grow"
-                value={(configData.callbacks.credit) || ''}
+                value={configData.callbacks.credit || ""}
                 readOnly
                 ref={(el) => (inputRefs.current[3] = el)}
               />
@@ -153,7 +150,7 @@ const UserConfig = () => {
               <h1>Pagamento de crédito</h1>
               <input
                 type="text"
-                value={(configData.callbacks.credit) || ''}
+                value={configData.callbacks.credit || ""}
                 className="input input-bordered w-full"
                 readOnly
               />
@@ -165,7 +162,7 @@ const UserConfig = () => {
               <h1>Pagamento de débito</h1>
               <input
                 type="text"
-                value={(configData.callbacks.debit) || ''}
+                value={configData.callbacks.debit || ""}
                 className="input input-bordered w-full"
                 readOnly
               />
@@ -177,7 +174,7 @@ const UserConfig = () => {
               <h1>Registro/Baixa do Boleto</h1>
               <input
                 type="text"
-                value={(configData.callbacks.registration) || ''}
+                value={configData.callbacks.registration || ""}
                 className="input input-bordered w-full"
                 readOnly
               />
@@ -199,7 +196,12 @@ const UserConfig = () => {
               <label className="flex items-center input input-bordered gap-2">
                 <input
                   type="text"
-                  value={(configData.sellers && configData.sellers[0] && configData.sellers[0].sellerId) || ''}
+                  value={
+                    (configData.sellers &&
+                      configData.sellers[0] &&
+                      configData.sellers[0].sellerId) ||
+                    ""
+                  }
                   className="w-full grow"
                   readOnly
                   ref={(el) => (inputRefs.current[0] = el)}

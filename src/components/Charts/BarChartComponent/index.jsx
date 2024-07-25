@@ -24,16 +24,28 @@ import {
 const chartConfig = {
   count: {
     label: "Quantidade",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-2))",
   },
 };
 
 const BarChartComponent = ({ data = [] }) => {
+  const today = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(today.getDate() - 7);
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString("pt-BR", {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="items-center pb-0">
-        <CardTitle>Bar Chart</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Transações nos ultimos 7 dias</CardTitle>
+        <CardDescription>{`${formatDate(sevenDaysAgo)} - ${formatDate(today)}`}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <div className="chart-container mx-auto">
@@ -47,13 +59,13 @@ const BarChartComponent = ({ data = [] }) => {
                   axisLine={false}
                   tickMargin={10}
                   minTickGap={32}
-                  tickFormatter={(value) => value.slice(0, 3)}
+                  tickFormatter={(value) => value.slice(0, 5)}
                 />
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent hideLabel />}
                 />
-                <Bar dataKey="count" fill="var(--color-desktop)" radius={8} />
+                <Bar dataKey="count" fill="hsl(213, 100%, 63%)" radius={8} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -64,7 +76,7 @@ const BarChartComponent = ({ data = [] }) => {
           Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Apresentando transações realizadas nos últimos 7 dias.
         </div>
       </CardFooter>
     </Card>
