@@ -702,7 +702,8 @@ export interface IDashboardDataDto {
 }
 
 export class LineChartDataDto implements ILineChartDataDto {
-    date?: Date;
+    date?: string | undefined;
+    hour?: string | undefined;
     pix?: number;
     credit?: number;
     bankSlip?: number;
@@ -719,7 +720,8 @@ export class LineChartDataDto implements ILineChartDataDto {
 
     init(_data?: any, _mappings?: any) {
         if (_data) {
-            this.date = _data["date"] ? new Date(_data["date"].toString()) : <any>undefined;
+            this.date = _data["date"];
+            this.hour = _data["hour"];
             this.pix = _data["pix"];
             this.credit = _data["credit"];
             this.bankSlip = _data["bankSlip"];
@@ -734,7 +736,8 @@ export class LineChartDataDto implements ILineChartDataDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["date"] = this.date ? this.date.toISOString() : <any>undefined;
+        data["date"] = this.date;
+        data["hour"] = this.hour;
         data["pix"] = this.pix;
         data["credit"] = this.credit;
         data["bankSlip"] = this.bankSlip;
@@ -744,7 +747,8 @@ export class LineChartDataDto implements ILineChartDataDto {
 }
 
 export interface ILineChartDataDto {
-    date?: Date;
+    date?: string | undefined;
+    hour?: string | undefined;
     pix?: number;
     credit?: number;
     bankSlip?: number;

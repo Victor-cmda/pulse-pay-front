@@ -36,33 +36,33 @@ export function Dashboard() {
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
               title="Aprovadas"
-              value="$0.00"
-              subValue="0 transações"
-              color="green-500"
+              value={`$${data.overviewData.approvedAmount.toFixed(2)}`}
+              subValue={`${data.overviewData.approvedCount} transações`}
+              color="#1f9b79"
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
               title="Rejeitos"
-              value="$0.00"
-              subValue="0 transações"
-              color="blue-500"
+              value={`$${data.overviewData.rejectedAmount.toFixed(2)}`}
+              subValue={`${data.overviewData.rejectedCount} transações`}
+              color="#e69e52"
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
               title="Canceladas"
-              value="$0.00"
-              subValue="0 transações"
-              color="yellow-500"
+              value={`$${data.overviewData.cancelledAmount.toFixed(2)}`}
+              subValue={`${data.overviewData.cancelledCount} transações`}
+              color="#ea162d"
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
               title="Pendentes"
-              value="$0.00"
-              subValue="0 transações"
-              color="red-500"
+              value={`$${data.overviewData.pendingAmount.toFixed(2)}`}
+              subValue={`${data.overviewData.pendingCount} transações`}
+              color="#7c8074"
             />
           </Col>
         </Row>
