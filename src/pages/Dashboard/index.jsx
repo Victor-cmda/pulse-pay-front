@@ -13,7 +13,6 @@ export function Dashboard() {
   return (
     <div>
       <Container>
-        {/* <h1 className="text-3xl font-bold mb-8">Dashboard</h1> */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
@@ -58,9 +57,6 @@ export function Dashboard() {
           <Col xs={24} lg={8}>
             <LineChartDotsComponent />
           </Col>
-          {/* <Col xs={24} lg={8}>
-            <RecentSales />
-          </Col> */}
         </Row>
         <Row gutter={[16, 16]} className="mt-8">
           <Col span={24}>

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <div className="navbar bg-base-100 sticky top-0 z-40">
+    <div className="navbar bg-base-100 shadow-lg sticky top-0 z-40">
       <div className="navbar-start">
         <label
           htmlFor="my-drawer"

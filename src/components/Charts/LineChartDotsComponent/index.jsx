@@ -22,27 +22,14 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
+const LineChartDotsComponent = ({ data }) => {
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-};
-
-const LineChartDotsComponent = () => {
+  const chartConfig = {
+    totalAmount: {
+      label: "Quantidade",
+      color: "hsl(var(--chart-1))",
+    },
+  };
   return (
     <Card>
       <CardHeader>
@@ -54,7 +41,7 @@ const LineChartDotsComponent = () => {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 accessibilityLayer
-                data={chartData}
+                data={data}
                 margin={{
                   top: 20,
                   left: 12,
@@ -63,7 +50,7 @@ const LineChartDotsComponent = () => {
               >
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey="month"
+                  dataKey="date"
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
@@ -74,7 +61,7 @@ const LineChartDotsComponent = () => {
                   content={<ChartTooltipContent indicator="line" />}
                 />
                 <Line
-                  dataKey="desktop"
+                  dataKey="totalAmount"
                   type="natural"
                   stroke="var(--color-desktop)"
                   strokeWidth={2}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { authService } from "../../services/AuthService";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import { Typography, Input, Button, Steps, Tooltip } from "antd";
+import { Button } from "antd";
+import AuthService from "../../services/AuthService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -24,10 +24,10 @@ const Login = () => {
     navigate(-1);
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    const result = await authService.login(email, password);
+    const result = await AuthService.login(email, password);
     setResponse(result.message);
     setIsLoading(false);
 

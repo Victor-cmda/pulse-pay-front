@@ -1,6 +1,12 @@
 import * as React from "react";
 import { TrendingUp } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  ResponsiveContainer,
+} from "recharts";
 import {
   Card,
   CardContent,
@@ -15,24 +21,14 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-  { month: "Jul", desktop: 514 },
-];
-
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  count: {
+    label: "Quantidade",
     color: "hsl(var(--chart-1))",
   },
 };
 
-const BarChartComponent = () => {
+const BarChartComponent = ({ data = [] }) => {
   return (
     <Card>
       <CardHeader className="items-center pb-0">
@@ -42,21 +38,22 @@ const BarChartComponent = () => {
       <CardContent className="flex-1 pb-0">
         <div className="chart-container mx-auto">
           <ChartContainer config={chartConfig}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={data}>
                 <CartesianGrid vertical={false} />
                 <XAxis
-                  dataKey="month"
+                  dataKey="day"
                   tickLine={false}
-                  tickMargin={10}
                   axisLine={false}
+                  tickMargin={10}
+                  minTickGap={32}
                   tickFormatter={(value) => value.slice(0, 3)}
                 />
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent hideLabel />}
                 />
-                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8} />
+                <Bar dataKey="count" fill="var(--color-desktop)" radius={8} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
