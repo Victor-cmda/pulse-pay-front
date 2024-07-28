@@ -5,7 +5,9 @@ import {
   InformationCircleIcon,
   AdjustmentsHorizontalIcon,
   CurrencyDollarIcon,
-  KeyIcon, ChartBarIcon
+  KeyIcon,
+  ChartBarIcon,
+  ListBulletIcon,
 } from "@heroicons/react/24/solid";
 
 const Drawer = () => {
@@ -32,7 +34,13 @@ const Drawer = () => {
           className="drawer-overlay"
         ></label>
         <div className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-          <h2 className="text-2xl font-bold mb-4"><img src="./logo-black-transparent.png" alt="Logo" style={{ height: "100px" }} /> </h2>
+          <h2 className="text-2xl font-bold mb-4">
+            <img
+              src="./logo-black-transparent.png"
+              alt="Logo"
+              style={{ height: "100px" }}
+            />{" "}
+          </h2>
           <ul>
             <li>
               <Link to="/" onClick={handleLinkClick}>
@@ -62,6 +70,12 @@ const Drawer = () => {
               <Link to="/dashboard" onClick={handleLinkClick}>
                 <ChartBarIcon className="size-5" />
                 Dashboard
+              </Link>
+            </li>
+            <li>
+              <Link to="/history" onClick={handleLinkClick}>
+                <ListBulletIcon className="size-5" />
+                Histórico de Transações
               </Link>
             </li>
             <li>

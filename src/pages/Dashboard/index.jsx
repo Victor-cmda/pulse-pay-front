@@ -35,32 +35,32 @@ export function Dashboard() {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
-              title="Aprovadas"
-              value={`$${data.overviewData.approvedAmount.toFixed(2)}`}
+              title="Aprovadas (R$)"
+              value={data.overviewData.approvedAmount}
               subValue={`${data.overviewData.approvedCount} transações`}
               color="#1f9b79"
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
-              title="Rejeitos"
-              value={`$${data.overviewData.rejectedAmount.toFixed(2)}`}
+              title="Rejeitos (R$)"
+              value={data.overviewData.rejectedAmount}
               subValue={`${data.overviewData.rejectedCount} transações`}
               color="#e69e52"
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
-              title="Canceladas"
-              value={`$${data.overviewData.cancelledAmount.toFixed(2)}`}
+              title="Canceladas (R$)"
+              value={data.overviewData.cancelledAmount}
               subValue={`${data.overviewData.cancelledCount} transações`}
               color="#ea162d"
             />
           </Col>
           <Col xs={24} sm={12} md={6}>
             <OverviewCard
-              title="Pendentes"
-              value={`$${data.overviewData.pendingAmount.toFixed(2)}`}
+              title="Pendentes (R$)"
+              value={data.overviewData.pendingAmount}
               subValue={`${data.overviewData.pendingCount} transações`}
               color="#7c8074"
             />

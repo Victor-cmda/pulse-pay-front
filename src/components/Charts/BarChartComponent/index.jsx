@@ -23,7 +23,7 @@ import {
 
 const chartConfig = {
   count: {
-    label: "Quantidade",
+    label: "Transações",
     color: "hsl(var(--chart-2))",
   },
 };

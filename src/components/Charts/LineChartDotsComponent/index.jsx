@@ -26,7 +26,7 @@ import {
 const LineChartDotsComponent = ({ data }) => {
   const chartConfig = {
     totalAmount: {
-      label: "Total",
+      label: "Valor Total",
       color: "hsl(221, 83%, 53%)",
     },
   };
