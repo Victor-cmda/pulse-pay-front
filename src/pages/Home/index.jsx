@@ -6,10 +6,12 @@ const Home = () => {
       className="hero"
       style={{
         backgroundImage:
-          "url(https://img.freepik.com/free-photo/closeup-female-entrepreneur-using-laptop-credit-card-online-shopping-while-working-late-office_637285-2598.jpg?t=st=1717023486~exp=1717027086~hmac=cdcb69777039c5d9513ce32275ddd536e3269c4a086609163da9735e379a4555&w=2000)",
+          "url('/homePage.png')",
         minHeight: "94vh"
       }}
+      
     >
+      <img src="././" alt="" />
       <div className="hero-overlay bg-opacity-60"></div>
       <div className="hero-content text-center text-neutral-content">
         <div className="max-w-md">

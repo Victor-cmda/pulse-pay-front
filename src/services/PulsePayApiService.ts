@@ -84,6 +84,70 @@ export class Client {
      * @param body (optional) 
      * @return Success
      */
+    history(body?: string[] | undefined, cancelToken?: CancelToken): Promise<TransactionDataDto[]> {
+        let url_ = this.baseUrl + "/api/history";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processHistory(_response);
+        });
+    }
+
+    protected processHistory(response: AxiosResponse): Promise<TransactionDataDto[]> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        let _mappings: { source: any, target: any }[] = [];
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TransactionDataDto.fromJS(item, _mappings));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return Promise.resolve<TransactionDataDto[]>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<TransactionDataDto[]>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Success
+     */
     pix(body?: PaymentPixRequestDto | undefined, cancelToken?: CancelToken): Promise<void> {
         let url_ = this.baseUrl + "/api/payment/pix";
         url_ = url_.replace(/[?&]$/, "");
@@ -508,6 +572,7 @@ export class Customer implements ICustomer {
     documentType?: string | undefined;
     document?: string | undefined;
     phoneNumber?: string | undefined;
+    birthdate?: string | undefined;
     billingAddress?: BillingAddress;
 
     constructor(data?: ICustomer) {
@@ -529,6 +594,7 @@ export class Customer implements ICustomer {
             this.documentType = _data["documentType"];
             this.document = _data["document"];
             this.phoneNumber = _data["phoneNumber"];
+            this.birthdate = _data["birthdate"];
             this.billingAddress = _data["billingAddress"] ? BillingAddress.fromJS(_data["billingAddress"], _mappings) : <any>undefined;
         }
     }
@@ -548,6 +614,7 @@ export class Customer implements ICustomer {
         data["documentType"] = this.documentType;
         data["document"] = this.document;
         data["phoneNumber"] = this.phoneNumber;
+        data["birthdate"] = this.birthdate;
         data["billingAddress"] = this.billingAddress ? this.billingAddress.toJSON() : <any>undefined;
         return data;
     }
@@ -562,6 +629,7 @@ export interface ICustomer {
     documentType?: string | undefined;
     document?: string | undefined;
     phoneNumber?: string | undefined;
+    birthdate?: string | undefined;
     billingAddress?: BillingAddress;
 }
 
@@ -755,44 +823,6 @@ export interface ILineChartDataDto {
     totalAmount?: number;
 }
 
-export class Order implements IOrder {
-    id?: string | undefined;
-    productType?: string | undefined;
-
-    constructor(data?: IOrder) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any, _mappings?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.productType = _data["productType"];
-        }
-    }
-
-    static fromJS(data: any, _mappings?: any): Order | null {
-        data = typeof data === 'object' ? data : {};
-        return createInstance<Order>(data, _mappings, Order);
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["productType"] = this.productType;
-        return data;
-    }
-}
-
-export interface IOrder {
-    id?: string | undefined;
-    productType?: string | undefined;
-}
-
 export class OverviewDataDto implements IOverviewDataDto {
     approvedAmount?: number;
     approvedCount?: number;
@@ -899,9 +929,9 @@ export interface IPaymentBankSlipRequestDto {
 
 export class PaymentCreditCardRequestDto implements IPaymentCreditCardRequestDto {
     amount?: number;
+    orderId?: string | undefined;
     card?: Card;
     customer?: Customer;
-    order?: Order;
 
     constructor(data?: IPaymentCreditCardRequestDto) {
         if (data) {
@@ -915,9 +945,9 @@ export class PaymentCreditCardRequestDto implements IPaymentCreditCardRequestDto
     init(_data?: any, _mappings?: any) {
         if (_data) {
             this.amount = _data["amount"];
+            this.orderId = _data["orderId"];
             this.card = _data["card"] ? Card.fromJS(_data["card"], _mappings) : <any>undefined;
             this.customer = _data["customer"] ? Customer.fromJS(_data["customer"], _mappings) : <any>undefined;
-            this.order = _data["order"] ? Order.fromJS(_data["order"], _mappings) : <any>undefined;
         }
     }
 
@@ -929,18 +959,18 @@ export class PaymentCreditCardRequestDto implements IPaymentCreditCardRequestDto
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["amount"] = this.amount;
+        data["orderId"] = this.orderId;
         data["card"] = this.card ? this.card.toJSON() : <any>undefined;
         data["customer"] = this.customer ? this.customer.toJSON() : <any>undefined;
-        data["order"] = this.order ? this.order.toJSON() : <any>undefined;
         return data;
     }
 }
 
 export interface IPaymentCreditCardRequestDto {
     amount?: number;
+    orderId?: string | undefined;
     card?: Card;
     customer?: Customer;
-    order?: Order;
 }
 
 export class PaymentPixRequestDto implements IPaymentPixRequestDto {
@@ -1037,6 +1067,72 @@ export class PieChartDataDto implements IPieChartDataDto {
 export interface IPieChartDataDto {
     paymentType?: string | undefined;
     count?: number;
+}
+
+export class TransactionDataDto implements ITransactionDataDto {
+    id?: string;
+    customer?: string | undefined;
+    sellerId?: string;
+    createdAt?: Date;
+    paidAt?: Date | undefined;
+    status?: string | undefined;
+    amount?: number;
+    paymentType?: string | undefined;
+    description?: string | undefined;
+
+    constructor(data?: ITransactionDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any, _mappings?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.customer = _data["customer"];
+            this.sellerId = _data["sellerId"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.paidAt = _data["paidAt"] ? new Date(_data["paidAt"].toString()) : <any>undefined;
+            this.status = _data["status"];
+            this.amount = _data["amount"];
+            this.paymentType = _data["paymentType"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any, _mappings?: any): TransactionDataDto | null {
+        data = typeof data === 'object' ? data : {};
+        return createInstance<TransactionDataDto>(data, _mappings, TransactionDataDto);
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["customer"] = this.customer;
+        data["sellerId"] = this.sellerId;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["paidAt"] = this.paidAt ? this.paidAt.toISOString() : <any>undefined;
+        data["status"] = this.status;
+        data["amount"] = this.amount;
+        data["paymentType"] = this.paymentType;
+        data["description"] = this.description;
+        return data;
+    }
+}
+
+export interface ITransactionDataDto {
+    id?: string;
+    customer?: string | undefined;
+    sellerId?: string;
+    createdAt?: Date;
+    paidAt?: Date | undefined;
+    status?: string | undefined;
+    amount?: number;
+    paymentType?: string | undefined;
+    description?: string | undefined;
 }
 
 function jsonParse(json: any, reviver?: any) {

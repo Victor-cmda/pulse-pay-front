@@ -27,11 +27,15 @@ const Login = () => {
   const handleLogin = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    const result = await PulseService.login(email, password);
-    setResponse(result.message);
-    setIsLoading(false);
-    if (result.success) {
-      navigate("/");
+    try {
+      const result = await PulseService.login(email, password);
+      setResponse(result.message);
+      if (result.success) {
+        navigate("/");
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setResponse("Usuário ou senha incorretos. Por favor, tente novamente.");
     }
   };
 

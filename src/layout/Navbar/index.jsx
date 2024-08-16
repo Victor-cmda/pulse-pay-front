@@ -1,7 +1,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import PulseService from "../../services/PulseService";
 
 const Navbar = () => {
+
+  const handleLogout = async (event) => {
+    event.preventDefault();
+    try {
+      const result = await PulseService.logout();
+      if (result.success) {
+        navigate("/login");
+      }
+    } catch (error) {
+      setResponse("Ocorreu um erro ao tentar sair. Por favor, tente novamente.");
+    }
+  };
+
   return (
     <div className="navbar bg-base-100 shadow-lg sticky top-0 z-40">
       <div className="navbar-start">
@@ -47,7 +61,7 @@ const Navbar = () => {
             />
           </svg>
         </button>
-        <button className="btn btn-ghost btn-circle">
+        <button className="btn btn-ghost btn-circle" onClick={handleLogout}>
           <div className="indicator">
             <svg
               xmlns="http://www.w3.org/2000/svg"

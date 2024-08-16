@@ -1,6 +1,6 @@
 import React from "react";
 import { Navbar, Drawer } from "../../layout";
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 const MainLayout = ({ children }) => {
   const location = useLocation();

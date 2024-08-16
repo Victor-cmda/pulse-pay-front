@@ -49,18 +49,6 @@ const Drawer = () => {
               </Link>
             </li>
             <li>
-              <Link to="/about" onClick={handleLinkClick}>
-                <InformationCircleIcon className="size-5" />
-                Sobre
-              </Link>
-            </li>
-            <li>
-              <Link to="/gerar-pix" onClick={handleLinkClick}>
-                <CurrencyDollarIcon className="size-5" />
-                Gerar Pix
-              </Link>
-            </li>
-            <li>
               <Link to="/configuration" onClick={handleLinkClick}>
                 <AdjustmentsHorizontalIcon className="size-5" />
                 Configurações

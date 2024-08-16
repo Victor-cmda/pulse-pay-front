@@ -1,4 +1,3 @@
-import axios from "axios";
 import { Client as PulseAuthClient } from "./PulseAuthApiService";
 import { Client as PulsePayClient } from "./PulsePayApiService";
 import { LoginDto, SellerResponseDto } from "./PulseAuthApiService"; // Importando o tipo LoginDto
@@ -11,9 +10,46 @@ class PulseService {
 
     const token = Cookies.get("accessToken");
     const paymentToken = Cookies.get("paymentToken");
-    
+
     if (token) this.setBearerToken(token);
     if (paymentToken) this.setPaymentToken(paymentToken);
+
+    this.setupInterceptors();
+  }
+
+  setupInterceptors() {
+    const handleUnauthorized = (error) => {
+      if (error.response && error.response.status === 401) {
+        this.handleUnauthorized();
+      }
+      return Promise.reject(error);
+    };
+
+    this.authClient.instance.interceptors.response.use(
+      (response) => response,
+      handleUnauthorized
+    );
+
+    this.payClient.instance.interceptors.response.use(
+      (response) => response,
+      handleUnauthorized
+    );
+  }
+
+  handleUnauthorized = (error) => {
+    if (error.response && error.response.status === 401) {
+      this.redirectToLogin();
+    }
+    return Promise.reject(error);
+  };
+
+  redirectToLogin() {
+    Cookies.remove("accessToken");
+    Cookies.remove("paymentToken");
+    Cookies.remove("clientId");
+    Cookies.remove("clientSecret");
+
+    window.location.href = "/login";
   }
 
   setBearerToken(token) {
@@ -81,9 +117,21 @@ class PulseService {
     }
   }
 
+  async logout() {
+    try {
+      this.redirectToLogin();
+    } catch (error) {
+      this.handleError(error);
+      return {
+        success: false,
+        message: error.message || "Erro desconhecido",
+      };
+    }
+  }
+
   async generateToken() {
     try {
-      this.setBasicAuth(); 
+      this.setBasicAuth();
       const response = await this.authClient.generateToken();
       this.setPaymentToken(response.accessToken);
       Cookies.set("paymentToken", response.accessToken, { expires: 1 });
@@ -110,7 +158,7 @@ class PulseService {
         success: true,
         message: "Dados dos vendedores obtidos com sucesso",
         data: response,
-        listIdSellers: listIdSellers
+        listIdSellers: listIdSellers,
       };
     } catch (error) {
       this.handleError(error);
@@ -162,7 +210,9 @@ class PulseService {
   async getDashboard() {
     try {
       const sellers = await this.getSellersByUserId();
-      await this.generateToken();
+      const paymentToken = Cookies.get("paymentToken");
+      if (paymentToken) this.setPaymentToken(paymentToken);
+      else await this.generateToken();
       const response = await this.payClient.dashboard(sellers.listIdSellers);
       return {
         success: true,
@@ -174,6 +224,27 @@ class PulseService {
       return {
         success: false,
         message: error.message || "Erro ao obter dados do dashboard",
+      };
+    }
+  }
+
+  async getHistory() {
+    try {
+      const sellers = await this.getSellersByUserId();
+      const paymentToken = Cookies.get("paymentToken");
+      if (paymentToken) this.setPaymentToken(paymentToken);
+      else await this.generateToken();
+      const response = await this.payClient.history(sellers.listIdSellers);
+      return {
+        success: true,
+        message: "Dados do histórico obtidos com sucesso",
+        data: response,
+      };
+    } catch (error) {
+      this.handleError(error);
+      return {
+        success: false,
+        message: error.message || "Erro ao obter dados do histórico",
       };
     }
   }
