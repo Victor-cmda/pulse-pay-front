@@ -76,6 +76,12 @@ const Drawer = () => {
                 Registro
               </Link>
             </li>
+            <li>
+              <Link to="/withdraw" onClick={handleLinkClick}>
+                <KeyIcon className="size-5" />
+                Sacar
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
