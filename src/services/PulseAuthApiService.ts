@@ -258,6 +258,9 @@ export class RegisterDto implements IRegisterDto {
     username?: string | undefined;
     email?: string | undefined;
     password?: string | undefined;
+    document?: string | undefined;
+    documentType?: string | undefined;
+    phoneNumber?: string | undefined;
 
     constructor(data?: IRegisterDto) {
         if (data) {
@@ -273,6 +276,9 @@ export class RegisterDto implements IRegisterDto {
             this.username = _data["username"];
             this.email = _data["email"];
             this.password = _data["password"];
+            this.document = _data["document"];
+            this.documentType = _data["documentType"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -288,6 +294,9 @@ export class RegisterDto implements IRegisterDto {
         data["username"] = this.username;
         data["email"] = this.email;
         data["password"] = this.password;
+        data["document"] = this.document;
+        data["documentType"] = this.documentType;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 }
@@ -296,6 +305,9 @@ export interface IRegisterDto {
     username?: string | undefined;
     email?: string | undefined;
     password?: string | undefined;
+    document?: string | undefined;
+    documentType?: string | undefined;
+    phoneNumber?: string | undefined;
 }
 
 export class SellerDto implements ISellerDto {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./styles.css";
 import { Container } from "../../components";
-import { Typography, Input, Button, Steps, Tooltip } from "antd";
+import { Button, Steps } from "antd";
 import {
   IdentificationIcon,
   DevicePhoneMobileIcon,
@@ -15,47 +15,62 @@ import {
   ArrowRightOutlined,
   UserAddOutlined,
 } from "@ant-design/icons";
-
-const { Title } = Typography;
+import {
+  validateDocument,
+  validateCNPJ,
+  formatDocument,
+} from "../../validators/documentValidator";
+import {
+  validateFullName,
+  validateCompanyName,
+} from "../../validators/nameValidator";
 const { Step } = Steps;
+import {
+  validateEmail,
+  formatPhone,
+  validatePhone,
+} from "../../validators/contactValidator";
 
 const Register = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
-    surname: "",
     email: "",
-    confirmEmail: "",
     phone: "",
     password: "",
     confirmPassword: "",
-    CPF: "",
-    DDI: "",
+    document: "",
+    documentType: "",
   });
   const [isFormValid, setIsFormValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState("");
-  const [isCPF, setIsCPF] = useState(true);
-
+  const [documentType, setDocumentType] = useState("CNPJ");
+  const [isDirty, setIsDirty] = useState(false);
+  const [documentError, setDocumentError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     validateForm();
-  }, [formData, currentStep]);
+  }, [formData, currentStep, documentError]);
 
   const validateForm = () => {
-    const { name, CPF, surname, email, phone, password, confirmPassword } =
+    const { name, document, email, phone, password, confirmPassword } =
       formData;
+
     switch (currentStep) {
       case 0:
         setIsFormValid(
-          name.length > 0 &&
-            surname.length > 0 &&
-            (validateCPF(CPF) || validateCNPJ(CPF))
+          name.length > 0 && document.length > 0 && !documentError && !nameError
         );
         break;
       case 1:
-        setIsFormValid(email.includes("@") && phone.length > 0);
+        setIsFormValid(
+          email.length > 0 && phone.length > 0 && !emailError && !phoneError
+        );
         break;
       case 2:
         setIsFormValid(password.length > 0 && password === confirmPassword);
@@ -64,95 +79,68 @@ const Register = () => {
         setIsFormValid(false);
     }
   };
-
-  const validateCPF = (cpf) => {
-    cpf = cpf.replace(/[^\d]+/g, "");
-    if (cpf.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cpf)) return false;
-
-    let sum = 0;
-    let remainder;
-    for (let i = 1; i <= 9; i++) {
-      sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-    }
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(9, 10))) return false;
-
-    sum = 0;
-    for (let i = 1; i <= 10; i++) {
-      sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-    }
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(10, 11))) return false;
-
-    return true;
-  };
-
-  const validateCNPJ = (cnpj) => {
-    cnpj = cnpj.replace(/[^\d]+/g, "");
-    if (cnpj.length !== 14) return false;
-    if (/^(\d)\1{13}$/.test(cnpj)) return false;
-
-    let length = cnpj.length - 2;
-    let numbers = cnpj.substring(0, length);
-    let digits = cnpj.substring(length);
-    let sum = 0;
-    let pos = length - 7;
-    for (let i = length; i >= 1; i--) {
-      sum += numbers.charAt(length - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-    if (result != digits.charAt(0)) return false;
-
-    length = length + 1;
-    numbers = cnpj.substring(0, length);
-    sum = 0;
-    pos = length - 7;
-    for (let i = length; i >= 1; i--) {
-      sum += numbers.charAt(length - i) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-    if (result != digits.charAt(1)) return false;
-
-    return true;
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    if (name === "name") {
+      const sanitizedValue = value.replace(
+        /[^A-Za-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]/g,
+        ""
+      );
+
+      setFormData({
+        ...formData,
+        [name]: sanitizedValue,
+      });
+
+      if (isDirty) {
+        const error = validateName(sanitizedValue);
+        setNameError(error);
+      }
+    } else if (name === "email") {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+
+      if (isDirty) {
+        const error = validateEmail(value);
+        setEmailError(error);
+      }
+    } else if (name === "phone") {
+      const { formattedValue, error } = formatPhone(value);
+
+      setFormData({
+        ...formData,
+        [name]: formattedValue,
+      });
+
+      if (isDirty) {
+        setPhoneError(error);
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
-  const handleCPFChange = (e) => {
-    const { value } = e.target;
-    const onlyNumbers = value.replace(/\D/g, "");
+  const handleDocumentChange = (e) => {
+    const value = e.target.value;
+    const { formattedValue, type } = formatDocument(value);
 
-    let formattedValue;
-    if (onlyNumbers.length <= 11) {
-      setIsCPF(true);
-      formattedValue = onlyNumbers
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    } else {
-      setIsCPF(false);
-      formattedValue = onlyNumbers
-        .replace(/(\d{2})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1/$2")
-        .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    setFormData((prev) => ({
+      ...prev,
+      document: formattedValue,
+      documentType: type,
+    }));
+
+    setDocumentType(type);
+
+    if (isDirty) {
+      validateAndShowDocumentError(formattedValue);
     }
-
-    setFormData({
-      ...formData,
-      CPF: formattedValue,
-    });
   };
 
   const handleNext = () => {
@@ -182,6 +170,45 @@ const Register = () => {
     }
   };
 
+  const validateAndShowDocumentError = (value) => {
+    const documentWithoutMask = value.replace(/[^\d]+/g, "");
+
+    if (!documentWithoutMask) {
+      setDocumentError("");
+      return;
+    }
+
+    if (
+      documentWithoutMask.length !== 11 &&
+      documentWithoutMask.length !== 14
+    ) {
+      setDocumentError("Documento deve ter 11 (CPF) ou 14 (CNPJ) dígitos");
+      return;
+    }
+
+    if (documentWithoutMask.length === 11) {
+      if (!validateDocument(documentWithoutMask)) {
+        setDocumentError("CPF inválido");
+      } else {
+        setDocumentError("");
+        setDocumentType("CPF");
+      }
+    } else {
+      if (!validateCNPJ(documentWithoutMask)) {
+        setDocumentError("CNPJ inválido");
+      } else {
+        setDocumentError("");
+        setDocumentType("CNPJ");
+      }
+    }
+  };
+
+  const validateName = (name) => {
+    return documentType === "CNPJ"
+      ? validateCompanyName(name)
+      : validateFullName(name);
+  };
+
   const steps = [
     {
       title: "Dados",
@@ -190,43 +217,56 @@ const Register = () => {
         <>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">CPF</span>
+              <span className="label-text">Documento (CNPJ/CPF)</span>
             </label>
             <input
               type="text"
-              placeholder="CPF"
-              name="CPF"
-              className="input input-bordered"
-              value={formData.CPF}
-              onChange={handleInputChange}
+              placeholder={
+                documentType === "CPF" ? "000.000.000-00" : "00.000.000/0000-00"
+              }
+              name="document"
+              className={`input input-bordered ${
+                documentError ? "input-error" : ""
+              }`}
+              value={formData.document}
+              onChange={(e) => handleDocumentChange(e)}
+              maxLength={18}
+              onBlur={(e) => {
+                setIsDirty(true);
+                validateAndShowDocumentError(e.target.value);
+              }}
               required
             />
+            {documentError && (
+              <label className="label">
+                <span className="label-text-alt text-error">
+                  {documentError}
+                </span>
+              </label>
+            )}
           </div>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Nome</span>
+              <span className="label-text">
+                {documentType === "CNPJ" ? "Razão Social" : "Nome Completo"}
+              </span>
             </label>
             <input
               type="text"
-              placeholder="Nome"
+              placeholder={
+                documentType === "CNPJ" ? "Razão Social" : "Nome Completo"
+              }
               name="name"
-              className="input input-bordered"
+              className={`input input-bordered ${
+                nameError ? "input-error" : ""
+              }`}
               value={formData.name}
               onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Sobrenome</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Sobrenome"
-              name="surname"
-              className="input input-bordered"
-              value={formData.surname}
-              onChange={handleInputChange}
+              onBlur={() => {
+                setIsDirty(true);
+                const error = validateName(formData.name);
+                setNameError(error);
+              }}
               required
             />
           </div>
@@ -246,53 +286,49 @@ const Register = () => {
               type="email"
               placeholder="E-mail"
               name="email"
-              className="input input-bordered"
+              className={`input input-bordered ${
+                emailError ? "input-error" : ""
+              }`}
               value={formData.email}
               onChange={handleInputChange}
+              onBlur={() => {
+                setIsDirty(true);
+                setEmailError(validateEmail(formData.email));
+              }}
               required
             />
+            {emailError && (
+              <label className="label">
+                <span className="label-text-alt text-error">{emailError}</span>
+              </label>
+            )}
           </div>
+
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Confirmação de E-mail</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Confirmação de E-mail"
-              name="confirmEmail"
-              className="input input-bordered"
-              value={formData.confirmEmail}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">DDI</span>
-            </label>
-            <input
-              type="text"
-              placeholder="DDI"
-              name="DDI"
-              className="input input-bordered"
-              value={formData.DDI}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Celular com DDD</span>
+              <span className="label-text">Número de Celular</span>
             </label>
             <input
               type="tel"
-              placeholder="Celular com DDD"
+              placeholder="(00) 00000-0000"
               name="phone"
-              className="input input-bordered"
+              className={`input input-bordered ${
+                phoneError ? "input-error" : ""
+              }`}
               value={formData.phone}
               onChange={handleInputChange}
+              onBlur={() => {
+                setIsDirty(true);
+                setPhoneError(validatePhone(formData.phone));
+              }}
+              maxLength={15}
               required
             />
+            {phoneError && (
+              <label className="label">
+                <span className="label-text-alt text-error">{phoneError}</span>
+              </label>
+            )}
           </div>
         </>
       ),

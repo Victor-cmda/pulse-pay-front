@@ -13,7 +13,7 @@ import {
   UpdateTransactionStatusRequest
 } from "./PulsePayApiService";
 
-const baseUrl = "http://localhost:5232";
+const baseUrl = "https://localhost:5232";
 
 // Inicialização dos clientes
 const walletClient = new WalletClient(baseUrl);

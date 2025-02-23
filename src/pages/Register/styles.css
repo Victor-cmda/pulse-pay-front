@@ -4,3 +4,7 @@
   justify-content: center;
   margin-top: 50px;
 }
+
+.label-text-alt {
+  transition: all 0.2s ease-in-out;
+}

@@ -9,11 +9,14 @@ class AuthService {
     this.authClient = new AuthClient("http://localhost:8081");
   }
 
-  async register(username, email, password) {
+  async register(dto) {
     const registerDto = new RegisterDto({
-      username,
-      email,
-      password,
+      username: dto.name,
+      email: dto.email,
+      password : dto.password,
+      document : dto.document,
+      phoneNumber: dto.phone,
+      documentType: dto.documentType,
     });
 
     try {
