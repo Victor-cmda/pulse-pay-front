@@ -1,3 +1,4 @@
+import exp from "constants";
 import {
   Client as AuthClient,
   RegisterDto,
@@ -13,8 +14,8 @@ class AuthService {
     const registerDto = new RegisterDto({
       username: dto.name,
       email: dto.email,
-      password : dto.password,
-      document : dto.document,
+      password: dto.password,
+      document: dto.document,
       phoneNumber: dto.phone,
       documentType: dto.documentType,
     });
@@ -37,8 +38,22 @@ class AuthService {
     });
 
     try {
-      await this.authClient.login(loginDto);
-      return { success: true };
+      const response = await this.authClient.login(loginDto);
+      return {
+        success: true,
+        data: {
+          user: {
+            name: response.user.name,
+            email: response.user.email,
+            phoneNumber: response.user.phoneNumber,
+          },
+          token: response.accessToken,
+          expiresIn: response.expiresIn
+            .toISOString()
+            .replace(/T/, " ")
+            .replace(/\..+/, ""),
+        },
+      };
     } catch (error) {
       return {
         success: false,

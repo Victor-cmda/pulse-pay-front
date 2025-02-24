@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { authService } from "../../services/AuthService";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import { Typography, Input, Button, Steps, Tooltip } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "antd";
+import { loginUser } from "../../store/slices/userSlice";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +12,8 @@ const Login = () => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.user);
 
   useEffect(() => {
     validateForm();
@@ -24,15 +27,18 @@ const Login = () => {
     navigate(-1);
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (event) => {
     event.preventDefault();
-    setIsLoading(true);
-    const result = await authService.login(email, password);
-    setResponse(result.message);
-    setIsLoading(false);
 
-    if (result.success) {
+    try {
+      setIsLoading(true);
+      await dispatch(loginUser({ email, password })).unwrap();
       navigate("/");
+    } catch (err) {
+      console.error("Login failed:", err);
+      setResponse(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 

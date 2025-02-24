@@ -5,8 +5,10 @@ import {
   InformationCircleIcon,
   AdjustmentsHorizontalIcon,
   CurrencyDollarIcon,
-  KeyIcon, ChartBarIcon
+  KeyIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/solid";
+import { PiggyBank, Wallet } from "lucide-react";
 
 const Drawer = () => {
   const drawerCheckboxRef = useRef(null);
@@ -32,7 +34,13 @@ const Drawer = () => {
           className="drawer-overlay"
         ></label>
         <div className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-          <h2 className="text-2xl font-bold mb-4"><img src="./logo-black-transparent.png" alt="Logo" style={{ height: "100px" }} /> </h2>
+          <h2 className="text-2xl font-bold mb-4">
+            <img
+              src="./logo-black-transparent.png"
+              alt="Logo"
+              style={{ height: "100px" }}
+            />{" "}
+          </h2>
           <ul>
             <li>
               <Link to="/" onClick={handleLinkClick}>
@@ -80,6 +88,18 @@ const Drawer = () => {
               <Link to="/withdraw" onClick={handleLinkClick}>
                 <KeyIcon className="size-5" />
                 Sacar
+              </Link>
+            </li>
+            <li>
+              <Link to="/wallet" onClick={handleLinkClick}>
+                <Wallet className="size-5" />
+                Carteira
+              </Link>
+            </li>
+            <li>
+              <Link to="/bank" onClick={handleLinkClick}>
+                <PiggyBank className="size-5" />
+                Bancos
               </Link>
             </li>
           </ul>
