@@ -29,8 +29,6 @@ const BankAccountForm = () => {
   useEffect(() => {
     setMounted(true);
     if (id) {
-      // Carregar dados da conta para edição
-      // loadBankAccount(id);
     }
   }, [id]);
 
@@ -39,14 +37,11 @@ const BankAccountForm = () => {
     setLoading(true);
     try {
       if (id) {
-        // await updateBankAccount(id, formData);
       } else {
-        // await createBankAccount(formData);
       }
       navigate("/bank-accounts");
     } catch (error) {
       console.error(error);
-      // Mostrar mensagem de erro
     } finally {
       setLoading(false);
     }
@@ -59,7 +54,6 @@ const BankAccountForm = () => {
           mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
             className="btn btn-ghost btn-sm"
@@ -78,12 +72,9 @@ const BankAccountForm = () => {
             </p>
           </div>
         </div>
-
-        {/* Form */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Tipo de Conta */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Tipo de Conta</span>
@@ -111,8 +102,6 @@ const BankAccountForm = () => {
                   </a>
                 </div>
               </div>
-
-              {/* Seleção do Banco */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Banco</span>
@@ -139,7 +128,6 @@ const BankAccountForm = () => {
                   ))}
                 </select>
               </div>
-
               {formData.accountType === "TED" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="form-control">
@@ -219,8 +207,6 @@ const BankAccountForm = () => {
                   </div>
                 </div>
               )}
-
-              {/* Campos Comuns */}
               <div className="space-y-4">
                 <div className="form-control">
                   <label className="label">
@@ -263,8 +249,6 @@ const BankAccountForm = () => {
                   />
                 </div>
               </div>
-
-              {/* Botões */}
               <div className="flex justify-end gap-2 pt-4">
                 <button
                   type="button"

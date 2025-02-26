@@ -8,3 +8,4 @@ export { default as Withdraw } from "./Withdraw";
 export { default as About } from "./About";
 export { default as WalletManagement } from "./WalletManagement";
 export { default as BankAccountManagement } from "./BankAccountManagement";
+export { default as Notifications } from "./Notifications";

@@ -82,7 +82,7 @@ const Home = () => {
           </div>
 
           <div className="stat bg-base-100 rounded-box shadow-lg">
-            <div className="stat-figure text-secondary">
+            <div className="stat-figure text-primary">
               <PieChart className="w-8 h-8" />
             </div>
             <div className="stat-title">Transações</div>
@@ -91,7 +91,7 @@ const Home = () => {
           </div>
 
           <div className="stat bg-base-100 rounded-box shadow-lg">
-            <div className="stat-figure text-accent">
+            <div className="stat-figure text-primary">
               <Wallet className="w-8 h-8" />
             </div>
             <div className="stat-title">Saldo Atual</div>

@@ -5,13 +5,13 @@ import {
   Award,
   Rocket,
   CheckCircle,
-  Building2,
   Mail,
   Phone,
   MapPin,
   Github,
   Linkedin,
   MessageSquare,
+  ChevronRight,
 } from "lucide-react";
 
 const About = () => {
@@ -23,19 +23,19 @@ const About = () => {
 
   const features = [
     {
-      icon: <Target className="w-8 h-8" />,
+      icon: <Target className="w-6 h-6" />,
       title: "Nossa Missão",
       description:
         "Simplificar e revolucionar a forma como as empresas gerenciam seus pagamentos, oferecendo soluções tecnológicas inovadoras e seguras.",
     },
     {
-      icon: <Award className="w-8 h-8" />,
+      icon: <Award className="w-6 h-6" />,
       title: "Nossa Visão",
       description:
         "Ser referência nacional em soluções de pagamento, reconhecida pela excelência, inovação e compromisso com o sucesso dos nossos clientes.",
     },
     {
-      icon: <CheckCircle className="w-8 h-8" />,
+      icon: <CheckCircle className="w-6 h-6" />,
       title: "Nossos Valores",
       description:
         "Integridade, Inovação, Excelência, Segurança e Foco no Cliente são os pilares que guiam nossas ações.",
@@ -67,159 +67,208 @@ const About = () => {
     },
   ];
 
+  const timeline = [
+    {
+      year: "2023",
+      title: "Fundação",
+      description:
+        "Nascimento do PulsePay com uma visão inovadora para o mercado de pagamentos.",
+    },
+    {
+      year: "2024",
+      title: "Expansão",
+      description:
+        "Alcance de marcos significativos e expansão para novos mercados.",
+    },
+    {
+      year: "2025",
+      title: "Próximos Passos",
+      description:
+        "Novas tecnologias e expansão da equipe para atender demandas crescentes.",
+    },
+  ];
+
   return (
-    <div className="min-h-[94vh] bg-gradient-to-b from-base-200 to-base-300">
-      <div
-        className={`container mx-auto px-4 py-16 transition-all duration-1000 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-6">Sobre o PulsePay</h1>
-          <p className="text-xl text-base-content/70 max-w-3xl mx-auto">
-            Somos uma empresa de tecnologia financeira dedicada a transformar a
-            maneira como as empresas gerenciam seus pagamentos e transações
-            financeiras.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="stat bg-base-100 rounded-box shadow-lg text-center"
-            >
-              <div className="stat-value text-primary">{stat.value}</div>
-              <div className="stat-title">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {features.map((feature, index) => (
-            <div key={index} className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <div className="text-primary mb-4">{feature.icon}</div>
-                <h2 className="card-title mb-3">{feature.title}</h2>
-                <p>{feature.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">
-            Nossa História
-          </h2>
-          <div className="flex flex-col md:grid grid-cols-9 mx-auto p-2">
-            <div className="flex flex-row-reverse md:contents">
-              <div className="col-start-1 col-end-5 p-4 rounded-xl my-4 ml-auto shadow-md bg-primary">
-                <h3 className="font-semibold text-lg mb-1 text-primary-content">
-                  2023 - Fundação
-                </h3>
-                <p className="text-primary-content">
-                  Nascimento do PulsePay com uma visão inovadora para o mercado
-                  de pagamentos.
-                </p>
-              </div>
-              <div className="col-start-5 col-end-6 md:mx-auto relative mr-10">
-                <div className="h-full w-6 flex items-center justify-center">
-                  <div className="h-full w-1 bg-primary pointer-events-none"></div>
-                </div>
-                <div className="w-6 h-6 absolute top-1/2 -mt-3 rounded-full bg-primary"></div>
-              </div>
-            </div>
-            <div className="flex md:contents">
-              <div className="col-start-5 col-end-6 mr-10 md:mx-auto relative">
-                <div className="h-full w-6 flex items-center justify-center">
-                  <div className="h-full w-1 bg-secondary pointer-events-none"></div>
-                </div>
-                <div className="w-6 h-6 absolute top-1/2 -mt-3 rounded-full bg-secondary"></div>
-              </div>
-              <div className="col-start-6 col-end-10 p-4 rounded-xl my-4 mr-auto shadow-md bg-secondary">
-                <h3 className="font-semibold text-lg mb-1 text-secondary-content">
-                  2024 - Expansão
-                </h3>
-                <p className="text-secondary-content">
-                  Alcance de marcos significativos e expansão para novos
-                  mercados.
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-base-100">
+      <section className="pt-12 pb-20 px-4 bg-base-200">
+        <div className="container mx-auto max-w-4xl">
+          <div
+            className={`transition-all duration-700 ${
+              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+          >
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center">
+              Sobre o PulsePay
+            </h1>
+            <p className="text-lg md:text-xl text-base-content/70 text-center max-w-3xl mx-auto">
+              Somos uma empresa de tecnologia financeira dedicada a transformar
+              a maneira como as empresas gerenciam seus pagamentos e transações
+              financeiras.
+            </p>
           </div>
         </div>
+      </section>
 
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Nossa Equipe</h2>
+      <section className="py-12 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <div
+                key={index}
+                className="bg-base-100 p-6 rounded-lg shadow-sm border border-base-200"
+              >
+                <div className="text-3xl font-bold text-primary mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-base-content/70">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 bg-base-100">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-3xl font-bold mb-12 text-center">
+            Nossos Princípios
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-base-100 p-8 rounded-lg shadow-sm border border-base-200"
+              >
+                <div className="text-primary mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-base-content/70">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 bg-base-200">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold mb-12 text-center">
+            Nossa História
+          </h2>
+
+          <div className="space-y-12">
+            {timeline.map((item, index) => (
+              <div key={index} className="flex items-start">
+                <div className="mr-4 flex-shrink-0">
+                  <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-content font-bold">
+                    {item.year}
+                  </div>
+                </div>
+                <div className="flex-grow pt-1">
+                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                  <p className="text-base-content/70">{item.description}</p>
+                  {index < timeline.length - 1 && (
+                    <div className="h-16 w-0.5 bg-base-300 ml-8 my-4"></div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 bg-base-100">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-3xl font-bold mb-12 text-center">Nossa Equipe</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {team.map((member, index) => (
-              <div key={index} className="card bg-base-100 shadow-xl">
-                <figure className="px-10 pt-10">
+              <div
+                key={index}
+                className="bg-base-100 rounded-lg shadow-sm border border-base-200 overflow-hidden"
+              >
+                <div className="p-6 flex flex-col items-center text-center">
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="rounded-xl w-32 h-32"
+                    className="w-32 h-32 rounded-full mb-6"
                   />
-                </figure>
-                <div className="card-body items-center text-center">
-                  <h2 className="card-title">{member.name}</h2>
-                  <p className="text-base-content/70">{member.role}</p>
-                  <div className="card-actions justify-center mt-2">
-                    <button className="btn btn-circle btn-sm">
-                      <Linkedin className="w-4 h-4" />
-                    </button>
-                    <button className="btn btn-circle btn-sm">
-                      <Github className="w-4 h-4" />
-                    </button>
+                  <h3 className="text-xl font-semibold">{member.name}</h3>
+                  <p className="text-base-content/70 mb-4">{member.role}</p>
+                  <div className="flex space-x-3">
+                    <a
+                      href="#"
+                      className="p-2 rounded-full bg-base-200 hover:bg-primary hover:text-primary-content transition-colors"
+                    >
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a
+                      href="#"
+                      className="p-2 rounded-full bg-base-200 hover:bg-primary hover:text-primary-content transition-colors"
+                    >
+                      <Github className="w-5 h-5" />
+                    </a>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Tecnologias</h2>
-          <div className="flex flex-wrap justify-center gap-6">
-            {["React", "Node.js", "MongoDB", "Docker", "AWS"].map(
-              (tech, index) => (
-                <div key={index} className="badge badge-lg badge-primary p-4">
-                  {tech}
+      <section className="py-16 px-4 bg-base-200">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold mb-8 text-center">Tecnologias</h2>
+          <div className="flex flex-wrap justify-center gap-4">
+            {["PulsePay", "ASD Amazonas"].map((tech, index) => (
+              <div key={index} className="badge badge-lg py-3 px-4">
+                {tech}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 bg-base-100">
+        <div className="container mx-auto max-w-5xl">
+          <div className="bg-base-100 shadow-sm border border-base-200 rounded-lg overflow-hidden">
+            <div className="p-8">
+              <h2 className="text-2xl font-bold mb-6 text-center">
+                Entre em Contato
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div className="flex items-start">
+                  <Mail className="w-5 h-5 text-primary mr-3 mt-1" />
+                  <div>
+                    <h3 className="font-medium mb-1">Email</h3>
+                    <p className="text-base-content/70">contato@pulsepay.com</p>
+                  </div>
                 </div>
-              )
-            )}
-          </div>
-        </div>
 
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title text-center justify-center mb-6">
-              Entre em Contato
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-primary" />
-                <span>contato@pulsepay.com</span>
+                <div className="flex items-start">
+                  <Phone className="w-5 h-5 text-primary mr-3 mt-1" />
+                  <div>
+                    <h3 className="font-medium mb-1">Telefone</h3>
+                    <p className="text-base-content/70">(11) 9999-9999</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <MapPin className="w-5 h-5 text-primary mr-3 mt-1" />
+                  <div>
+                    <h3 className="font-medium mb-1">Localização</h3>
+                    <p className="text-base-content/70">São Paulo, SP</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary" />
-                <span>(11) 9999-9999</span>
+
+              <div className="flex justify-center">
+                <a href="/contato" className="btn btn-primary">
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  Fale Conosco
+                </a>
               </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-primary" />
-                <span>São Paulo, SP</span>
-              </div>
-            </div>
-            <div className="divider"></div>
-            <div className="flex justify-center gap-4">
-              <button className="btn btn-primary">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Fale Conosco
-              </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

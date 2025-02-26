@@ -16,6 +16,7 @@ import {
   About,
   WalletManagement,
   BankAccountManagement,
+  Notifications,
 } from "./pages";
 import { ProtectedRoute, PublicRoute } from "./routes";
 import { store, persistor } from "./store";
@@ -120,7 +121,22 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/404" element={<NotFound />} />
+              <Route
+                path="/404"
+                element={
+                  <ProtectedRoute>
+                    <NotFound />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
           </MainLayout>
