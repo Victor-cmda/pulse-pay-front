@@ -24,6 +24,7 @@ import { Provider } from "react-redux";
 import React from "react";
 import { PersistGate } from "redux-persist/integration/react";
 import { LoadingSpinner } from "./components";
+import BankAccountForm from "./pages/BankAccountForm";
 
 const App = () => {
   return (
@@ -109,7 +110,7 @@ const App = () => {
                 path="/bank/new"
                 element={
                   <ProtectedRoute>
-                    <BankAccountManagement />
+                    <BankAccountForm />
                   </ProtectedRoute>
                 }
               />
@@ -117,7 +118,7 @@ const App = () => {
                 path="/bank/edit/:id"
                 element={
                   <ProtectedRoute>
-                    <BankAccountManagement />
+                    <BankAccountForm />
                   </ProtectedRoute>
                 }
               />

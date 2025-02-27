@@ -3,6 +3,7 @@ import {
   Client as AuthClient,
   RegisterDto,
   LoginDto,
+  SellerDto,
 } from "./PulseAuthApiService";
 
 class AuthService {
@@ -58,6 +59,40 @@ class AuthService {
       return {
         success: false,
         message: `Não foi possível realizar login, usuário ou senha incorretos`,
+      };
+    }
+  }
+
+  async postSeller(name, description) {
+    const sellerDto = new SellerDto({
+      name,
+      description,
+    });
+
+    try {
+      const response = await this.authClient.seller(sellerDto);
+      return { success: true, message: "Comércio criado com sucesso" };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Não foi possível criar seu novo comércio`,
+      };
+    }
+  }
+
+  async getSellers(name, description) {
+    const sellerDto = new SellerDto({
+      name,
+      description,
+    });
+
+    try {
+      const response = await this.authClient.seller(sellerDto);
+      return { success: true, message: "Comércio criado com sucesso" };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Não foi possível criar seu novo comércio`,
       };
     }
   }
