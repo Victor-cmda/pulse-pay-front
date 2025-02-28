@@ -4,11 +4,27 @@ import {
   RegisterDto,
   LoginDto,
   SellerDto,
+  UpdateConfigurationDto,
+  ApiConfigUpdateDto,
+  CommerceCreateDto,
+  CommerceUpdateDto,
+  CommerceCallbackUpdateDto,
 } from "./PulseAuthApiService";
 
 class AuthService {
   constructor() {
     this.authClient = new AuthClient("http://localhost:8081");
+    this.setAuthorizationHeader = this.setAuthorizationHeader.bind(this);
+  }
+
+  setAuthorizationHeader(token) {
+    if (token) {
+      this.authClient.instance.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${token}`;
+    } else {
+      delete this.authClient.instance.defaults.headers.common["Authorization"];
+    }
   }
 
   async register(dto) {
@@ -63,36 +79,262 @@ class AuthService {
     }
   }
 
-  async postSeller(name, description) {
-    const sellerDto = new SellerDto({
-      name,
-      description,
-    });
-
+  async getConfiguration() {
     try {
-      const response = await this.authClient.seller(sellerDto);
-      return { success: true, message: "Comércio criado com sucesso" };
+      const response = await this.authClient.configurationGET();
+      return {
+        success: true,
+        data: response,
+      };
     } catch (error) {
       return {
         success: false,
-        message: `Não foi possível criar seu novo comércio`,
+        message: error.message || "Não foi possível obter as configurações",
       };
     }
   }
 
-  async getSellers(name, description) {
-    const sellerDto = new SellerDto({
-      name,
-      description,
-    });
-
+  async updateConfiguration(apiEndpoint) {
     try {
-      const response = await this.authClient.seller(sellerDto);
-      return { success: true, message: "Comércio criado com sucesso" };
+      const updateDto = new UpdateConfigurationDto({
+        apiConfig: new ApiConfigUpdateDto({
+          apiEndpoint,
+        }),
+      });
+
+      const response = await this.authClient.configurationPUT(updateDto);
+      return {
+        success: true,
+        data: response,
+        message: "Configurações atualizadas com sucesso",
+      };
     } catch (error) {
       return {
         success: false,
-        message: `Não foi possível criar seu novo comércio`,
+        message: error.message || "Não foi possível atualizar as configurações",
+      };
+    }
+  }
+
+  async createConfiguration(apiEndpoint) {
+    try {
+      const updateDto = new UpdateConfigurationDto({
+        apiConfig: new ApiConfigUpdateDto({
+          apiEndpoint,
+        }),
+      });
+
+      const response = await this.authClient.configurationPOST(updateDto);
+      return {
+        success: true,
+        data: response,
+        message: "Configurações criadas com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar as configurações",
+      };
+    }
+  }
+
+  async getSellerCommerces(sellerId) {
+    try {
+      const response = await this.authClient.sellerAll(sellerId);
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os comércios",
+      };
+    }
+  }
+
+  async getSellerWithCommerces(sellerId) {
+    try {
+      const response = await this.authClient.withCommerces(sellerId);
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.message || "Não foi possível obter o seller com seus comércios",
+      };
+    }
+  }
+
+  async getCommerceById(commerceId) {
+    try {
+      const response = await this.authClient.commerceGET(commerceId);
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.message || "Não foi possível obter o seller com seus comércios",
+      };
+    }
+  }
+
+  async createCommerce(sellerId, name, url) {
+    try {
+      const createDto = new CommerceCreateDto({
+        name,
+        url,
+      });
+
+      const response = await this.authClient.commercePOST(sellerId, createDto);
+      return {
+        success: true,
+        data: response,
+        message: "Comércio criado com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar o comércio",
+      };
+    }
+  }
+
+  async updateCommerce(commerceId, name, url) {
+    try {
+      const updateDto = new CommerceUpdateDto({
+        name,
+        url,
+      });
+
+      const response = await this.authClient.commercePUT(commerceId, updateDto);
+      return {
+        success: true,
+        data: response,
+        message: "Comércio atualizado com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar o comércio",
+      };
+    }
+  }
+
+  async deleteCommerce(commerceId) {
+    try {
+      await this.authClient.commerceDELETE(commerceId);
+      return {
+        success: true,
+        message: "Comércio excluído com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível excluir o comércio",
+      };
+    }
+  }
+
+  async updateCommerceCallbacks(commerceId, callbacks) {
+    try {
+      const updateDto = new CommerceCallbackUpdateDto({
+        credit: callbacks.credit,
+        debit: callbacks.debit,
+        boleto: callbacks.boleto,
+        webhook: callbacks.webhook,
+        securityKey: callbacks.securityKey,
+      });
+
+      const response = await this.authClient.callback(commerceId, updateDto);
+      return {
+        success: true,
+        data: response,
+        message: "Callbacks atualizados com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar os callbacks",
+      };
+    }
+  }
+
+  async getAvailableSellers() {
+    try {
+      const response = await this.authClient.available();
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.message || "Não foi possível obter os sellers disponíveis",
+      };
+    }
+  }
+
+  async createSeller(name, description) {
+    try {
+      const sellerDto = {
+        name,
+        description,
+      };
+      const response = await this.authClient.sellerPOST(sellerDto);
+      return {
+        success: true,
+        data: response,
+        message: "Seller criado com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar o seller",
+      };
+    }
+  }
+
+  async updateSeller(sellerId, name, description) {
+    try {
+      const sellerDto = {
+        id: sellerId,
+        name,
+        description,
+      };
+
+      const response = await this.authClient.sellerPUT(sellerId, sellerDto);
+      return {
+        success: true,
+        data: response,
+        message: "Seller atualizado com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar o seller",
+      };
+    }
+  }
+
+  async deleteSeller(sellerId) {
+    try {
+      await this.authClient.sellerDELETE(sellerId);
+      return {
+        success: true,
+        message: "Seller excluído com sucesso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível excluir o seller",
       };
     }
   }

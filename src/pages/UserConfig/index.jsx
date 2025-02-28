@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Container } from "../../components";
 import {
   IdentificationIcon,
@@ -14,8 +14,9 @@ import {
   PencilIcon,
   PlusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { notification } from "antd";
+import { notification, Modal, Form, Input } from "antd";
 import ThemeToggle from "../../theme/ThemeToggle";
+import { authService } from "../../services/AuthService";
 
 const UserConfig = () => {
   const inputRefs = useRef([]);
@@ -23,52 +24,290 @@ const UserConfig = () => {
   const [activeTab, setActiveTab] = useState("api");
   const [api, contextHolder] = notification.useNotification();
   const [selectedCommerce, setSelectedCommerce] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
 
-  // Mock data para comércios e seus callbacks
-  const [commerces, setCommerces] = useState([
-    {
-      id: "loja_id_12345",
-      name: "Loja Principal",
-      url: "https://www.minhaloja.com.br",
-      status: "active",
-      createdAt: "15/10/2023",
-      callbacks: {
-        credit: "https://minhaloja.com.br/api/callbacks/credit",
-        debit: "https://minhaloja.com.br/api/callbacks/debit",
-        boleto: "https://minhaloja.com.br/api/callbacks/boleto",
-        webhook: "https://minhaloja.com.br/api/webhooks",
-        securityKey: "f7d3s8h1j5k9l2m6n4p0",
-      },
-    },
-    {
-      id: "loja_id_67890",
-      name: "Loja Secundária",
-      url: "https://www.segunda.minhaloja.com.br",
-      status: "active",
-      createdAt: "20/11/2023",
-      callbacks: {
-        credit: "https://segunda.minhaloja.com.br/api/callbacks/credit",
-        debit: "https://segunda.minhaloja.com.br/api/callbacks/debit",
-        boleto: "https://segunda.minhaloja.com.br/api/callbacks/boleto",
-        webhook: "https://segunda.minhaloja.com.br/api/webhooks",
-        securityKey: "a2b4c6d8e0f1g3h5i7j9",
-      },
-    },
-  ]);
+  const [apiConfig, setApiConfig] = useState({
+    clientId: "",
+    clientSecret: "",
+    apiEndpoint: "",
+  });
 
-  const openNotification = () => {
-    api.success({
-      message: `Sucesso`,
-      description: `Texto copiado para a área de transferência!`,
-      placement: "topRight",
-    });
+  const [sellers, setSellers] = useState([]);
+  const [selectedSeller, setSelectedSeller] = useState(null);
+  const [commerces, setCommerces] = useState([]);
+  const [webhookKeyVisible, setWebhookKeyVisible] = useState(false);
+  const [isSellerModalVisible, setIsSellerModalVisible] = useState(false);
+  const [sellerForm] = Form.useForm();
+  const loadedCommerceIds = useRef([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      authService.setAuthorizationHeader(token);
+    }
+
+    loadApiConfig();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "ecommerce") {
+      loadSellers();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    const commerceId = selectedCommerce?.id;
+    if (commerceId && !loadedCommerceIds.current.includes(commerceId)) {
+      loadCommerceDetails(commerceId);
+      loadedCommerceIds.current.push(commerceId);
+    }
+  }, [selectedCommerce]);
+
+  const loadApiConfig = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authService.getConfiguration();
+      if (response.success) {
+        setApiConfig({
+          clientId: response.data.apiConfig.clientId || "",
+          clientSecret: response.data.apiConfig.clientSecret || "",
+          apiEndpoint: response.data.apiConfig.apiEndpoint || "",
+        });
+      } else {
+        api.error({
+          message: "Erro",
+          description:
+            response.message || "Erro ao carregar configurações da API",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível carregar as configurações da API",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadSellers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authService.getAvailableSellers();
+      if (response.success) {
+        setSellers(response.data);
+
+        if (response.data.length > 0) {
+          setSelectedSeller(response.data[0]);
+          loadCommercesBySeller(response.data[0].id);
+        }
+      } else {
+        api.error({
+          message: "Erro",
+          description: response.message || "Erro ao carregar sellers",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível carregar os sellers",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadCommercesBySeller = async (sellerId) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.getSellerWithCommerces(sellerId);
+      if (response.success) {
+        setCommerces(response.data.commerces || []);
+      } else {
+        api.error({
+          message: "Erro",
+          description: response.message || "Erro ao carregar comércios",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível carregar os comércios",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadCommerceDetails = async (commerceId) => {
+    setIsLoading(true);
+    try {
+      console.log("Carregando detalhes do comércio:", commerceId);
+      const response = await authService.getCommerceById(commerceId);
+      console.log("Resposta recebida:", response);
+
+      const commerceData =
+        response.success && response.data ? response.data : response;
+
+      const updatedCommerce = {
+        ...commerceData,
+        callbacks: commerceData.callbacks || {
+          credit: "",
+          debit: "",
+          boleto: "",
+          webhook: "",
+          securityKey: "",
+        },
+      };
+
+      console.log("Comércio atualizado:", updatedCommerce);
+      setSelectedCommerce(updatedCommerce);
+    } catch (error) {
+      console.error("Erro ao carregar detalhes:", error);
+      api.error({
+        message: "Erro",
+        description: "Não foi possível carregar os detalhes do comércio",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveApiConfiguration = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authService.updateConfiguration(
+        apiConfig.apiEndpoint
+      );
+      if (response.success) {
+        api.success({
+          message: "Sucesso",
+          description: "Configurações da API atualizadas com sucesso",
+          placement: "topRight",
+        });
+      } else {
+        api.error({
+          message: "Erro",
+          description:
+            response.message || "Erro ao atualizar configurações da API",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível atualizar as configurações da API",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createCommerce = async (values) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.createCommerce(
+        selectedSeller.id,
+        values.name,
+        values.url
+      );
+
+      if (response.success) {
+        api.success({
+          message: "Sucesso",
+          description: "Comércio criado com sucesso",
+          placement: "topRight",
+        });
+
+        loadCommercesBySeller(selectedSeller.id);
+        setIsModalVisible(false);
+        form.resetFields();
+      } else {
+        api.error({
+          message: "Erro",
+          description: response.message || "Erro ao criar comércio",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível criar o comércio",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateCallbacks = async () => {
+    if (!selectedCommerce) return;
+
+    const callbacksToUpdate = selectedCommerce.callbacks || {
+      credit: "",
+      debit: "",
+      boleto: "",
+      webhook: "",
+      securityKey: "",
+    };
+
+    setIsLoading(true);
+    try {
+      const response = await authService.updateCommerceCallbacks(
+        selectedCommerce.id,
+        callbacksToUpdate
+      );
+
+      if (response.success) {
+        api.success({
+          message: "Sucesso",
+          description: "Callbacks atualizados com sucesso",
+          placement: "topRight",
+        });
+
+        const updatedCallbacks = response.data.callbacks || response.data;
+
+        setSelectedCommerce({
+          ...selectedCommerce,
+          callbacks: updatedCallbacks,
+        });
+      } else {
+        api.error({
+          message: "Erro",
+          description: response.message || "Erro ao atualizar callbacks",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível atualizar os callbacks",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCopy = (index) => {
     if (inputRefs.current[index]) {
       inputRefs.current[index].select();
       document.execCommand("copy");
-      openNotification();
+      api.success({
+        message: "Sucesso",
+        description: "Texto copiado para a área de transferência!",
+        placement: "topRight",
+      });
     }
   };
 
@@ -76,29 +315,61 @@ const UserConfig = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
-  const updateCallbackField = (commerceId, field, value) => {
-    setCommerces((prevCommerces) =>
-      prevCommerces.map((commerce) =>
-        commerce.id === commerceId
-          ? {
-              ...commerce,
-              callbacks: {
-                ...commerce.callbacks,
-                [field]: value,
-              },
-            }
-          : commerce
-      )
-    );
+  const updateCallbackField = (field, value) => {
+    setSelectedCommerce({
+      ...selectedCommerce,
+      callbacks: {
+        ...(selectedCommerce.callbacks || {}),
+        [field]: value,
+      },
+    });
   };
 
-  // Componente para campos de configuração
+  const createNewSeller = async (values) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.createSeller(
+        values.name,
+        values.description
+      );
+
+      if (response.success) {
+        api.success({
+          message: "Sucesso",
+          description: "Seller criado com sucesso",
+          placement: "topRight",
+        });
+
+        setIsSellerModalVisible(false);
+        sellerForm.resetFields();
+
+        loadSellers();
+      } else {
+        api.error({
+          message: "Erro",
+          description: response.message || "Erro ao criar seller",
+          placement: "topRight",
+        });
+      }
+    } catch (error) {
+      api.error({
+        message: "Erro",
+        description: "Não foi possível criar o seller",
+        placement: "topRight",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const ConfigField = ({
     label,
     value,
     refIndex,
     isPassword = false,
     hint,
+    onChange,
+    readOnly = true,
   }) => (
     <div className="form-control w-full mb-6">
       <label className="flex flex-col space-y-2">
@@ -114,8 +385,9 @@ const UserConfig = () => {
           <input
             type={isPassword && !showPassword ? "password" : "text"}
             value={value}
+            onChange={onChange ? (e) => onChange(e.target.value) : undefined}
             className="w-full px-3 py-2 bg-transparent border-none focus:outline-none"
-            readOnly
+            readOnly={readOnly}
             ref={(el) => (inputRefs.current[refIndex] = el)}
           />
           <div className="flex">
@@ -150,30 +422,45 @@ const UserConfig = () => {
     </div>
   );
 
-  // Componente para URL de callback
-  const CallbackField = ({ label, placeholder, value, onChange, hint }) => (
-    <div className="form-control w-full mb-6">
-      <label className="flex flex-col space-y-2">
-        <div className="flex items-center">
-          <span className="text-sm font-medium text-base-content">{label}</span>
-          {hint && (
-            <div className="tooltip" data-tip={hint}>
-              <InformationCircleIcon className="w-4 h-4 ml-2 text-base-content/60" />
-            </div>
-          )}
-        </div>
-        <input
-          type="text"
-          placeholder={placeholder}
-          value={value || ""}
-          onChange={onChange}
-          className="px-3 py-2 rounded-md border border-base-300 bg-base-200 w-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all placeholder:text-base-content/40"
-        />
-      </label>
-    </div>
-  );
+  const CallbackField = ({ label, placeholder, value, onChange, hint }) => {
+    const fieldId = `callback-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
-  // Tabs para navegação
+    return (
+      <div className="form-control w-full mb-6">
+        <label className="flex flex-col space-y-2" htmlFor={fieldId}>
+          <div className="flex items-center">
+            <span className="text-sm font-medium text-base-content">
+              {label}
+            </span>
+            {hint && (
+              <div className="tooltip" data-tip={hint}>
+                <InformationCircleIcon className="w-4 h-4 ml-2 text-base-content/60" />
+              </div>
+            )}
+          </div>
+          <input
+            id={fieldId}
+            name={fieldId}
+            type="text"
+            placeholder={placeholder}
+            value={value || ""}
+            onChange={(e) => onChange(e.target.value)}
+            className="px-3 py-2 rounded-md border border-base-300 bg-base-200 w-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all placeholder:text-base-content/40"
+            autoComplete="off"
+          />
+        </label>
+      </div>
+    );
+  };
+
+  const saveConfiguration = () => {
+    if (activeTab === "api") {
+      saveApiConfiguration();
+    } else if (activeTab === "callback" && selectedCommerce) {
+      updateCallbacks();
+    }
+  };
+
   const tabs = [
     { id: "api", label: "API", icon: <ChartPieIcon className="w-5 h-5" /> },
     {
@@ -253,14 +540,14 @@ const UserConfig = () => {
 
               <ConfigField
                 label="Client ID"
-                value="c7d9ea7e-51d9-4dce-8bb7-992a35287b1d"
+                value={apiConfig.clientId}
                 refIndex={0}
                 hint="Identificador único do seu cliente na API"
               />
 
               <ConfigField
                 label="Client Secret"
-                value="8f7h3k2j5h6g7f8d9s0a1p2o3i9u8y7t"
+                value={apiConfig.clientSecret}
                 refIndex={1}
                 isPassword={true}
                 hint="Chave secreta para autenticação na API"
@@ -275,85 +562,143 @@ const UserConfig = () => {
 
               <ConfigField
                 label="API Endpoint"
-                value="https://api.pulsepay.com.br/v1"
+                value={apiConfig.apiEndpoint}
                 refIndex={2}
                 hint="URL base para todas as requisições à API"
+                onChange={(value) =>
+                  setApiConfig({ ...apiConfig, apiEndpoint: value })
+                }
+                readOnly={false}
               />
             </div>
           </div>
         )}
 
-        {/* E-Commerce Tab Content */}
         {activeTab === "ecommerce" && (
           <div className="animate-in fade-in duration-300">
             <div className="bg-base-200/50 rounded-lg p-6">
-              <h2 className="text-lg font-medium mb-4 flex items-center">
-                <IdentificationIcon className="w-5 h-5 mr-2 text-primary" />
-                Identificação no E-Commerce
-              </h2>
+              {sellers.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-medium flex items-center">
+                      <IdentificationIcon className="w-5 h-5 mr-2 text-primary" />
+                      Identificação no E-Commerce
+                    </h2>
 
-              <ConfigField
-                label="Identificador de Loja"
-                value="seller_id_12345"
-                refIndex={3}
-                hint="Identificador único da sua loja no PulsePay"
-              />
-
-              <div className="mt-8">
-                <h3 className="text-sm font-medium mb-4">
-                  Comércios cadastrados
-                </h3>
-
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra w-full">
-                    <thead>
-                      <tr>
-                        <th>ID do Comércio</th>
-                        <th>Nome</th>
-                        <th>URL</th>
-                        <th>Status</th>
-                        <th>Data de Criação</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {commerces.map((commerce) => (
-                        <tr key={commerce.id}>
-                          <td>{commerce.id}</td>
-                          <td>{commerce.name}</td>
-                          <td>{commerce.url}</td>
-                          <td>
-                            <span className="badge badge-success gap-1">
-                              <CheckCircleIcon className="w-3 h-3" /> Ativo
-                            </span>
-                          </td>
-                          <td>{commerce.createdAt}</td>
-                          <td>
-                            <div className="flex space-x-2">
-                              <button
-                                className="btn btn-sm btn-ghost"
-                                onClick={() => {
-                                  setSelectedCommerce(commerce);
-                                  setActiveTab("callback");
-                                }}
-                              >
-                                <PencilIcon className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                    <select
+                      className="select select-bordered select-sm"
+                      value={selectedSeller?.id}
+                      onChange={(e) => {
+                        const seller = sellers.find(
+                          (s) => s.id === e.target.value
+                        );
+                        setSelectedSeller(seller);
+                        loadCommercesBySeller(e.target.value);
+                      }}
+                    >
+                      {sellers.map((seller) => (
+                        <option key={seller.id} value={seller.id}>
+                          {seller.name}
+                        </option>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </select>
+                  </div>
 
-                <div className="mt-4 flex justify-end">
-                  <button className="btn btn-primary btn-sm">
-                    <PlusCircleIcon className="w-4 h-4 mr-2" />
-                    Adicionar Comércio
+                  <ConfigField
+                    label="Identificador de Seller"
+                    value={selectedSeller?.id}
+                    refIndex={3}
+                    hint="Identificador único do seu seller no PulsePay"
+                  />
+
+                  <div className="mt-8">
+                    <h3 className="text-sm font-medium mb-4">
+                      Comércios cadastrados
+                    </h3>
+
+                    <div className="overflow-x-auto">
+                      {commerces.length > 0 ? (
+                        <table className="table table-zebra w-full">
+                          <thead>
+                            <tr>
+                              <th>ID do Comércio</th>
+                              <th>Nome</th>
+                              <th>URL</th>
+                              <th>Status</th>
+                              <th>Data de Criação</th>
+                              <th>Ações</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {commerces.map((commerce) => (
+                              <tr key={commerce.id}>
+                                <td>{commerce.id}</td>
+                                <td>{commerce.name}</td>
+                                <td>{commerce.url}</td>
+                                <td>
+                                  <span className="badge badge-success gap-1">
+                                    <CheckCircleIcon className="w-3 h-3" />{" "}
+                                    Ativo
+                                  </span>
+                                </td>
+                                <td>{commerce.createdAt}</td>
+                                <td>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      className="btn btn-sm btn-ghost"
+                                      onClick={() => {
+                                        console.log(
+                                          "Comércio selecionado da tabela:",
+                                          commerce
+                                        );
+                                        setActiveTab("callback");
+                                        loadCommerceDetails(commerce.id);
+                                      }}
+                                    >
+                                      <PencilIcon className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="text-center py-8 bg-base-200/30 rounded-lg">
+                          <p className="text-base-content/70">
+                            Nenhum comércio cadastrado para este seller.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => setIsModalVisible(true)}
+                        disabled={isLoading}
+                      >
+                        <PlusCircleIcon className="w-4 h-4 mr-2" />
+                        Adicionar Comércio
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-base-content/70 mb-4">
+                    Você ainda não possui sellers cadastrados.
+                  </p>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setIsSellerModalVisible(true)}
+                    disabled={isLoading}
+                  >
+                    <PlusCircleIcon className="w-5 h-5 mr-2" />
+                    Criar um Seller
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -409,42 +754,36 @@ const UserConfig = () => {
                   <CallbackField
                     label="Pagamento de crédito"
                     placeholder="https://seu_registro/seu_servico_de_pagamento_de_credito"
-                    value={selectedCommerce?.callbacks?.credit}
-                    onChange={(e) =>
-                      updateCallbackField(
-                        selectedCommerce.id,
-                        "credit",
-                        e.target.value
-                      )
+                    value={
+                      (selectedCommerce?.callbacks &&
+                        selectedCommerce?.callbacks.credit) ||
+                      ""
                     }
+                    onChange={(value) => updateCallbackField("credit", value)}
                     hint="Receberá notificações sobre transações de crédito"
                   />
 
                   <CallbackField
                     label="Pagamento de débito"
                     placeholder="https://seu_registro/seu_servico_de_pagamento_de_debito"
-                    value={selectedCommerce?.callbacks?.debit}
-                    onChange={(e) =>
-                      updateCallbackField(
-                        selectedCommerce.id,
-                        "debit",
-                        e.target.value
-                      )
+                    value={
+                      (selectedCommerce?.callbacks &&
+                        selectedCommerce?.callbacks.debit) ||
+                      ""
                     }
+                    onChange={(value) => updateCallbackField("debit", value)}
                     hint="Receberá notificações sobre transações de débito"
                   />
 
                   <CallbackField
                     label="Registro/Baixa do Boleto"
                     placeholder="https://seu_registro/seu_servico_de_boleto"
-                    value={selectedCommerce?.callbacks?.boleto}
-                    onChange={(e) =>
-                      updateCallbackField(
-                        selectedCommerce.id,
-                        "boleto",
-                        e.target.value
-                      )
+                    value={
+                      (selectedCommerce?.callbacks &&
+                        selectedCommerce?.callbacks.boleto) ||
+                      ""
                     }
+                    onChange={(value) => updateCallbackField("boleto", value)}
                     hint="Receberá notificações sobre registro e pagamento de boletos"
                   />
 
@@ -467,35 +806,43 @@ const UserConfig = () => {
                     label="URL de Webhook"
                     placeholder="https://seu_site.com/api/webhooks"
                     value={selectedCommerce?.callbacks?.webhook}
-                    onChange={(e) =>
-                      updateCallbackField(
-                        selectedCommerce.id,
-                        "webhook",
-                        e.target.value
-                      )
-                    }
+                    onChange={(value) => updateCallbackField("webhook", value)}
                     hint="URL para receber todos os eventos da plataforma"
                   />
 
                   <div className="mt-6">
-                    <h3 className="text-sm font-medium mb-2">
+                    <h3
+                      className="text-sm font-medium mb-2"
+                      id="security-key-label"
+                    >
                       Chave de segurança
                     </h3>
                     <div className="flex items-center">
                       <input
-                        type="password"
+                        id="webhook-security-key"
+                        name="webhook-security-key"
+                        type={webhookKeyVisible ? "text" : "password"}
                         value={selectedCommerce?.callbacks?.securityKey || ""}
                         onChange={(e) =>
-                          updateCallbackField(
-                            selectedCommerce.id,
-                            "securityKey",
-                            e.target.value
-                          )
+                          updateCallbackField("securityKey", e.target.value)
                         }
                         className="px-3 py-2 rounded-md border border-base-300 bg-base-200 w-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all"
+                        aria-labelledby="security-key-label"
+                        autoComplete="new-password"
                       />
-                      <button className="btn btn-ghost btn-sm ml-2">
-                        <EyeIcon className="w-5 h-5" />
+                      <button
+                        className="btn btn-ghost btn-sm ml-2"
+                        onClick={() => setWebhookKeyVisible(!webhookKeyVisible)}
+                        type="button"
+                        aria-label={
+                          webhookKeyVisible ? "Ocultar chave" : "Mostrar chave"
+                        }
+                      >
+                        {webhookKeyVisible ? (
+                          <EyeSlashIcon className="w-5 h-5" />
+                        ) : (
+                          <EyeIcon className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
                     <p className="text-xs text-base-content/60 mt-1">
@@ -510,9 +857,134 @@ const UserConfig = () => {
         )}
 
         <div className="mt-8 flex justify-end">
-          <button className="btn btn-primary">Salvar Configurações</button>
+          <button
+            className={`btn btn-primary ${isLoading ? "loading" : ""}`}
+            onClick={saveConfiguration}
+            disabled={isLoading}
+          >
+            {isLoading ? "Salvando..." : "Salvar Configurações"}
+          </button>
         </div>
       </Container>
+
+      {/* Modal para adicionar novo comércio */}
+      <Modal
+        title="Adicionar Novo Comércio"
+        open={isModalVisible}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+      >
+        <Form form={form} layout="vertical" onFinish={createCommerce}>
+          <Form.Item
+            name="name"
+            label="Nome do Comércio"
+            rules={[
+              {
+                required: true,
+                message: "Por favor, informe o nome do comércio!",
+              },
+            ]}
+          >
+            <Input placeholder="Ex: Minha Loja Principal" />
+          </Form.Item>
+
+          <Form.Item
+            name="url"
+            label="URL do Comércio"
+            rules={[
+              {
+                required: true,
+                message: "Por favor, informe a URL do comércio!",
+              },
+              { type: "url", message: "Por favor, insira uma URL válida!" },
+            ]}
+          >
+            <Input placeholder="Ex: https://minhaloja.com.br" />
+          </Form.Item>
+
+          <Form.Item className="text-right">
+            <button
+              type="button"
+              className="btn btn-ghost mr-2"
+              onClick={() => {
+                setIsModalVisible(false);
+                form.resetFields();
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className={`btn btn-primary ${isLoading ? "loading" : ""}`}
+              disabled={isLoading}
+            >
+              {isLoading ? "Criando..." : "Criar Comércio"}
+            </button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal para criar novo seller */}
+      <Modal
+        title="Criar Novo Seller"
+        open={isSellerModalVisible}
+        onCancel={() => {
+          setIsSellerModalVisible(false);
+          sellerForm.resetFields();
+        }}
+        footer={null}
+      >
+        <Form form={sellerForm} layout="vertical" onFinish={createNewSeller}>
+          <Form.Item
+            name="name"
+            label="Nome do Seller"
+            rules={[
+              {
+                required: true,
+                message: "Por favor, informe o nome do seller!",
+              },
+            ]}
+          >
+            <Input placeholder="Ex: Minha Empresa" />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="Descrição"
+            rules={[
+              { required: true, message: "Por favor, informe uma descrição!" },
+            ]}
+          >
+            <Input.TextArea
+              placeholder="Ex: Empresa de e-commerce especializada em produtos eletrônicos"
+              rows={4}
+            />
+          </Form.Item>
+
+          <Form.Item className="text-right">
+            <button
+              type="button"
+              className="btn btn-ghost mr-2"
+              onClick={() => {
+                setIsSellerModalVisible(false);
+                sellerForm.resetFields();
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className={`btn btn-primary ${isLoading ? "loading" : ""}`}
+              disabled={isLoading}
+            >
+              {isLoading ? "Criando..." : "Criar Seller"}
+            </button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

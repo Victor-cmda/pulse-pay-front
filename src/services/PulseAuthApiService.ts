@@ -154,6 +154,348 @@ export class Client {
     /**
      * @return OK
      */
+    sellerAll(sellerId: string, cancelToken?: CancelToken): Promise<CommerceDto[]> {
+        let url_ = this.baseUrl + "/commerce/seller/{sellerId}";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSellerAll(_response);
+        });
+    }
+
+    protected processSellerAll(response: AxiosResponse): Promise<CommerceDto[]> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CommerceDto.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return Promise.resolve<CommerceDto[]>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<CommerceDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    commerceGET(id: string, cancelToken?: CancelToken): Promise<CommerceDto> {
+        let url_ = this.baseUrl + "/commerce/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCommerceGET(_response);
+        });
+    }
+
+    protected processCommerceGET(response: AxiosResponse): Promise<CommerceDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = CommerceDto.fromJS(resultData200);
+            return Promise.resolve<CommerceDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<CommerceDto>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    commercePUT(id: string, body: CommerceUpdateDto | undefined, cancelToken?: CancelToken): Promise<CommerceDto> {
+        let url_ = this.baseUrl + "/commerce/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PUT",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCommercePUT(_response);
+        });
+    }
+
+    protected processCommercePUT(response: AxiosResponse): Promise<CommerceDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = CommerceDto.fromJS(resultData200);
+            return Promise.resolve<CommerceDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<CommerceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    commerceDELETE(id: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/commerce/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCommerceDELETE(_response);
+        });
+    }
+
+    protected processCommerceDELETE(response: AxiosResponse): Promise<void> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<void>(null as any);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    commercePOST(sellerId: string, body: CommerceCreateDto | undefined, cancelToken?: CancelToken): Promise<CommerceDto> {
+        let url_ = this.baseUrl + "/commerce/{sellerId}";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCommercePOST(_response);
+        });
+    }
+
+    protected processCommercePOST(response: AxiosResponse): Promise<CommerceDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = CommerceDto.fromJS(resultData200);
+            return Promise.resolve<CommerceDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<CommerceDto>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    callback(id: string, body: CommerceCallbackUpdateDto | undefined, cancelToken?: CancelToken): Promise<CommerceCallbackDto> {
+        let url_ = this.baseUrl + "/commerce/{id}/callback";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PUT",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCallback(_response);
+        });
+    }
+
+    protected processCallback(response: AxiosResponse): Promise<CommerceCallbackDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = CommerceCallbackDto.fromJS(resultData200);
+            return Promise.resolve<CommerceCallbackDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<CommerceCallbackDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     available( cancelToken?: CancelToken): Promise<SellerDto[]> {
         let url_ = this.baseUrl + "/seller/available";
         url_ = url_.replace(/[?&]$/, "");
@@ -213,7 +555,7 @@ export class Client {
      * @param body (optional) 
      * @return OK
      */
-    seller(body: SellerDto | undefined, cancelToken?: CancelToken): Promise<SellerDto> {
+    sellerPOST(body: SellerDto | undefined, cancelToken?: CancelToken): Promise<SellerDto> {
         let url_ = this.baseUrl + "/seller";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -237,11 +579,11 @@ export class Client {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processSeller(_response);
+            return this.processSellerPOST(_response);
         });
     }
 
-    protected processSeller(response: AxiosResponse): Promise<SellerDto> {
+    protected processSellerPOST(response: AxiosResponse): Promise<SellerDto> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -264,6 +606,513 @@ export class Client {
         }
         return Promise.resolve<SellerDto>(null as any);
     }
+
+    /**
+     * @return OK
+     */
+    sellerGET(id: string, cancelToken?: CancelToken): Promise<SellerDto> {
+        let url_ = this.baseUrl + "/seller/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSellerGET(_response);
+        });
+    }
+
+    protected processSellerGET(response: AxiosResponse): Promise<SellerDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = SellerDto.fromJS(resultData200);
+            return Promise.resolve<SellerDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<SellerDto>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    sellerPUT(id: string, body: SellerDto | undefined, cancelToken?: CancelToken): Promise<SellerDto> {
+        let url_ = this.baseUrl + "/seller/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PUT",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSellerPUT(_response);
+        });
+    }
+
+    protected processSellerPUT(response: AxiosResponse): Promise<SellerDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = SellerDto.fromJS(resultData200);
+            return Promise.resolve<SellerDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<SellerDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    sellerDELETE(id: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/seller/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSellerDELETE(_response);
+        });
+    }
+
+    protected processSellerDELETE(response: AxiosResponse): Promise<void> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<void>(null as any);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    withCommerces(id: string, cancelToken?: CancelToken): Promise<SellerWithCommercesDto> {
+        let url_ = this.baseUrl + "/seller/{id}/with-commerces";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processWithCommerces(_response);
+        });
+    }
+
+    protected processWithCommerces(response: AxiosResponse): Promise<SellerWithCommercesDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = SellerWithCommercesDto.fromJS(resultData200);
+            return Promise.resolve<SellerWithCommercesDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<SellerWithCommercesDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    configurationGET( cancelToken?: CancelToken): Promise<ConfigurationResponseDto> {
+        let url_ = this.baseUrl + "/user/configuration";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processConfigurationGET(_response);
+        });
+    }
+
+    protected processConfigurationGET(response: AxiosResponse): Promise<ConfigurationResponseDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = ConfigurationResponseDto.fromJS(resultData200);
+            return Promise.resolve<ConfigurationResponseDto>(result200);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 401) {
+            const _responseText = response.data;
+            let result401: any = null;
+            let resultData401  = _responseText;
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<ConfigurationResponseDto>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    configurationPUT(body: UpdateConfigurationDto | undefined, cancelToken?: CancelToken): Promise<ConfigurationResponseDto> {
+        let url_ = this.baseUrl + "/user/configuration";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "PUT",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processConfigurationPUT(_response);
+        });
+    }
+
+    protected processConfigurationPUT(response: AxiosResponse): Promise<ConfigurationResponseDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = ConfigurationResponseDto.fromJS(resultData200);
+            return Promise.resolve<ConfigurationResponseDto>(result200);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<ConfigurationResponseDto>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Created
+     */
+    configurationPOST(body: UpdateConfigurationDto | undefined, cancelToken?: CancelToken): Promise<ConfigurationResponseDto> {
+        let url_ = this.baseUrl + "/user/configuration";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processConfigurationPOST(_response);
+        });
+    }
+
+    protected processConfigurationPOST(response: AxiosResponse): Promise<ConfigurationResponseDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 201) {
+            const _responseText = response.data;
+            let result201: any = null;
+            let resultData201  = _responseText;
+            result201 = ConfigurationResponseDto.fromJS(resultData201);
+            return Promise.resolve<ConfigurationResponseDto>(result201);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<ConfigurationResponseDto>(null as any);
+    }
+}
+
+export class ApiConfigDto implements IApiConfigDto {
+    clientId?: string | undefined;
+    clientSecret?: string | undefined;
+    apiEndpoint?: string | undefined;
+
+    constructor(data?: IApiConfigDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.clientId = _data["clientId"];
+            this.clientSecret = _data["clientSecret"];
+            this.apiEndpoint = _data["apiEndpoint"];
+        }
+    }
+
+    static fromJS(data: any): ApiConfigDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiConfigDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["clientId"] = this.clientId;
+        data["clientSecret"] = this.clientSecret;
+        data["apiEndpoint"] = this.apiEndpoint;
+        return data;
+    }
+}
+
+export interface IApiConfigDto {
+    clientId?: string | undefined;
+    clientSecret?: string | undefined;
+    apiEndpoint?: string | undefined;
+}
+
+export class ApiConfigUpdateDto implements IApiConfigUpdateDto {
+    apiEndpoint?: string | undefined;
+
+    constructor(data?: IApiConfigUpdateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.apiEndpoint = _data["apiEndpoint"];
+        }
+    }
+
+    static fromJS(data: any): ApiConfigUpdateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiConfigUpdateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["apiEndpoint"] = this.apiEndpoint;
+        return data;
+    }
+}
+
+export interface IApiConfigUpdateDto {
+    apiEndpoint?: string | undefined;
 }
 
 export class AuthResponseDto implements IAuthResponseDto {
@@ -310,6 +1159,282 @@ export interface IAuthResponseDto {
     user?: UserDto;
 }
 
+export class CommerceCallbackDto implements ICommerceCallbackDto {
+    credit?: string | undefined;
+    debit?: string | undefined;
+    boleto?: string | undefined;
+    webhook?: string | undefined;
+    securityKey?: string | undefined;
+
+    constructor(data?: ICommerceCallbackDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.credit = _data["credit"];
+            this.debit = _data["debit"];
+            this.boleto = _data["boleto"];
+            this.webhook = _data["webhook"];
+            this.securityKey = _data["securityKey"];
+        }
+    }
+
+    static fromJS(data: any): CommerceCallbackDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CommerceCallbackDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["credit"] = this.credit;
+        data["debit"] = this.debit;
+        data["boleto"] = this.boleto;
+        data["webhook"] = this.webhook;
+        data["securityKey"] = this.securityKey;
+        return data;
+    }
+}
+
+export interface ICommerceCallbackDto {
+    credit?: string | undefined;
+    debit?: string | undefined;
+    boleto?: string | undefined;
+    webhook?: string | undefined;
+    securityKey?: string | undefined;
+}
+
+export class CommerceCallbackUpdateDto implements ICommerceCallbackUpdateDto {
+    credit?: string | undefined;
+    debit?: string | undefined;
+    boleto?: string | undefined;
+    webhook?: string | undefined;
+    securityKey?: string | undefined;
+
+    constructor(data?: ICommerceCallbackUpdateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.credit = _data["credit"];
+            this.debit = _data["debit"];
+            this.boleto = _data["boleto"];
+            this.webhook = _data["webhook"];
+            this.securityKey = _data["securityKey"];
+        }
+    }
+
+    static fromJS(data: any): CommerceCallbackUpdateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CommerceCallbackUpdateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["credit"] = this.credit;
+        data["debit"] = this.debit;
+        data["boleto"] = this.boleto;
+        data["webhook"] = this.webhook;
+        data["securityKey"] = this.securityKey;
+        return data;
+    }
+}
+
+export interface ICommerceCallbackUpdateDto {
+    credit?: string | undefined;
+    debit?: string | undefined;
+    boleto?: string | undefined;
+    webhook?: string | undefined;
+    securityKey?: string | undefined;
+}
+
+export class CommerceCreateDto implements ICommerceCreateDto {
+    name?: string | undefined;
+    url?: string | undefined;
+
+    constructor(data?: ICommerceCreateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.url = _data["url"];
+        }
+    }
+
+    static fromJS(data: any): CommerceCreateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CommerceCreateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["url"] = this.url;
+        return data;
+    }
+}
+
+export interface ICommerceCreateDto {
+    name?: string | undefined;
+    url?: string | undefined;
+}
+
+export class CommerceDto implements ICommerceDto {
+    id?: string;
+    name?: string | undefined;
+    url?: string | undefined;
+    status?: string | undefined;
+    createdAt?: string | undefined;
+    callbacks?: CommerceCallbackDto;
+
+    constructor(data?: ICommerceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.url = _data["url"];
+            this.status = _data["status"];
+            this.createdAt = _data["createdAt"];
+            this.callbacks = _data["callbacks"] ? CommerceCallbackDto.fromJS(_data["callbacks"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): CommerceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CommerceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["url"] = this.url;
+        data["status"] = this.status;
+        data["createdAt"] = this.createdAt;
+        data["callbacks"] = this.callbacks ? this.callbacks.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface ICommerceDto {
+    id?: string;
+    name?: string | undefined;
+    url?: string | undefined;
+    status?: string | undefined;
+    createdAt?: string | undefined;
+    callbacks?: CommerceCallbackDto;
+}
+
+export class CommerceUpdateDto implements ICommerceUpdateDto {
+    name?: string | undefined;
+    url?: string | undefined;
+
+    constructor(data?: ICommerceUpdateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.url = _data["url"];
+        }
+    }
+
+    static fromJS(data: any): CommerceUpdateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CommerceUpdateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["url"] = this.url;
+        return data;
+    }
+}
+
+export interface ICommerceUpdateDto {
+    name?: string | undefined;
+    url?: string | undefined;
+}
+
+export class ConfigurationResponseDto implements IConfigurationResponseDto {
+    apiConfig?: ApiConfigDto;
+
+    constructor(data?: IConfigurationResponseDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.apiConfig = _data["apiConfig"] ? ApiConfigDto.fromJS(_data["apiConfig"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): ConfigurationResponseDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ConfigurationResponseDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["apiConfig"] = this.apiConfig ? this.apiConfig.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IConfigurationResponseDto {
+    apiConfig?: ApiConfigDto;
+}
+
 export class LoginDto implements ILoginDto {
     email?: string | undefined;
     password?: string | undefined;
@@ -348,6 +1473,70 @@ export class LoginDto implements ILoginDto {
 export interface ILoginDto {
     email?: string | undefined;
     password?: string | undefined;
+}
+
+export class ProblemDetails implements IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IProblemDetails) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.title = _data["title"];
+            this.status = _data["status"];
+            this.detail = _data["detail"];
+            this.instance = _data["instance"];
+        }
+    }
+
+    static fromJS(data: any): ProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["title"] = this.title;
+        data["status"] = this.status;
+        data["detail"] = this.detail;
+        data["instance"] = this.instance;
+        return data;
+    }
+}
+
+export interface IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
 }
 
 export class RegisterDto implements IRegisterDto {
@@ -448,6 +1637,98 @@ export interface ISellerDto {
     id?: string;
     name?: string | undefined;
     description?: string | undefined;
+}
+
+export class SellerWithCommercesDto implements ISellerWithCommercesDto {
+    id?: string;
+    name?: string | undefined;
+    description?: string | undefined;
+    commerces?: CommerceDto[] | undefined;
+
+    constructor(data?: ISellerWithCommercesDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            if (Array.isArray(_data["commerces"])) {
+                this.commerces = [] as any;
+                for (let item of _data["commerces"])
+                    this.commerces!.push(CommerceDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): SellerWithCommercesDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new SellerWithCommercesDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        if (Array.isArray(this.commerces)) {
+            data["commerces"] = [];
+            for (let item of this.commerces)
+                data["commerces"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface ISellerWithCommercesDto {
+    id?: string;
+    name?: string | undefined;
+    description?: string | undefined;
+    commerces?: CommerceDto[] | undefined;
+}
+
+export class UpdateConfigurationDto implements IUpdateConfigurationDto {
+    apiConfig?: ApiConfigUpdateDto;
+
+    constructor(data?: IUpdateConfigurationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.apiConfig = _data["apiConfig"] ? ApiConfigUpdateDto.fromJS(_data["apiConfig"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): UpdateConfigurationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateConfigurationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["apiConfig"] = this.apiConfig ? this.apiConfig.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IUpdateConfigurationDto {
+    apiConfig?: ApiConfigUpdateDto;
 }
 
 export class UserDto implements IUserDto {

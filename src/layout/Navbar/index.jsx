@@ -232,7 +232,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Dropdown do usuário */}
           <div className="dropdown dropdown-end">
             <label
               tabIndex={0}
