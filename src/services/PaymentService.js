@@ -1,298 +1,410 @@
 import { 
-  WalletClient,
-  WalletTransactionsClient,
-  BankAccountClient,
-  WithdrawClient,
+  Client,
+  BankAccountCreateDto,
+  BankAccountUpdateDto,
   CreateTransactionRequest,
   WalletCreateDto,
   WalletUpdateDto,
   WithdrawCreateDto,
   WithdrawUpdateDto,
-  BankAccountCreateDto,
-  BankAccountUpdateDto,
   UpdateTransactionStatusRequest
 } from "./PulsePayApiService";
 
-const baseUrl = "https://localhost:5232";
-
-// Inicialização dos clientes
-const walletClient = new WalletClient(baseUrl);
-const transactionsClient = new WalletTransactionsClient(baseUrl);
-const bankAccountClient = new BankAccountClient(baseUrl);
-const withdrawClient = new WithdrawClient(baseUrl);
-
-// Funções de Carteira (Wallet)
-const createWallet = async (sellerId) => {
-  try {
-    const dto = new WalletCreateDto({ sellerId });
-    await walletClient.walletPost(dto);
-    return {
-      success: true,
-      message: "Carteira criada com sucesso"
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao criar carteira: ${error.message}`
-    };
+class PaymentService {
+  constructor() {
+    this.client = new Client("https://localhost:5232");
+    this.setAuthorizationHeader = this.setAuthorizationHeader.bind(this);
   }
-};
 
-const getWallet = async (sellerId) => {
-  try {
-    const response = await walletClient.walletGet(sellerId);
-    return {
-      success: true,
-      message: "Carteira consultada com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar carteira: ${error.message}`
-    };
+  setAuthorizationHeader(token) {
+    if (token) {
+      this.client.instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete this.client.instance.defaults.headers.common["Authorization"];
+    }
   }
-};
 
-const updateWalletBalance = async (sellerId, availableBalance, pendingBalance) => {
-  try {
-    const dto = new WalletUpdateDto({
-      availableBalance,
-      pendingBalance
-    });
-    await walletClient.balance(sellerId, dto);
-    return {
-      success: true,
-      message: "Saldo atualizado com sucesso"
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao atualizar saldo: ${error.message}`
-    };
+  // --------- BANK ACCOUNT OPERATIONS ---------
+
+  async getBankAccount(id) {
+    try {
+      const response = await this.client.bankGET(id);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar a conta bancária"
+      };
+    }
   }
-};
 
-// Funções de Transação
-const createTransaction = async ({ walletId, amount, type, description, reference }) => {
-  try {
-    const request = new CreateTransactionRequest({
-      walletId,
-      amount,
-      type,
-      description,
-      reference
-    });
-    await transactionsClient.walletTransactionsPost(request);
-    return {
-      success: true,
-      message: "Transação criada com sucesso"
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao criar transação: ${error.message}`
-    };
+  async updateBankAccount(id, updateData) {
+    try {
+      const dto = new BankAccountUpdateDto(updateData);
+      const response = await this.client.bankPUT(id, dto);
+      return {
+        success: true,
+        data: response,
+        message: "Conta bancária atualizada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar a conta bancária"
+      };
+    }
   }
-};
 
-const getTransaction = async (transactionId) => {
-  try {
-    const response = await transactionsClient.walletTransactionsGet(transactionId);
-    return {
-      success: true,
-      message: "Transação consultada com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar transação: ${error.message}`
-    };
+  async deleteBankAccount(id) {
+    try {
+      await this.client.bankDELETE(id);
+      return {
+        success: true,
+        message: "Conta bancária excluída com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível excluir a conta bancária"
+      };
+    }
   }
-};
 
-const getWalletBalance = async (walletId) => {
-  try {
-    const response = await transactionsClient.balance(walletId);
-    return {
-      success: true,
-      message: "Saldo consultado com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar saldo: ${error.message}`
-    };
+  async getSellerBankAccounts(sellerId) {
+    try {
+      const response = await this.client.sellerAll(sellerId);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar as contas bancárias do vendedor"
+      };
+    }
   }
-};
 
-const getTransactionHistory = async ({ walletId, startDate, endDate, status, type, page, pageSize }) => {
-  try {
-    const response = await transactionsClient.history(
-      walletId,
-      startDate,
-      endDate,
-      status,
-      type,
-      page,
-      pageSize
-    );
-    return {
-      success: true,
-      message: "Histórico consultado com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar histórico: ${error.message}`
-    };
+  async createBankAccount(accountData) {
+    try {
+      const dto = new BankAccountCreateDto(accountData);
+      const response = await this.client.bankPOST(dto);
+      return {
+        success: true,
+        data: response,
+        message: "Conta bancária criada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar a conta bancária"
+      };
+    }
   }
-};
 
-// Funções de Conta Bancária
-const createBankAccount = async (bankAccountData) => {
-  try {
-    const dto = new BankAccountCreateDto(bankAccountData);
-    await bankAccountClient.bankAccountPost(dto);
-    return {
-      success: true,
-      message: "Conta bancária criada com sucesso"
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao criar conta bancária: ${error.message}`
-    };
+  async verifyBankAccount(id) {
+    try {
+      await this.client.verify(id);
+      return {
+        success: true,
+        message: "Conta bancária verificada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível verificar a conta bancária"
+      };
+    }
   }
-};
 
-const getBankAccount = async (id) => {
-  try {
-    const response = await bankAccountClient.bankAccountGet(id);
-    return {
-      success: true,
-      message: "Conta bancária consultada com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar conta bancária: ${error.message}`
-    };
+  async validateBankAccount(accountData) {
+    try {
+      const dto = new BankAccountCreateDto(accountData);
+      const response = await this.client.validate(dto);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível validar a conta bancária"
+      };
+    }
   }
-};
 
-const getSellerBankAccounts = async (sellerId) => {
-  try {
-    const response = await bankAccountClient.seller(sellerId);
-    return {
-      success: true,
-      message: "Contas bancárias consultadas com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar contas bancárias: ${error.message}`
-    };
+  // --------- WALLET OPERATIONS ---------
+
+  async getWallet(sellerId) {
+    try {
+      const response = await this.client.walletGET(sellerId);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar a carteira"
+      };
+    }
   }
-};
 
-// Funções de Saque
-const createWithdraw = async ({ sellerId, amount, withdrawMethod, bankAccountId }) => {
-  try {
-    const dto = new WithdrawCreateDto({
-      sellerId,
-      amount,
-      withdrawMethod,
-      bankAccountId
-    });
-    await withdrawClient.withdrawPost(dto);
-    return {
-      success: true,
-      message: "Solicitação de saque criada com sucesso"
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao criar solicitação de saque: ${error.message}`
-    };
+  async createWallet(sellerId) {
+    try {
+      const dto = new WalletCreateDto({ sellerId });
+      await this.client.walletPOST(dto);
+      return {
+        success: true,
+        message: "Carteira criada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar a carteira"
+      };
+    }
   }
-};
 
-const getWithdraw = async (id) => {
-  try {
-    const response = await withdrawClient.withdrawGet(id);
-    return {
-      success: true,
-      message: "Saque consultado com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar saque: ${error.message}`
-    };
+  async updateWalletBalance(sellerId, availableBalance, pendingBalance) {
+    try {
+      const dto = new WalletUpdateDto({
+        availableBalance,
+        pendingBalance
+      });
+      await this.client.balancePUT(sellerId, dto);
+      return {
+        success: true,
+        message: "Saldo da carteira atualizado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar o saldo da carteira"
+      };
+    }
   }
-};
 
-const processWithdraw = async (id, updateData) => {
-  try {
-    const dto = new WithdrawUpdateDto(updateData);
-    await withdrawClient.process(id, dto);
-    return {
-      success: true,
-      message: "Saque processado com sucesso"
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao processar saque: ${error.message}`
-    };
+  async addFunds(sellerId, amount) {
+    try {
+      await this.client.addFunds(sellerId, amount);
+      return {
+        success: true,
+        message: "Fundos adicionados com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível adicionar fundos"
+      };
+    }
   }
-};
 
-const getPendingWithdraws = async () => {
-  try {
-    const response = await withdrawClient.pending();
-    return {
-      success: true,
-      message: "Saques pendentes consultados com sucesso",
-      data: response
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Falha ao consultar saques pendentes: ${error.message}`
-    };
+  async deductFunds(sellerId, amount) {
+    try {
+      await this.client.deductFunds(sellerId, amount);
+      return {
+        success: true,
+        message: "Fundos deduzidos com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível deduzir fundos"
+      };
+    }
   }
-};
 
-const PaymentService = {
-  // Wallet operations
-  createWallet,
-  getWallet,
-  updateWalletBalance,
-  
-  // Transaction operations
-  createTransaction,
-  getTransaction,
-  getWalletBalance,
-  getTransactionHistory,
-  
-  // Bank account operations
-  createBankAccount,
-  getBankAccount,
-  getSellerBankAccounts,
-  
-  // Withdraw operations
-  createWithdraw,
-  getWithdraw,
-  processWithdraw,
-  getPendingWithdraws
-};
+  // --------- TRANSACTION OPERATIONS ---------
 
-export default PaymentService;
+  async createTransaction(transactionData) {
+    try {
+      const request = new CreateTransactionRequest(transactionData);
+      await this.client.walletTransactionPOST(request);
+      return {
+        success: true,
+        message: "Transação criada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar a transação"
+      };
+    }
+  }
+
+  async getTransaction(transactionId) {
+    try {
+      const response = await this.client.walletTransactionGET(transactionId);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar a transação"
+      };
+    }
+  }
+
+  async getWalletBalance(walletId) {
+    try {
+      const response = await this.client.balanceGET(walletId);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar o saldo da carteira"
+      };
+    }
+  }
+
+  async getTransactionHistory(walletId, startDate, endDate, status, type, page, pageSize) {
+    try {
+      const response = await this.client.history(
+        walletId,
+        startDate,
+        endDate,
+        status,
+        type,
+        page,
+        pageSize
+      );
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar o histórico de transações"
+      };
+    }
+  }
+
+  async updateTransactionStatus(transactionId, status, reason) {
+    try {
+      const updateRequest = new UpdateTransactionStatusRequest({
+        status,
+        reason
+      });
+      await this.client.status(transactionId, updateRequest);
+      return {
+        success: true,
+        message: "Status da transação atualizado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar o status da transação"
+      };
+    }
+  }
+
+  // --------- WITHDRAW OPERATIONS ---------
+
+  async createWithdraw(withdrawData) {
+    try {
+      const dto = new WithdrawCreateDto(withdrawData);
+      await this.client.withdrawPOST(dto);
+      return {
+        success: true,
+        message: "Solicitação de saque criada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar a solicitação de saque"
+      };
+    }
+  }
+
+  async getWithdraw(id) {
+    try {
+      const response = await this.client.withdrawGET(id);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar o saque"
+      };
+    }
+  }
+
+  async getSellerWithdraws(sellerId, page, pageSize) {
+    try {
+      const response = await this.client.seller(sellerId, page, pageSize);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar os saques do vendedor"
+      };
+    }
+  }
+
+  async processWithdraw(id, status, failureReason, transactionReceipt) {
+    try {
+      const updateDto = new WithdrawUpdateDto({
+        status,
+        failureReason,
+        transactionReceipt
+      });
+      await this.client.process(id, updateDto);
+      return {
+        success: true,
+        message: "Saque processado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível processar o saque"
+      };
+    }
+  }
+
+  async getWithdrawSummary(sellerId, startDate, endDate) {
+    try {
+      const response = await this.client.summary(sellerId, startDate, endDate);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar o resumo de saques"
+      };
+    }
+  }
+
+  async getPendingWithdraws() {
+    try {
+      const response = await this.client.pending();
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar os saques pendentes"
+      };
+    }
+  }
+}
+
+export const paymentService = new PaymentService();

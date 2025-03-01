@@ -10,7 +10,121 @@
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelToken } from 'axios';
 
-export class BankAccountClient {
+export interface IClient {
+    /**
+     * @return OK
+     */
+    bankGET(id: string): Promise<BankAccountResponseDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    bankPUT(id: string, body: BankAccountUpdateDto | undefined): Promise<BankAccountResponseDto>;
+    /**
+     * @return No Content
+     */
+    bankDELETE(id: string): Promise<void>;
+    /**
+     * @return OK
+     */
+    sellerAll(sellerId: string): Promise<BankAccountResponseDto[]>;
+    /**
+     * @param body (optional) 
+     * @return Created
+     */
+    bankPOST(body: BankAccountCreateDto | undefined): Promise<BankAccountResponseDto>;
+    /**
+     * @return OK
+     */
+    verify(id: string): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    validate(body: BankAccountCreateDto | undefined): Promise<BankAccountValidationDto>;
+    /**
+     * @return OK
+     */
+    walletGET(sellerId: string): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    walletPOST(body: WalletCreateDto | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    balancePUT(sellerId: string, body: WalletUpdateDto | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    addFunds(sellerId: string, body: number | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    deductFunds(sellerId: string, body: number | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    walletTransactionPOST(body: CreateTransactionRequest | undefined): Promise<void>;
+    /**
+     * @return OK
+     */
+    walletTransactionGET(transactionId: string): Promise<void>;
+    /**
+     * @return OK
+     */
+    balanceGET(walletId: string): Promise<void>;
+    /**
+     * @param status (optional) 
+     * @param type (optional) 
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    history(walletId: string, startDate: Date, endDate: Date, status: TransactionStatus | undefined, type: TransactionType | undefined, page: number | undefined, pageSize: number | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    status(transactionId: string, body: UpdateTransactionStatusRequest | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    withdrawPOST(body: WithdrawCreateDto | undefined): Promise<void>;
+    /**
+     * @return OK
+     */
+    withdrawGET(id: string): Promise<void>;
+    /**
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    seller(sellerId: string, page: number | undefined, pageSize: number | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    process(id: string, body: WithdrawUpdateDto | undefined): Promise<void>;
+    /**
+     * @param startDate (optional) 
+     * @param endDate (optional) 
+     * @return OK
+     */
+    summary(sellerId: string, startDate: Date | undefined, endDate: Date | undefined): Promise<void>;
+    /**
+     * @return OK
+     */
+    pending(): Promise<void>;
+}
+
+export class Client implements IClient {
     protected instance: AxiosInstance;
     protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -24,10 +138,10 @@ export class BankAccountClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
-    bankAccountGet(id: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
-        let url_ = this.baseUrl + "/api/BankAccount/{id}";
+    bankGET(id: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
+        let url_ = this.baseUrl + "/api/bank/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -49,11 +163,11 @@ export class BankAccountClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBankAccountGet(_response);
+            return this.processBankGET(_response);
         });
     }
 
-    protected processBankAccountGet(response: AxiosResponse): Promise<BankAccountResponseDto> {
+    protected processBankGET(response: AxiosResponse): Promise<BankAccountResponseDto> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -93,10 +207,10 @@ export class BankAccountClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
-    bankAccountPut(id: string, body: BankAccountUpdateDto | undefined, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
-        let url_ = this.baseUrl + "/api/BankAccount/{id}";
+    bankPUT(id: string, body: BankAccountUpdateDto | undefined, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
+        let url_ = this.baseUrl + "/api/bank/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -122,11 +236,11 @@ export class BankAccountClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBankAccountPut(_response);
+            return this.processBankPUT(_response);
         });
     }
 
-    protected processBankAccountPut(response: AxiosResponse): Promise<BankAccountResponseDto> {
+    protected processBankPUT(response: AxiosResponse): Promise<BankAccountResponseDto> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -150,12 +264,12 @@ export class BankAccountClient {
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
-        } else if (status === 401) {
+        } else if (status === 403) {
             const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            let result403: any = null;
+            let resultData403  = _responseText;
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
 
         } else if (status === 404) {
             const _responseText = response.data;
@@ -163,6 +277,10 @@ export class BankAccountClient {
             let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -174,8 +292,8 @@ export class BankAccountClient {
     /**
      * @return No Content
      */
-    bankAccountDelete(id: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/BankAccount/{id}";
+    bankDELETE(id: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/bank/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -196,11 +314,11 @@ export class BankAccountClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBankAccountDelete(_response);
+            return this.processBankDELETE(_response);
         });
     }
 
-    protected processBankAccountDelete(response: AxiosResponse): Promise<void> {
+    protected processBankDELETE(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -221,12 +339,23 @@ export class BankAccountClient {
             result401 = ProblemDetails.fromJS(resultData401);
             return throwException("Unauthorized", status, _responseText, _headers, result401);
 
+        } else if (status === 403) {
+            const _responseText = response.data;
+            let result403: any = null;
+            let resultData403  = _responseText;
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -236,10 +365,10 @@ export class BankAccountClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
-    seller(sellerId: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto[]> {
-        let url_ = this.baseUrl + "/api/BankAccount/seller/{sellerId}";
+    sellerAll(sellerId: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto[]> {
+        let url_ = this.baseUrl + "/api/bank/seller/{sellerId}";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -261,11 +390,11 @@ export class BankAccountClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processSeller(_response);
+            return this.processSellerAll(_response);
         });
     }
 
-    protected processSeller(response: AxiosResponse): Promise<BankAccountResponseDto[]> {
+    protected processSellerAll(response: AxiosResponse): Promise<BankAccountResponseDto[]> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -289,12 +418,16 @@ export class BankAccountClient {
             }
             return Promise.resolve<BankAccountResponseDto[]>(result200);
 
-        } else if (status === 401) {
+        } else if (status === 403) {
             const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            let result403: any = null;
+            let resultData403  = _responseText;
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -307,8 +440,8 @@ export class BankAccountClient {
      * @param body (optional) 
      * @return Created
      */
-    bankAccountPost(body: BankAccountCreateDto | undefined, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
-        let url_ = this.baseUrl + "/api/BankAccount";
+    bankPOST(body: BankAccountCreateDto | undefined, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
+        let url_ = this.baseUrl + "/api/bank";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -331,11 +464,11 @@ export class BankAccountClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBankAccountPost(_response);
+            return this.processBankPOST(_response);
         });
     }
 
-    protected processBankAccountPost(response: AxiosResponse): Promise<BankAccountResponseDto> {
+    protected processBankPOST(response: AxiosResponse): Promise<BankAccountResponseDto> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -359,12 +492,23 @@ export class BankAccountClient {
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
-        } else if (status === 401) {
+        } else if (status === 403) {
             const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            let result403: any = null;
+            let resultData403  = _responseText;
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+
+        } else if (status === 409) {
+            const _responseText = response.data;
+            let result409: any = null;
+            let resultData409  = _responseText;
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -374,10 +518,10 @@ export class BankAccountClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
     verify(id: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/BankAccount/{id}/verify";
+        let url_ = this.baseUrl + "/api/bank/{id}/verify";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -430,6 +574,10 @@ export class BankAccountClient {
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
 
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -439,10 +587,10 @@ export class BankAccountClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
     validate(body: BankAccountCreateDto | undefined, cancelToken?: CancelToken): Promise<BankAccountValidationDto> {
-        let url_ = this.baseUrl + "/api/BankAccount/validate";
+        let url_ = this.baseUrl + "/api/bank/validate";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -493,32 +641,22 @@ export class BankAccountClient {
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
         return Promise.resolve<BankAccountValidationDto>(null as any);
     }
-}
-
-export class WalletClient {
-    protected instance: AxiosInstance;
-    protected baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, instance?: AxiosInstance) {
-
-        this.instance = instance || axios.create();
-
-        this.baseUrl = baseUrl ?? "";
-
-    }
 
     /**
-     * @return Success
+     * @return OK
      */
-    walletGet(sellerId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Wallet/{sellerId}";
+    walletGET(sellerId: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet/{sellerId}";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -539,11 +677,11 @@ export class WalletClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletGet(_response);
+            return this.processWalletGET(_response);
         });
     }
 
-    protected processWalletGet(response: AxiosResponse): Promise<void> {
+    protected processWalletGET(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -566,10 +704,10 @@ export class WalletClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
-    walletPost(body: WalletCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Wallet";
+    walletPOST(body: WalletCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -591,11 +729,11 @@ export class WalletClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletPost(_response);
+            return this.processWalletPOST(_response);
         });
     }
 
-    protected processWalletPost(response: AxiosResponse): Promise<void> {
+    protected processWalletPOST(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -618,10 +756,10 @@ export class WalletClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
-    balance(sellerId: string, body: WalletUpdateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Wallet/{sellerId}/balance";
+    balancePUT(sellerId: string, body: WalletUpdateDto | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet/{sellerId}/balance";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -646,11 +784,11 @@ export class WalletClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBalance(_response);
+            return this.processBalancePUT(_response);
         });
     }
 
-    protected processBalance(response: AxiosResponse): Promise<void> {
+    protected processBalancePUT(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -673,10 +811,10 @@ export class WalletClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
     addFunds(sellerId: string, body: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Wallet/{sellerId}/add-funds";
+        let url_ = this.baseUrl + "/api/wallet/{sellerId}/add-funds";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -728,10 +866,10 @@ export class WalletClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
     deductFunds(sellerId: string, body: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Wallet/{sellerId}/deduct-funds";
+        let url_ = this.baseUrl + "/api/wallet/{sellerId}/deduct-funds";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -780,27 +918,13 @@ export class WalletClient {
         }
         return Promise.resolve<void>(null as any);
     }
-}
-
-export class WalletTransactionsClient {
-    protected instance: AxiosInstance;
-    protected baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, instance?: AxiosInstance) {
-
-        this.instance = instance || axios.create();
-
-        this.baseUrl = baseUrl ?? "";
-
-    }
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
-    walletTransactionsPost(body: CreateTransactionRequest | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/WalletTransactions";
+    walletTransactionPOST(body: CreateTransactionRequest | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet-transaction";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -822,11 +946,11 @@ export class WalletTransactionsClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletTransactionsPost(_response);
+            return this.processWalletTransactionPOST(_response);
         });
     }
 
-    protected processWalletTransactionsPost(response: AxiosResponse): Promise<void> {
+    protected processWalletTransactionPOST(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -848,10 +972,10 @@ export class WalletTransactionsClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
-    walletTransactionsGet(transactionId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/WalletTransactions/{transactionId}";
+    walletTransactionGET(transactionId: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet-transaction/{transactionId}";
         if (transactionId === undefined || transactionId === null)
             throw new Error("The parameter 'transactionId' must be defined.");
         url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
@@ -872,11 +996,11 @@ export class WalletTransactionsClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletTransactionsGet(_response);
+            return this.processWalletTransactionGET(_response);
         });
     }
 
-    protected processWalletTransactionsGet(response: AxiosResponse): Promise<void> {
+    protected processWalletTransactionGET(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -898,10 +1022,10 @@ export class WalletTransactionsClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
-    balance(walletId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/WalletTransactions/wallet/{walletId}/balance";
+    balanceGET(walletId: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet-transaction/wallet/{walletId}/balance";
         if (walletId === undefined || walletId === null)
             throw new Error("The parameter 'walletId' must be defined.");
         url_ = url_.replace("{walletId}", encodeURIComponent("" + walletId));
@@ -922,11 +1046,11 @@ export class WalletTransactionsClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBalance(_response);
+            return this.processBalanceGET(_response);
         });
     }
 
-    protected processBalance(response: AxiosResponse): Promise<void> {
+    protected processBalanceGET(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -952,10 +1076,10 @@ export class WalletTransactionsClient {
      * @param type (optional) 
      * @param page (optional) 
      * @param pageSize (optional) 
-     * @return Success
+     * @return OK
      */
     history(walletId: string, startDate: Date, endDate: Date, status: TransactionStatus | undefined, type: TransactionType | undefined, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/WalletTransactions/wallet/{walletId}/history?";
+        let url_ = this.baseUrl + "/api/wallet-transaction/wallet/{walletId}/history?";
         if (walletId === undefined || walletId === null)
             throw new Error("The parameter 'walletId' must be defined.");
         url_ = url_.replace("{walletId}", encodeURIComponent("" + walletId));
@@ -1027,10 +1151,10 @@ export class WalletTransactionsClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
     status(transactionId: string, body: UpdateTransactionStatusRequest | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/WalletTransactions/{transactionId}/status";
+        let url_ = this.baseUrl + "/api/wallet-transaction/{transactionId}/status";
         if (transactionId === undefined || transactionId === null)
             throw new Error("The parameter 'transactionId' must be defined.");
         url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
@@ -1079,27 +1203,13 @@ export class WalletTransactionsClient {
         }
         return Promise.resolve<void>(null as any);
     }
-}
-
-export class WithdrawClient {
-    protected instance: AxiosInstance;
-    protected baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, instance?: AxiosInstance) {
-
-        this.instance = instance || axios.create();
-
-        this.baseUrl = baseUrl ?? "";
-
-    }
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
-    withdrawPost(body: WithdrawCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Withdraw";
+    withdrawPOST(body: WithdrawCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/withdraw";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -1121,11 +1231,11 @@ export class WithdrawClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWithdrawPost(_response);
+            return this.processWithdrawPOST(_response);
         });
     }
 
-    protected processWithdrawPost(response: AxiosResponse): Promise<void> {
+    protected processWithdrawPOST(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -1147,10 +1257,10 @@ export class WithdrawClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
-    withdrawGet(id: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Withdraw/{id}";
+    withdrawGET(id: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/withdraw/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1171,11 +1281,11 @@ export class WithdrawClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWithdrawGet(_response);
+            return this.processWithdrawGET(_response);
         });
     }
 
-    protected processWithdrawGet(response: AxiosResponse): Promise<void> {
+    protected processWithdrawGET(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -1199,10 +1309,10 @@ export class WithdrawClient {
     /**
      * @param page (optional) 
      * @param pageSize (optional) 
-     * @return Success
+     * @return OK
      */
     seller(sellerId: string, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Withdraw/seller/{sellerId}?";
+        let url_ = this.baseUrl + "/api/withdraw/seller/{sellerId}?";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -1258,10 +1368,10 @@ export class WithdrawClient {
 
     /**
      * @param body (optional) 
-     * @return Success
+     * @return OK
      */
     process(id: string, body: WithdrawUpdateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Withdraw/{id}/process";
+        let url_ = this.baseUrl + "/api/withdraw/{id}/process";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1314,10 +1424,10 @@ export class WithdrawClient {
     /**
      * @param startDate (optional) 
      * @param endDate (optional) 
-     * @return Success
+     * @return OK
      */
     summary(sellerId: string, startDate: Date | undefined, endDate: Date | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Withdraw/summary/{sellerId}?";
+        let url_ = this.baseUrl + "/api/withdraw/summary/{sellerId}?";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -1372,10 +1482,10 @@ export class WithdrawClient {
     }
 
     /**
-     * @return Success
+     * @return OK
      */
     pending( cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/Withdraw/pending";
+        let url_ = this.baseUrl + "/api/withdraw/pending";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: AxiosRequestConfig = {
@@ -1420,16 +1530,16 @@ export class WithdrawClient {
 }
 
 export class BankAccountCreateDto implements IBankAccountCreateDto {
-    sellerId!: string;
-    bankName!: string;
-    bankCode!: string;
-    accountType!: BankAccountType;
+    sellerId?: string;
+    bankName?: string | undefined;
+    bankCode?: string | undefined;
+    accountType?: BankAccountType;
     accountNumber?: string | undefined;
     branchNumber?: string | undefined;
-    documentNumber!: string;
-    accountHolderName!: string;
     pixKey?: string | undefined;
     pixKeyType?: PixKeyType;
+    documentNumber?: string | undefined;
+    accountHolderName?: string | undefined;
 
     constructor(data?: IBankAccountCreateDto) {
         if (data) {
@@ -1448,10 +1558,10 @@ export class BankAccountCreateDto implements IBankAccountCreateDto {
             this.accountType = _data["accountType"];
             this.accountNumber = _data["accountNumber"];
             this.branchNumber = _data["branchNumber"];
-            this.documentNumber = _data["documentNumber"];
-            this.accountHolderName = _data["accountHolderName"];
             this.pixKey = _data["pixKey"];
             this.pixKeyType = _data["pixKeyType"];
+            this.documentNumber = _data["documentNumber"];
+            this.accountHolderName = _data["accountHolderName"];
         }
     }
 
@@ -1470,25 +1580,25 @@ export class BankAccountCreateDto implements IBankAccountCreateDto {
         data["accountType"] = this.accountType;
         data["accountNumber"] = this.accountNumber;
         data["branchNumber"] = this.branchNumber;
-        data["documentNumber"] = this.documentNumber;
-        data["accountHolderName"] = this.accountHolderName;
         data["pixKey"] = this.pixKey;
         data["pixKeyType"] = this.pixKeyType;
+        data["documentNumber"] = this.documentNumber;
+        data["accountHolderName"] = this.accountHolderName;
         return data;
     }
 }
 
 export interface IBankAccountCreateDto {
-    sellerId: string;
-    bankName: string;
-    bankCode: string;
-    accountType: BankAccountType;
+    sellerId?: string;
+    bankName?: string | undefined;
+    bankCode?: string | undefined;
+    accountType?: BankAccountType;
     accountNumber?: string | undefined;
     branchNumber?: string | undefined;
-    documentNumber: string;
-    accountHolderName: string;
     pixKey?: string | undefined;
     pixKeyType?: PixKeyType;
+    documentNumber?: string | undefined;
+    accountHolderName?: string | undefined;
 }
 
 export class BankAccountResponseDto implements IBankAccountResponseDto {
@@ -1587,11 +1697,13 @@ export enum BankAccountType {
 export class BankAccountUpdateDto implements IBankAccountUpdateDto {
     bankName?: string | undefined;
     bankCode?: string | undefined;
+    accountType?: BankAccountType;
     accountNumber?: string | undefined;
     branchNumber?: string | undefined;
-    accountHolderName?: string | undefined;
     pixKey?: string | undefined;
     pixKeyType?: PixKeyType;
+    documentNumber?: string | undefined;
+    accountHolderName?: string | undefined;
 
     constructor(data?: IBankAccountUpdateDto) {
         if (data) {
@@ -1606,11 +1718,13 @@ export class BankAccountUpdateDto implements IBankAccountUpdateDto {
         if (_data) {
             this.bankName = _data["bankName"];
             this.bankCode = _data["bankCode"];
+            this.accountType = _data["accountType"];
             this.accountNumber = _data["accountNumber"];
             this.branchNumber = _data["branchNumber"];
-            this.accountHolderName = _data["accountHolderName"];
             this.pixKey = _data["pixKey"];
             this.pixKeyType = _data["pixKeyType"];
+            this.documentNumber = _data["documentNumber"];
+            this.accountHolderName = _data["accountHolderName"];
         }
     }
 
@@ -1625,11 +1739,13 @@ export class BankAccountUpdateDto implements IBankAccountUpdateDto {
         data = typeof data === 'object' ? data : {};
         data["bankName"] = this.bankName;
         data["bankCode"] = this.bankCode;
+        data["accountType"] = this.accountType;
         data["accountNumber"] = this.accountNumber;
         data["branchNumber"] = this.branchNumber;
-        data["accountHolderName"] = this.accountHolderName;
         data["pixKey"] = this.pixKey;
         data["pixKeyType"] = this.pixKeyType;
+        data["documentNumber"] = this.documentNumber;
+        data["accountHolderName"] = this.accountHolderName;
         return data;
     }
 }
@@ -1637,11 +1753,13 @@ export class BankAccountUpdateDto implements IBankAccountUpdateDto {
 export interface IBankAccountUpdateDto {
     bankName?: string | undefined;
     bankCode?: string | undefined;
+    accountType?: BankAccountType;
     accountNumber?: string | undefined;
     branchNumber?: string | undefined;
-    accountHolderName?: string | undefined;
     pixKey?: string | undefined;
     pixKeyType?: PixKeyType;
+    documentNumber?: string | undefined;
+    accountHolderName?: string | undefined;
 }
 
 export class BankAccountValidationDto implements IBankAccountValidationDto {
