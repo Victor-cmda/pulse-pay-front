@@ -1,4 +1,3 @@
-import exp from "constants";
 import {
   Client as AuthClient,
   RegisterDto,
@@ -10,11 +9,29 @@ import {
   CommerceUpdateDto,
   CommerceCallbackUpdateDto,
 } from "./PulseAuthApiService";
+import { setupInterceptors } from "../interceptor/apiInterceptor";
 
 class AuthService {
   constructor() {
     this.authClient = new AuthClient("http://localhost:8081");
     this.setAuthorizationHeader = this.setAuthorizationHeader.bind(this);
+
+    this._logoutCallback = () => console.warn("Logout callback não configurado");
+    this.initializeInterceptors(this._logoutCallback);
+  }
+
+  setLogoutCallback(logoutCallback) {
+    if (typeof logoutCallback === 'function') {
+      this._logoutCallback = logoutCallback;
+      // Reinicialize os interceptors com o novo callback
+      this.initializeInterceptors(this._logoutCallback);
+    }
+  }
+
+  initializeInterceptors(logoutCallback) {
+    console.log("Inicializando interceptors...");
+    setupInterceptors(this.authClient.instance, logoutCallback);
+    console.log("Interceptors inicializados!");
   }
 
   setAuthorizationHeader(token) {

@@ -1,4 +1,4 @@
-import { 
+import {
   Client,
   BankAccountCreateDto,
   BankAccountUpdateDto,
@@ -9,11 +9,28 @@ import {
   WithdrawUpdateDto,
   UpdateTransactionStatusRequest
 } from "./PulsePayApiService";
+import { setupInterceptors } from "../interceptor/apiInterceptor";
 
 class PaymentService {
   constructor() {
-    this.client = new Client("https://localhost:5232");
+    this.client = new Client("http://localhost:5232");
     this.setAuthorizationHeader = this.setAuthorizationHeader.bind(this);
+    this._logoutCallback = () => console.warn("Logout callback não configurado");
+    this.initializeInterceptors(this._logoutCallback);
+  }
+
+  setLogoutCallback(logoutCallback) {
+    if (typeof logoutCallback === 'function') {
+      this._logoutCallback = logoutCallback;
+      // Reinicialize os interceptors com o novo callback
+      this.initializeInterceptors(this._logoutCallback);
+    }
+  }
+
+  initializeInterceptors(logoutCallback) {
+    console.log("Inicializando interceptors...");
+    setupInterceptors(this.client.instance, logoutCallback); // ERRO: authClient não existe
+    console.log("Interceptors inicializados!");
   }
 
   setAuthorizationHeader(token) {
@@ -23,8 +40,6 @@ class PaymentService {
       delete this.client.instance.defaults.headers.common["Authorization"];
     }
   }
-
-  // --------- BANK ACCOUNT OPERATIONS ---------
 
   async getBankAccount(id) {
     try {

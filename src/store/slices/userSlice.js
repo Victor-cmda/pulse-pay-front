@@ -1,5 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/AuthService";
+import { paymentService } from "../../services/PaymentService";
+
+export const configureAuthHeaders = (token) => {
+  if (token) {
+    authService.setAuthorizationHeader(token);
+    paymentService.setAuthorizationHeader(token);
+  } else {
+    authService.setAuthorizationHeader(null);
+    paymentService.setAuthorizationHeader(null);
+  }
+};
 
 export const loginUser = createAsyncThunk(
   "user/login",
@@ -8,8 +19,11 @@ export const loginUser = createAsyncThunk(
       const response = await authService.login(email, password);
       if (response.success) {
         if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
+          const token = response.data.token;
+          localStorage.setItem("token", token);
           localStorage.setItem("expiresIn", response.data.expiresIn);
+
+          configureAuthHeaders(token);
         }
         return response.data.user;
       } else {
@@ -33,8 +47,11 @@ const userSlice = createSlice({
       state.user = null;
       state.loading = false;
       state.error = null;
+
       localStorage.removeItem("token");
       localStorage.removeItem("expiresIn");
+
+      configureAuthHeaders(null);
     },
   },
   extraReducers: (builder) => {

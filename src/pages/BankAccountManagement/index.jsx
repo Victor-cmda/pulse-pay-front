@@ -14,79 +14,63 @@ import {
   AlertCircle,
   Clock,
   ShieldCheck,
-  Store,
+  User,
   ChevronDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { paymentService } from "../../services/PaymentService";
 import { authService } from "../../services/AuthService";
+import { notification } from "antd";
 
 const BankAccountManagement = () => {
-  const [commerces, setCommerces] = useState([]);
-  const [selectedCommerce, setSelectedCommerce] = useState(null);
+  // Estado para o seller (vendedor)
+  const [sellers, setSellers] = useState([]);
+  const [selectedSeller, setSelectedSeller] = useState(null);
+  const [showSellerDropdown, setShowSellerDropdown] = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(true);
+
+  // Estado para contas bancárias
   const [bankAccounts, setBankAccounts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [commerceLoading, setCommerceLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [showCommerceDropdown, setShowCommerceDropdown] = useState(false);
-  const [defaultSeller, setDefaultSeller] = useState(null);
+  const [api, contextHolder] = notification.useNotification();
 
-  // Carregar seller padrão e seus comércios
+  // Carregar sellers disponíveis
   useEffect(() => {
-    const loadSellerAndCommerces = async () => {
+    const loadSellers = async () => {
       try {
-        setCommerceLoading(true);
-        // Primeiro, obtém os sellers disponíveis
+        setSellerLoading(true);
         const sellersResponse = await authService.getAvailableSellers();
 
-        if (
-          sellersResponse.success &&
-          sellersResponse.data &&
-          sellersResponse.data.length > 0
-        ) {
-          // Usa o primeiro seller como padrão
-          const seller = sellersResponse.data[0];
-          setDefaultSeller(seller);
-
-          // Agora carrega os comércios deste seller
-          const commercesResponse = await authService.getSellerCommerces(
-            seller.id
-          );
-
-          if (commercesResponse.success) {
-            setCommerces(commercesResponse.data || []);
-          } else {
-            console.error(
-              "Erro ao carregar comércios:",
-              commercesResponse.message
-            );
-            setCommerces([]);
-          }
+        if (sellersResponse.success && sellersResponse.data) {
+          setSellers(sellersResponse.data || []);
         } else {
           console.error("Erro ao carregar sellers:", sellersResponse.message);
+          setSellers([]);
         }
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("Erro ao carregar sellers:", error);
+        setSellers([]);
       } finally {
-        setCommerceLoading(false);
+        setSellerLoading(false);
       }
     };
 
-    loadSellerAndCommerces();
+    loadSellers();
   }, []);
 
-  // Carregar contas bancárias quando um comércio for selecionado
+  // Carregar contas bancárias quando um seller for selecionado
   useEffect(() => {
     const loadBankAccounts = async () => {
-      if (selectedCommerce && defaultSeller) {
+      if (selectedSeller) {
         try {
           setLoading(true);
-          // Usamos o ID do comércio para carregar as contas bancárias
+          // Usamos o ID do seller para carregar as contas bancárias
           const response = await paymentService.getSellerBankAccounts(
-            selectedCommerce.id
+            selectedSeller.id
           );
           if (response.success) {
             setBankAccounts(response.data || []);
@@ -110,7 +94,7 @@ const BankAccountManagement = () => {
     };
 
     loadBankAccounts();
-  }, [selectedCommerce, defaultSeller]);
+  }, [selectedSeller]);
 
   // Filtra contas bancárias com base na aba ativa
   const getFilteredAccounts = () => {
@@ -155,15 +139,24 @@ const BankAccountManagement = () => {
           setSelectedAccount(null);
         }
 
-        // Opcional: mostrar uma mensagem de sucesso
-        alert(response.message);
+        api.success({
+          message: "Sucesso",
+          description: response.message,
+          placement: "topRight",
+        });
       } else {
-        // Mostrar mensagem de erro
-        alert(response.message);
+        api.error({
+          message: "Erro",
+          description: response.message,
+          placement: "topRight",
+        });
       }
     } catch (error) {
-      console.error("Erro ao excluir conta bancária:", error);
-      alert("Erro ao excluir conta bancária. Tente novamente mais tarde.");
+      api.error({
+        message: "Erro",
+        description: "Erro ao excluir conta bancária. Tente novamente mais tarde.",
+        placement: "topRight",
+      });
     }
   };
 
@@ -188,15 +181,24 @@ const BankAccountManagement = () => {
           });
         }
 
-        // Opcional: mostrar uma mensagem de sucesso
-        alert(response.message);
+        api.success({
+          message: "Sucesso",
+          description: response.message,
+          placement: "topRight",
+        });
       } else {
-        // Mostrar mensagem de erro
-        alert(response.message);
+        api.error({
+          message: "Erro",
+          description: response.message,
+          placement: "topRight",
+        });
       }
     } catch (error) {
-      console.error("Erro ao verificar conta bancária:", error);
-      alert("Erro ao verificar conta bancária. Tente novamente mais tarde.");
+      api.error({
+        message: "Erro",
+        description: "Erro ao verificar conta bancária. Tente novamente mais tarde.",
+        placement: "topRight",
+      });
     }
   };
 
@@ -258,15 +260,16 @@ const BankAccountManagement = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pt-6 pb-16">
+      {contextHolder}
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">
             Gerenciamento de Contas Bancárias
           </h1>
 
-          {selectedCommerce && (
+          {selectedSeller && (
             <Link
-              to={`/bank/new?commerceId=${selectedCommerce.id}`}
+              to={`/bank/new?sellerId=${selectedSeller.id}`}
               className="btn btn-primary"
             >
               <PlusCircle className="w-4 h-4 mr-1" />
@@ -275,84 +278,71 @@ const BankAccountManagement = () => {
           )}
         </div>
 
-        {/* Seletor de Comércio */}
+        {/* Seletor de Seller */}
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 mb-6">
           <h2 className="text-lg font-medium text-slate-800 dark:text-white mb-3">
-            Selecione um Comércio
+            Selecione um Vendedor
           </h2>
 
-          {commerceLoading ? (
+          {sellerLoading ? (
             <div className="flex items-center justify-center p-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
               <span className="ml-2 text-slate-600 dark:text-slate-300">
-                Carregando comércios...
+                Carregando vendedores...
               </span>
             </div>
-          ) : commerces.length > 0 ? (
+          ) : sellers.length > 0 ? (
             <div className="relative">
               <div
                 className="p-3 border border-slate-300 dark:border-slate-600 rounded-lg flex justify-between items-center cursor-pointer bg-white dark:bg-slate-800"
-                onClick={() => setShowCommerceDropdown(!showCommerceDropdown)}
+                onClick={() => setShowSellerDropdown(!showSellerDropdown)}
               >
-                {selectedCommerce ? (
+                {selectedSeller ? (
                   <div className="flex items-center">
-                    <Store className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                    <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
                     <div>
                       <div className="font-medium text-slate-800 dark:text-white">
-                        {selectedCommerce.name}
+                        {selectedSeller.name}
                       </div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">
-                        URL: {selectedCommerce.url}
+                        {selectedSeller.description || "Sem descrição"}
                       </div>
                     </div>
                   </div>
                 ) : (
                   <span className="text-slate-500 dark:text-slate-400">
-                    Selecione um comércio...
+                    Selecione um vendedor...
                   </span>
                 )}
                 <ChevronDown className="w-5 h-5 text-slate-400" />
               </div>
 
-              {showCommerceDropdown && (
+              {showSellerDropdown && (
                 <div className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg">
-                  {commerces.map((commerce) => (
+                  {sellers.map((seller) => (
                     <div
-                      key={commerce.id}
-                      className={`p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 ${
-                        !commerce.active ? "opacity-60" : ""
-                      }`}
+                      key={seller.id}
+                      className="p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
                       onClick={() => {
-                        if (commerce.active) {
-                          setSelectedCommerce(commerce);
-                          setShowCommerceDropdown(false);
-                        }
+                        setSelectedSeller(seller);
+                        setShowSellerDropdown(false);
                       }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <Store
-                            className={`w-5 h-5 mr-2 ${
-                              commerce.active
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-slate-400 dark:text-slate-500"
-                            }`}
+                          <User
+                            className="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400"
                           />
                           <div>
                             <div className="font-medium text-slate-800 dark:text-white flex items-center">
-                              {commerce.name}
-                              {selectedCommerce &&
-                                selectedCommerce.id === commerce.id && (
+                              {seller.name}
+                              {selectedSeller &&
+                                selectedSeller.id === seller.id && (
                                   <Check className="w-4 h-4 text-green-500 ml-2" />
                                 )}
-                              {!commerce.active && (
-                                <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-full">
-                                  Inativo
-                                </span>
-                              )}
                             </div>
                             <div className="text-xs text-slate-500 dark:text-slate-400">
-                              URL: {commerce.url}
+                              {seller.description || "Sem descrição"}
                             </div>
                           </div>
                         </div>
@@ -366,28 +356,27 @@ const BankAccountManagement = () => {
             <div className="text-center p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg">
               <AlertCircle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
               <p className="text-slate-700 dark:text-slate-300">
-                Você não possui nenhum comércio cadastrado.
+                Você não possui nenhum vendedor cadastrado.
               </p>
               <Link
-                to="/commerces/new"
+                to="/sellers/new"
                 className="mt-2 inline-block text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
               >
-                Cadastrar novo comércio
+                Cadastrar novo vendedor
               </Link>
             </div>
           )}
         </div>
 
-        {selectedCommerce ? (
+        {selectedSeller ? (
           <>
             {/* Abas de filtro */}
             <div className="flex overflow-x-auto hide-scrollbar mb-6 pb-2">
               <button
-                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${
-                  activeTab === "all"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                }`}
+                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${activeTab === "all"
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
                 onClick={() => {
                   setActiveTab("all");
                   setCurrentPage(1);
@@ -396,11 +385,10 @@ const BankAccountManagement = () => {
                 Todas
               </button>
               <button
-                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${
-                  activeTab === "ted"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                }`}
+                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${activeTab === "ted"
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
                 onClick={() => {
                   setActiveTab("ted");
                   setCurrentPage(1);
@@ -409,11 +397,10 @@ const BankAccountManagement = () => {
                 Contas TED
               </button>
               <button
-                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${
-                  activeTab === "pix"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                }`}
+                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${activeTab === "pix"
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
                 onClick={() => {
                   setActiveTab("pix");
                   setCurrentPage(1);
@@ -422,11 +409,10 @@ const BankAccountManagement = () => {
                 Chaves PIX
               </button>
               <button
-                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${
-                  activeTab === "verified"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                }`}
+                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${activeTab === "verified"
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
                 onClick={() => {
                   setActiveTab("verified");
                   setCurrentPage(1);
@@ -435,11 +421,10 @@ const BankAccountManagement = () => {
                 Verificadas
               </button>
               <button
-                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${
-                  activeTab === "pending"
-                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
-                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                }`}
+                className={`px-4 py-2 mr-2 rounded-full whitespace-nowrap ${activeTab === "pending"
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 font-medium"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
                 onClick={() => {
                   setActiveTab("pending");
                   setCurrentPage(1);
@@ -467,11 +452,10 @@ const BankAccountManagement = () => {
                         {currentItems.map((account) => (
                           <div
                             key={account.id}
-                            className={`flex p-4 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
-                              selectedAccount?.id === account.id
-                                ? "border-l-4 border-indigo-600 dark:border-indigo-500"
-                                : ""
-                            }`}
+                            className={`flex p-4 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${selectedAccount?.id === account.id
+                              ? "border-l-4 border-indigo-600 dark:border-indigo-500"
+                              : ""
+                              }`}
                             onClick={() => setSelectedAccount(account)}
                           >
                             <div className="flex-shrink-0 mr-4">
@@ -535,9 +519,8 @@ const BankAccountManagement = () => {
                           </span>
                           <div className="flex space-x-2">
                             <button
-                              className={`btn btn-sm btn-circle ${
-                                currentPage === 1 ? "btn-disabled" : "btn-ghost"
-                              }`}
+                              className={`btn btn-sm btn-circle ${currentPage === 1 ? "btn-disabled" : "btn-ghost"
+                                }`}
                               onClick={() =>
                                 setCurrentPage((prev) => Math.max(1, prev - 1))
                               }
@@ -546,11 +529,10 @@ const BankAccountManagement = () => {
                               <ChevronLeft className="w-4 h-4" />
                             </button>
                             <button
-                              className={`btn btn-sm btn-circle ${
-                                currentPage === totalPages
-                                  ? "btn-disabled"
-                                  : "btn-ghost"
-                              }`}
+                              className={`btn btn-sm btn-circle ${currentPage === totalPages
+                                ? "btn-disabled"
+                                : "btn-ghost"
+                                }`}
                               onClick={() =>
                                 setCurrentPage((prev) =>
                                   Math.min(totalPages, prev + 1)
@@ -574,15 +556,15 @@ const BankAccountManagement = () => {
                         {activeTab === "all"
                           ? "Você não tem contas bancárias cadastradas."
                           : activeTab === "ted"
-                          ? "Você não tem contas bancárias do tipo TED."
-                          : activeTab === "pix"
-                          ? "Você não tem chaves PIX cadastradas."
-                          : activeTab === "verified"
-                          ? "Você não tem contas bancárias verificadas."
-                          : "Você não tem contas bancárias pendentes de verificação."}
+                            ? "Você não tem contas bancárias do tipo TED."
+                            : activeTab === "pix"
+                              ? "Você não tem chaves PIX cadastradas."
+                              : activeTab === "verified"
+                                ? "Você não tem contas bancárias verificadas."
+                                : "Você não tem contas bancárias pendentes de verificação."}
                       </p>
                       <Link
-                        to={`/bank/new?commerceId=${selectedCommerce.id}`}
+                        to={`/bank/new?sellerId=${selectedSeller.id}`}
                         className="btn btn-primary"
                       >
                         <PlusCircle className="w-4 h-4 mr-1" />
@@ -784,12 +766,12 @@ const BankAccountManagement = () => {
           </>
         ) : (
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-8 text-center">
-            <Store className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
+            <User className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
             <h2 className="text-xl font-medium text-slate-800 dark:text-white mb-2">
-              Selecione um comércio
+              Selecione um vendedor
             </h2>
             <p className="text-slate-600 dark:text-slate-300 max-w-md mx-auto mb-6">
-              Para gerenciar contas bancárias, primeiro selecione um comércio na
+              Para gerenciar contas bancárias, selecione um vendedor na
               lista acima. Você poderá adicionar, editar e verificar contas
               bancárias para recebimento de pagamentos.
             </p>

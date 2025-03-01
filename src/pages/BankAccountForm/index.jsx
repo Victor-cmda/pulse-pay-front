@@ -7,14 +7,16 @@ import {
   Save,
   Info,
   AlertCircle,
-  Store,
-  XCircle,
+  User,
+  ChevronDown,
+  Check,
   Loader,
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { paymentService } from "../../services/PaymentService";
 import { authService } from "../../services/AuthService";
+import { notification } from "antd";
 
 const BankAccountForm = () => {
   const navigate = useNavigate();
@@ -25,7 +27,13 @@ const BankAccountForm = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [seller, setSeller] = useState(null);
+
+  const [sellers, setSellers] = useState([]);
+  const [selectedSeller, setSelectedSeller] = useState(null);
+  const [showSellerDropdown, setShowSellerDropdown] = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(true);
+  const [api, contextHolder] = notification.useNotification();
+
   const [formData, setFormData] = useState({
     bankName: "",
     bankCode: "",
@@ -42,71 +50,97 @@ const BankAccountForm = () => {
 
   const isEditMode = !!id;
 
-  // Carregar dados do vendedor e da conta (se for edição)
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+    const loadSellers = async () => {
       try {
-        // Carregar dados do vendedor
-        if (sellerId) {
-          const sellerResponse = await authService.getSellerCommerces(
-            sellerId
-          );
-          if (sellerResponse.success && sellerResponse.data) {
-            setSeller(sellerResponse.data);
+        setSellerLoading(true);
+        const sellersResponse = await authService.getAvailableSellers();
 
-            // Preencher o nome do titular e documento automaticamente
-            setFormData((prev) => ({
-              ...prev,
-              accountHolderName: sellerResponse.data.name,
-              documentNumber: sellerResponse.data.document,
-              sellerId: sellerId,
-            }));
-          } else {
-            console.error(
-              "Erro ao carregar dados do vendedor:",
-              sellerResponse.message
-            );
-          }
-        }
+        if (sellersResponse.success && sellersResponse.data) {
+          setSellers(sellersResponse.data || []);
 
-        // Se for modo de edição, carregar dados da conta bancária
-        if (isEditMode) {
-          const accountResponse = await paymentService.getBankAccount(id);
-          if (accountResponse.success && accountResponse.data) {
-            setFormData(accountResponse.data);
+          if (sellerId) {
+            const seller = sellersResponse.data.find(s => s.id === sellerId);
+            if (seller) {
+              setSelectedSeller(seller);
 
-            // Se não tiver carregado o seller ainda, buscar pelo sellerId da conta
-            if (!seller && accountResponse.data.sellerId) {
-              const sellerResponse = await authService.getSellerWithCommerces(
-                accountResponse.data.sellerId
-              );
-              if (sellerResponse.success && sellerResponse.data) {
-                setSeller(sellerResponse.data);
-              }
+              setFormData(prev => ({
+                ...prev,
+                accountHolderName: seller.name,
+                documentNumber: seller.document,
+                sellerId: seller.id
+              }));
             }
-          } else {
-            console.error(
-              "Erro ao carregar dados da conta bancária:",
-              accountResponse.message
-            );
-            alert("Não foi possível carregar os dados da conta bancária.");
-            navigate("/bank");
           }
+        } else {
+          api.error({
+            message: "Erro",
+            description: sellersResponse.message || "Erro ao carregar vendedores",
+            placement: "topRight",
+          });
+          setSellers([]);
         }
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        alert("Ocorreu um erro ao carregar os dados. Tente novamente.");
-        navigate("/bank");
+        api.error({
+          message: "Erro",
+          description: "Não foi possível carregar a lista de vendedores",
+          placement: "topRight",
+        });
+        setSellers([]);
       } finally {
-        setLoading(false);
+        setSellerLoading(false);
+        if (!isEditMode) {
+          setLoading(false);
+        }
       }
     };
 
-    loadData();
-  }, [id, sellerId, isEditMode, navigate]);
+    loadSellers();
+  }, [sellerId, isEditMode, api]);
 
-  // Lista de bancos para o select
+  useEffect(() => {
+    const loadBankAccount = async () => {
+      if (isEditMode) {
+        try {
+          setLoading(true);
+          const accountResponse = await paymentService.getBankAccount(id);
+
+          if (accountResponse.success && accountResponse.data) {
+            setFormData(accountResponse.data);
+
+            if (!selectedSeller && accountResponse.data.sellerId) {
+              const sellerResponse = await authService.getSellerWithCommerces(
+                accountResponse.data.sellerId
+              );
+
+              if (sellerResponse.success && sellerResponse.data) {
+                setSelectedSeller(sellerResponse.data);
+              }
+            }
+          } else {
+            api.error({
+              message: "Erro",
+              description: accountResponse.message || "Não foi possível carregar os dados da conta bancária",
+              placement: "topRight",
+            });
+            navigate("/bank");
+          }
+        } catch (error) {
+          api.error({
+            message: "Erro",
+            description: "Ocorreu um erro ao carregar os dados. Tente novamente.",
+            placement: "topRight",
+          });
+          navigate("/bank");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadBankAccount();
+  }, [id, isEditMode, navigate, selectedSeller, api]);
+
   const bankOptions = [
     { code: "001", name: "Banco do Brasil" },
     { code: "341", name: "Itaú" },
@@ -131,16 +165,128 @@ const BankAccountForm = () => {
     { value: "RANDOM", label: "Chave aleatória" },
   ];
 
-  // Manipulador de mudança nos campos do formulário
+  // Funções de formatação
+  const formatCPF = (value) => {
+    if (!value) return value;
+
+    const onlyNumbers = value.replace(/\D/g, '');
+
+    if (onlyNumbers.length <= 3) return onlyNumbers;
+    if (onlyNumbers.length <= 6) return `${onlyNumbers.slice(0, 3)}.${onlyNumbers.slice(3)}`;
+    if (onlyNumbers.length <= 9) return `${onlyNumbers.slice(0, 3)}.${onlyNumbers.slice(3, 6)}.${onlyNumbers.slice(6)}`;
+
+    return `${onlyNumbers.slice(0, 3)}.${onlyNumbers.slice(3, 6)}.${onlyNumbers.slice(6, 9)}-${onlyNumbers.slice(9, 11)}`;
+  };
+
+  const formatCNPJ = (value) => {
+    if (!value) return value;
+
+    const onlyNumbers = value.replace(/\D/g, '');
+
+    if (onlyNumbers.length <= 2) return onlyNumbers;
+    if (onlyNumbers.length <= 5) return `${onlyNumbers.slice(0, 2)}.${onlyNumbers.slice(2)}`;
+    if (onlyNumbers.length <= 8) return `${onlyNumbers.slice(0, 2)}.${onlyNumbers.slice(2, 5)}.${onlyNumbers.slice(5)}`;
+    if (onlyNumbers.length <= 12) return `${onlyNumbers.slice(0, 2)}.${onlyNumbers.slice(2, 5)}.${onlyNumbers.slice(5, 8)}/${onlyNumbers.slice(8)}`;
+
+    return `${onlyNumbers.slice(0, 2)}.${onlyNumbers.slice(2, 5)}.${onlyNumbers.slice(5, 8)}/${onlyNumbers.slice(8, 12)}-${onlyNumbers.slice(12, 14)}`;
+  };
+
+  const formatPhone = (value) => {
+    if (!value) return value;
+
+    // Garantir que começa com +55
+    let formattedValue = value;
+    if (!formattedValue.startsWith('+')) formattedValue = '+' + formattedValue;
+    if (!formattedValue.startsWith('+55') && formattedValue.startsWith('+')) formattedValue = '+55' + formattedValue.substring(1);
+
+    // Remover caracteres não numéricos após o +55
+    const prefix = '+55';
+    const onlyNumbers = formattedValue.substring(3).replace(/\D/g, '');
+
+    return prefix + onlyNumbers;
+  };
+
+  const formatBranchNumber = (value) => {
+    if (!value) return value;
+
+    // Remover caracteres não numéricos
+    const onlyNumbers = value.replace(/\D/g, '');
+
+    // Limitar a 4 dígitos (padrão comum para agências)
+    return onlyNumbers.slice(0, 4);
+  };
+
+  const formatAccountNumber = (value) => {
+    if (!value) return value;
+
+    // Remover caracteres não numéricos
+    const onlyNumbers = value.replace(/\D/g, '');
+
+    // Formatar com hífen antes do último dígito se tiver mais de 1 dígito
+    if (onlyNumbers.length > 1) {
+      return `${onlyNumbers.slice(0, -1)}-${onlyNumbers.slice(-1)}`;
+    }
+
+    return onlyNumbers;
+  };
+
+  const formatDocumentNumber = (value) => {
+    if (!value) return value;
+
+    const onlyNumbers = value.replace(/\D/g, '');
+
+    // Verificar se é CPF ou CNPJ pelo número de dígitos
+    if (onlyNumbers.length <= 11) {
+      return formatCPF(onlyNumbers);
+    } else {
+      return formatCNPJ(onlyNumbers);
+    }
+  };
+
+  const formatPixKey = (value, type) => {
+    if (!value) return value;
+
+    switch (type) {
+      case 'CPF':
+        return formatCPF(value);
+      case 'CNPJ':
+        return formatCNPJ(value);
+      case 'PHONE':
+        return formatPhone(value);
+      case 'EMAIL':
+        return value.toLowerCase();
+      default:
+        return value;
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let formattedValue = value;
+
+    // Aplicar formatação adequada com base no campo
+    switch (name) {
+      case 'branchNumber':
+        formattedValue = formatBranchNumber(value);
+        break;
+      case 'accountNumber':
+        formattedValue = formatAccountNumber(value);
+        break;
+      case 'documentNumber':
+        formattedValue = formatDocumentNumber(value);
+        break;
+      case 'pixKey':
+        formattedValue = formatPixKey(value, formData.pixKeyType);
+        break;
+      default:
+        formattedValue = value;
+    }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: formattedValue,
     }));
 
-    // Limpar erro específico do campo quando ele for alterado
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -149,7 +295,16 @@ const BankAccountForm = () => {
     }
   };
 
-  // Manipulador de mudança no tipo de conta (TED/PIX)
+  // Efeito para reformatar a chave PIX quando o tipo mudar
+  useEffect(() => {
+    if (formData.pixKey) {
+      setFormData(prev => ({
+        ...prev,
+        pixKey: formatPixKey(prev.pixKey, prev.pixKeyType)
+      }));
+    }
+  }, [formData.pixKeyType]);
+
   const handleAccountTypeChange = (type) => {
     setFormData((prev) => ({
       ...prev,
@@ -157,7 +312,6 @@ const BankAccountForm = () => {
     }));
   };
 
-  // Selecionar um banco da lista
   const handleBankSelect = (e) => {
     const selectedIndex = e.target.selectedIndex;
     const bankCode = e.target.value;
@@ -171,18 +325,17 @@ const BankAccountForm = () => {
     }));
   };
 
-  // Validar o formulário antes de enviar
   const validateForm = () => {
     const newErrors = {};
 
-    // Validações comuns
+    if (!selectedSeller) newErrors.sellerId = "Selecione um vendedor";
+
     if (!formData.bankCode) newErrors.bankCode = "Selecione um banco";
     if (!formData.accountHolderName)
       newErrors.accountHolderName = "Nome do titular é obrigatório";
     if (!formData.documentNumber)
       newErrors.documentNumber = "Documento é obrigatório";
 
-    // Validações específicas por tipo de conta
     if (formData.accountType === "TED") {
       if (!formData.accountNumber)
         newErrors.accountNumber = "Número da conta é obrigatório";
@@ -193,7 +346,6 @@ const BankAccountForm = () => {
       if (!formData.pixKeyType)
         newErrors.pixKeyType = "Tipo de chave PIX é obrigatório";
 
-      // Validações específicas por tipo de chave PIX
       if (formData.pixKeyType === "EMAIL" && !validateEmail(formData.pixKey)) {
         newErrors.pixKey = "E-mail inválido";
       } else if (
@@ -218,29 +370,69 @@ const BankAccountForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Funções de validação
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const validatePhone = (phone) => {
-    return /^\+55\d{11}$/.test(phone);
+    // Validar apenas os dígitos após +55
+    const phoneDigits = phone.replace(/\D/g, '').slice(-11);
+    return phoneDigits.length === 11;
   };
 
   const validateCPF = (cpf) => {
-    // Simplificado para o exemplo, implemente a validação real
-    return /^\d{11}$/.test(cpf.replace(/[^\d]/g, ""));
+    const cpfDigits = cpf.replace(/\D/g, '');
+    return cpfDigits.length === 11;
   };
 
   const validateCNPJ = (cnpj) => {
-    // Simplificado para o exemplo, implemente a validação real
-    return /^\d{14}$/.test(cnpj.replace(/[^\d]/g, ""));
+    const cnpjDigits = cnpj.replace(/\D/g, '');
+    return cnpjDigits.length === 14;
   };
+
+
+  // Função para normalizar os dados antes de enviar para o backend
+  const normalizeDataForSubmission = (data) => {
+    // Criar uma cópia para não modificar o state diretamente
+    const normalizedData = { ...data };
+
+    // Remover formatação dos campos antes de enviar para o backend
+    if (normalizedData.documentNumber) {
+      normalizedData.documentNumber = normalizedData.documentNumber.replace(/\D/g, '');
+    }
+
+    if (normalizedData.accountNumber) {
+      normalizedData.accountNumber = normalizedData.accountNumber.replace(/\D/g, '');
+    }
+
+    if (normalizedData.branchNumber) {
+      normalizedData.branchNumber = normalizedData.branchNumber.replace(/\D/g, '');
+    }
+
+    if (normalizedData.pixKeyType === 'CPF' && normalizedData.pixKey) {
+      normalizedData.pixKey = normalizedData.pixKey.replace(/\D/g, '');
+    }
+
+    if (normalizedData.pixKeyType === 'CNPJ' && normalizedData.pixKey) {
+      normalizedData.pixKey = normalizedData.pixKey.replace(/\D/g, '');
+    }
+
+    return normalizedData;
+  };
+
 
   // Manipulador de envio do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
+
+    // Garantir que sellerId esteja no formData
+    if (selectedSeller) {
+      setFormData(prev => ({
+        ...prev,
+        sellerId: selectedSeller.id
+      }));
+    }
 
     if (!validateForm()) {
       return;
@@ -248,9 +440,12 @@ const BankAccountForm = () => {
 
     setSaving(true);
     try {
+      // Normalizar os dados antes de enviar
+      const normalizedData = normalizeDataForSubmission(formData);
+
       // Verificar se a conta é válida através do serviço
       const validationResponse = await paymentService.validateBankAccount(
-        formData
+        normalizedData
       );
       if (
         !validationResponse.success ||
@@ -261,16 +456,17 @@ const BankAccountForm = () => {
           validationResponse.data &&
           validationResponse.data.validationErrors
         ) {
-          alert(
-            `Erros de validação:\n${validationResponse.data.validationErrors.join(
-              "\n"
-            )}`
-          );
+          api.error({
+            message: "Erro de validação",
+            description: validationResponse.data.validationErrors.join(", "),
+            placement: "topRight",
+          });
         } else {
-          alert(
-            validationResponse.message ||
-              "Dados inválidos. Verifique os campos."
-          );
+          api.error({
+            message: "Erro de validação",
+            description: validationResponse.message || "Dados inválidos. Verifique os campos.",
+            placement: "topRight",
+          });
         }
         setSaving(false);
         return;
@@ -279,38 +475,45 @@ const BankAccountForm = () => {
       // Salvar a conta bancária
       let response;
       if (isEditMode) {
-        response = await paymentService.updateBankAccount(id, formData);
+        response = await paymentService.updateBankAccount(id, normalizedData);
       } else {
-        response = await paymentService.createBankAccount(formData);
+        response = await paymentService.createBankAccount(normalizedData);
       }
 
       if (response.success) {
-        alert(
-          response.message ||
-            (isEditMode
-              ? "Conta bancária atualizada com sucesso!"
-              : "Conta bancária criada com sucesso!")
-        );
-        // Voltar para a página de listagem após salvar
-        navigate(`/bank?sellerId=${formData.sellerId}`);
+        api.success({
+          message: "Sucesso",
+          description: response.message ||
+            (isEditMode ? "Conta bancária atualizada com sucesso!" : "Conta bancária criada com sucesso!"),
+          placement: "topRight",
+        });
+        navigate("/bank");
       } else {
-        alert(response.message || "Erro ao salvar conta bancária.");
+        debugger;
+        api.error({
+          message: "Erro",
+          description: response.message || "Erro ao salvar conta bancária.",
+          placement: "topRight",
+        });
         setSaving(false);
       }
     } catch (error) {
-      console.error("Erro ao salvar conta bancária:", error);
-      alert("Erro ao salvar conta bancária. Tente novamente mais tarde.");
+      api.error({
+        message: "Erro",
+        description: "Erro ao salvar conta bancária. Tente novamente mais tarde.",
+        placement: "topRight",
+      });
       setSaving(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pt-6 pb-16">
+      {contextHolder}
       <div className="container mx-auto px-4 max-w-3xl">
-        {/* Cabeçalho */}
         <div className="flex items-center mb-6">
           <Link
-            to={`/bank${sellerId ? `?sellerId=${sellerId}` : ""}`}
+            to="/bank"
             className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" />
@@ -319,23 +522,6 @@ const BankAccountForm = () => {
             {isEditMode ? "Editar Conta Bancária" : "Nova Conta Bancária"}
           </h1>
         </div>
-
-        {/* Informação do Comerciante */}
-        {seller && (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 mb-6">
-            <div className="flex items-center">
-              <Store className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-3" />
-              <div>
-                <div className="font-medium text-slate-800 dark:text-white">
-                  {seller.name}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  CNPJ: {seller.document}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {loading ? (
           // Estado de carregamento
@@ -351,6 +537,120 @@ const BankAccountForm = () => {
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 rounded-lg shadow p-6"
           >
+            {/* Seletor de Seller (se não estiver em modo de edição) */}
+            {!isEditMode && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Vendedor
+                </label>
+                <div className="relative">
+                  <div
+                    className={`p-3 border ${errors.sellerId && formSubmitted
+                      ? "border-red-300 dark:border-red-600"
+                      : "border-slate-300 dark:border-slate-600"
+                      } rounded-lg flex justify-between items-center cursor-pointer bg-white dark:bg-slate-800`}
+                    onClick={() => setShowSellerDropdown(!showSellerDropdown)}
+                  >
+                    {selectedSeller ? (
+                      <div className="flex items-center">
+                        <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                        <div>
+                          <div className="font-medium text-slate-800 dark:text-white">
+                            {selectedSeller.name}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                            {selectedSeller.description || "Sem descrição"}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-slate-500 dark:text-slate-400">
+                        Selecione um vendedor...
+                      </span>
+                    )}
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  </div>
+                  {errors.sellerId && formSubmitted && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors.sellerId}
+                    </p>
+                  )}
+
+                  {showSellerDropdown && (
+                    <div className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {sellerLoading ? (
+                        <div className="flex items-center justify-center p-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                          <span className="ml-2 text-slate-600 dark:text-slate-300">
+                            Carregando vendedores...
+                          </span>
+                        </div>
+                      ) : sellers.length > 0 ? (
+                        sellers.map((seller) => (
+                          <div
+                            key={seller.id}
+                            className="p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+                            onClick={() => {
+                              setSelectedSeller(seller);
+                              setShowSellerDropdown(false);
+
+                              setFormData(prev => ({
+                                ...prev,
+                                sellerId: seller.id,
+                                accountHolderName: seller.name,
+                                documentNumber: seller.document ? formatDocumentNumber(seller.document) : ''
+                              }));
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <User
+                                  className="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400"
+                                />
+                                <div>
+                                  <div className="font-medium text-slate-800 dark:text-white flex items-center">
+                                    {seller.name}
+                                    {selectedSeller &&
+                                      selectedSeller.id === seller.id && (
+                                        <Check className="w-4 h-4 text-green-500 ml-2" />
+                                      )}
+                                  </div>
+                                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                                    {seller.description || "Sem descrição"}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-slate-500 dark:text-slate-400">
+                          Nenhum vendedor encontrado
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Informação do Vendedor (em modo de edição) */}
+            {isEditMode && selectedSeller && (
+              <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4 mb-6">
+                <div className="flex items-center">
+                  <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-3" />
+                  <div>
+                    <div className="font-medium text-slate-800 dark:text-white">
+                      {selectedSeller.name}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      Documento: {selectedSeller.document ? formatDocumentNumber(selectedSeller.document) : "Não informado"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Tipo de conta */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -359,11 +659,10 @@ const BankAccountForm = () => {
               <div className="flex space-x-4">
                 <button
                   type="button"
-                  className={`flex items-center px-4 py-2 rounded-lg border ${
-                    formData.accountType === "TED"
-                      ? "bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300"
-                      : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                  }`}
+                  className={`flex items-center px-4 py-2 rounded-lg border ${formData.accountType === "TED"
+                    ? "bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300"
+                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                    }`}
                   onClick={() => handleAccountTypeChange("TED")}
                 >
                   <Building className="w-5 h-5 mr-2" />
@@ -371,11 +670,10 @@ const BankAccountForm = () => {
                 </button>
                 <button
                   type="button"
-                  className={`flex items-center px-4 py-2 rounded-lg border ${
-                    formData.accountType === "PIX"
-                      ? "bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300"
-                      : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                  }`}
+                  className={`flex items-center px-4 py-2 rounded-lg border ${formData.accountType === "PIX"
+                    ? "bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300"
+                    : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                    }`}
                   onClick={() => handleAccountTypeChange("PIX")}
                 >
                   <Wallet className="w-5 h-5 mr-2" />
@@ -397,11 +695,10 @@ const BankAccountForm = () => {
                 name="bankCode"
                 value={formData.bankCode}
                 onChange={handleBankSelect}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.bankCode && formSubmitted
-                    ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                    : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                className={`w-full px-3 py-2 border rounded-lg ${errors.bankCode && formSubmitted
+                  ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                  : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                  } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
               >
                 <option value="">Selecione um banco</option>
                 {bankOptions.map((bank) => (
@@ -436,11 +733,11 @@ const BankAccountForm = () => {
                       value={formData.branchNumber}
                       onChange={handleChange}
                       placeholder="Número da agência"
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.branchNumber && formSubmitted
-                          ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                          : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                      } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                      maxLength={4}
+                      className={`w-full px-3 py-2 border rounded-lg ${errors.branchNumber && formSubmitted
+                        ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                        : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                        } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
                     />
                     {errors.branchNumber && formSubmitted && (
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -464,11 +761,10 @@ const BankAccountForm = () => {
                       value={formData.accountNumber}
                       onChange={handleChange}
                       placeholder="Número da conta com dígito"
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.accountNumber && formSubmitted
-                          ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                          : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                      } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                      className={`w-full px-3 py-2 border rounded-lg ${errors.accountNumber && formSubmitted
+                        ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                        : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                        } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
                     />
                     {errors.accountNumber && formSubmitted && (
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -495,11 +791,10 @@ const BankAccountForm = () => {
                       name="pixKeyType"
                       value={formData.pixKeyType}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.pixKeyType && formSubmitted
-                          ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                          : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                      } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                      className={`w-full px-3 py-2 border rounded-lg ${errors.pixKeyType && formSubmitted
+                        ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                        : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                        } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
                     >
                       {pixKeyTypes.map((type) => (
                         <option key={type.value} value={type.value}>
@@ -523,7 +818,7 @@ const BankAccountForm = () => {
                       Chave PIX
                     </label>
                     <input
-                      type="text"
+                      type={formData.pixKeyType === "EMAIL" ? "email" : "text"}
                       id="pixKey"
                       name="pixKey"
                       value={formData.pixKey}
@@ -532,18 +827,17 @@ const BankAccountForm = () => {
                         formData.pixKeyType === "EMAIL"
                           ? "exemplo@email.com"
                           : formData.pixKeyType === "PHONE"
-                          ? "+5511999999999"
-                          : formData.pixKeyType === "CPF"
-                          ? "123.456.789-00"
-                          : formData.pixKeyType === "CNPJ"
-                          ? "12.345.678/0001-90"
-                          : "Chave aleatória"
+                            ? "+5511999999999"
+                            : formData.pixKeyType === "CPF"
+                              ? "123.456.789-00"
+                              : formData.pixKeyType === "CNPJ"
+                                ? "12.345.678/0001-90"
+                                : "Chave aleatória"
                       }
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.pixKey && formSubmitted
-                          ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                          : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                      } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                      className={`w-full px-3 py-2 border rounded-lg ${errors.pixKey && formSubmitted
+                        ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                        : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                        } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
                     />
                     {errors.pixKey && formSubmitted && (
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -576,11 +870,10 @@ const BankAccountForm = () => {
                   value={formData.accountHolderName}
                   onChange={handleChange}
                   placeholder="Nome completo do titular ou razão social"
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    errors.accountHolderName && formSubmitted
-                      ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                      : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                  } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors.accountHolderName && formSubmitted
+                    ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                    : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                    } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
                 />
                 {errors.accountHolderName && formSubmitted && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -604,11 +897,10 @@ const BankAccountForm = () => {
                   value={formData.documentNumber}
                   onChange={handleChange}
                   placeholder="CPF ou CNPJ do titular"
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    errors.documentNumber && formSubmitted
-                      ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
-                      : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
-                  } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors.documentNumber && formSubmitted
+                    ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
+                    : "border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400"
+                    } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400`}
                 />
                 {errors.documentNumber && formSubmitted && (
                   <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -629,7 +921,6 @@ const BankAccountForm = () => {
                   <p className="text-sm text-indigo-700 dark:text-indigo-400">
                     Após o cadastro, sua conta bancária passará por uma
                     verificação antes de ser liberada para saques automáticos.
-                    Você poderá usá-la para recebimentos imediatamente.
                   </p>
                 </div>
               </div>
@@ -638,7 +929,7 @@ const BankAccountForm = () => {
             {/* Botões */}
             <div className="flex justify-end space-x-3">
               <Link
-                to={`/bank${sellerId ? `?sellerId=${sellerId}` : ""}`}
+                to="/bank"
                 className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 Cancelar
