@@ -17,6 +17,7 @@ import {
 import { notification, Modal, Form, Input } from "antd";
 import ThemeToggle from "../../theme/ThemeToggle";
 import { authService } from "../../services/AuthService";
+import { useLoading } from '../../context/LoadingContext';
 
 const UserConfig = () => {
   const inputRefs = useRef([]);
@@ -41,6 +42,7 @@ const UserConfig = () => {
   const [isSellerModalVisible, setIsSellerModalVisible] = useState(false);
   const [sellerForm] = Form.useForm();
   const loadedCommerceIds = useRef([]);
+  const { setLoading } = useLoading();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -68,6 +70,7 @@ const UserConfig = () => {
   const loadApiConfig = async () => {
     setIsLoading(true);
     try {
+      setLoading(true);
       const response = await authService.getConfiguration();
       if (response.success) {
         setApiConfig({
@@ -90,6 +93,7 @@ const UserConfig = () => {
         placement: "topRight",
       });
     } finally {
+      setLoading(false);
       setIsLoading(false);
     }
   };

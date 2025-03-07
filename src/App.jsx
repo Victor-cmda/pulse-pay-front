@@ -28,29 +28,21 @@ import BankAccountForm from "./pages/BankAccountForm";
 import { configureAuthHeaders } from "./store/slices/userSlice";
 import { authService } from "./services/AuthService";
 import { paymentService } from "./services/PaymentService";
+import { LoadingProvider } from "./context/LoadingContext";
 
-// Componente para configurar headers de autenticação e interceptors
 const AuthSetup = () => {
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      // Configura os headers de autenticação
       configureAuthHeaders(token);
-      console.log('Auth headers configured');
     }
 
-    // Configura os interceptors com callback de logout
     const handleLogout = () => {
-      console.log("Executando logout devido a erro 401");
-      store.dispatch({ type: 'user/logout' });
+      store.dispatch({ type: "user/logout" });
     };
 
-    // Configura o callback de logout em ambos os serviços
-    console.log('Configurando interceptors...');
     authService.setLogoutCallback(handleLogout);
     paymentService.setLogoutCallback(handleLogout);
-    console.log('Interceptors configurados');
-
   }, []);
 
   return null;
@@ -58,9 +50,9 @@ const AuthSetup = () => {
 
 const App = () => {
   return (
-    <React.StrictMode>
-      <Provider store={store}>
-        <PersistGate loading={<LoadingSpinner />} persistor={persistor}>
+    <Provider store={store}>
+      <PersistGate loading={<LoadingSpinner />} persistor={persistor}>
+        <LoadingProvider>
           <AuthSetup />
           <MainLayout>
             <Routes>
@@ -172,9 +164,9 @@ const App = () => {
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
           </MainLayout>
-        </PersistGate>
-      </Provider>
-    </React.StrictMode>
+        </LoadingProvider>
+      </PersistGate>
+    </Provider>
   );
 };
 

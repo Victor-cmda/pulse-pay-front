@@ -23,15 +23,12 @@ class AuthService {
   setLogoutCallback(logoutCallback) {
     if (typeof logoutCallback === 'function') {
       this._logoutCallback = logoutCallback;
-      // Reinicialize os interceptors com o novo callback
       this.initializeInterceptors(this._logoutCallback);
     }
   }
 
   initializeInterceptors(logoutCallback) {
-    console.log("Inicializando interceptors...");
     setupInterceptors(this.authClient.instance, logoutCallback);
-    console.log("Interceptors inicializados!");
   }
 
   setAuthorizationHeader(token) {

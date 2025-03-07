@@ -21,18 +21,19 @@ export interface IClient {
      */
     bankPUT(id: string, body: BankAccountUpdateDto | undefined): Promise<BankAccountResponseDto>;
     /**
-     * @return No Content
-     */
-    bankDELETE(id: string): Promise<void>;
-    /**
      * @return OK
      */
-    sellerAll(sellerId: string): Promise<BankAccountResponseDto[]>;
+    seller(sellerId: string): Promise<BankAccountResponseDto[]>;
     /**
      * @param body (optional) 
      * @return Created
      */
     bankPOST(body: BankAccountCreateDto | undefined): Promise<BankAccountResponseDto>;
+    /**
+     * @param id (optional) 
+     * @return No Content
+     */
+    bankDELETE(id: string | undefined, sellerId: string): Promise<void>;
     /**
      * @return OK
      */
@@ -45,12 +46,17 @@ export interface IClient {
     /**
      * @return OK
      */
-    walletGET(sellerId: string): Promise<void>;
+    walletsGET(sellerId: string): Promise<void>;
     /**
-     * @param body (optional) 
+     * @param count (optional) 
      * @return OK
      */
-    walletPOST(body: WalletCreateDto | undefined): Promise<void>;
+    withTransactions(sellerId: string, count: number | undefined): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return Created
+     */
+    walletsPOST(body: WalletCreateDto | undefined): Promise<void>;
     /**
      * @param body (optional) 
      * @return OK
@@ -60,21 +66,29 @@ export interface IClient {
      * @param body (optional) 
      * @return OK
      */
-    addFunds(sellerId: string, body: number | undefined): Promise<void>;
+    deposits(sellerId: string, body: FundsOperationRequest | undefined): Promise<void>;
     /**
      * @param body (optional) 
      * @return OK
      */
-    deductFunds(sellerId: string, body: number | undefined): Promise<void>;
+    withdrawals(sellerId: string, body: FundsOperationRequest | undefined): Promise<void>;
+    /**
+     * @param startDate (optional) 
+     * @param endDate (optional) 
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    transactions(sellerId: string, startDate: Date | undefined, endDate: Date | undefined, page: number | undefined, pageSize: number | undefined): Promise<void>;
     /**
      * @param body (optional) 
      * @return OK
      */
-    walletTransactionPOST(body: CreateTransactionRequest | undefined): Promise<void>;
+    walletTransactionsPOST(body: CreateTransactionRequest | undefined): Promise<void>;
     /**
      * @return OK
      */
-    walletTransactionGET(transactionId: string): Promise<void>;
+    walletTransactionsGET(transactionId: string): Promise<void>;
     /**
      * @return OK
      */
@@ -92,36 +106,6 @@ export interface IClient {
      * @return OK
      */
     status(transactionId: string, body: UpdateTransactionStatusRequest | undefined): Promise<void>;
-    /**
-     * @param body (optional) 
-     * @return OK
-     */
-    withdrawPOST(body: WithdrawCreateDto | undefined): Promise<void>;
-    /**
-     * @return OK
-     */
-    withdrawGET(id: string): Promise<void>;
-    /**
-     * @param page (optional) 
-     * @param pageSize (optional) 
-     * @return OK
-     */
-    seller(sellerId: string, page: number | undefined, pageSize: number | undefined): Promise<void>;
-    /**
-     * @param body (optional) 
-     * @return OK
-     */
-    process(id: string, body: WithdrawUpdateDto | undefined): Promise<void>;
-    /**
-     * @param startDate (optional) 
-     * @param endDate (optional) 
-     * @return OK
-     */
-    summary(sellerId: string, startDate: Date | undefined, endDate: Date | undefined): Promise<void>;
-    /**
-     * @return OK
-     */
-    pending(): Promise<void>;
 }
 
 export class Client implements IClient {
@@ -264,13 +248,6 @@ export class Client implements IClient {
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
@@ -290,84 +267,9 @@ export class Client implements IClient {
     }
 
     /**
-     * @return No Content
-     */
-    bankDELETE(id: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/bank/{id}";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "DELETE",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processBankDELETE(_response);
-        });
-    }
-
-    protected processBankDELETE(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 204) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status === 401) {
-            const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
-
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-
-        } else if (status === 404) {
-            const _responseText = response.data;
-            let result404: any = null;
-            let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
-            return throwException("Not Found", status, _responseText, _headers, result404);
-
-        } else if (status === 500) {
-            const _responseText = response.data;
-            return throwException("Internal Server Error", status, _responseText, _headers);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
      * @return OK
      */
-    sellerAll(sellerId: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto[]> {
+    seller(sellerId: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto[]> {
         let url_ = this.baseUrl + "/api/bank/seller/{sellerId}";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
@@ -390,11 +292,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processSellerAll(_response);
+            return this.processSeller(_response);
         });
     }
 
-    protected processSellerAll(response: AxiosResponse): Promise<BankAccountResponseDto[]> {
+    protected processSeller(response: AxiosResponse): Promise<BankAccountResponseDto[]> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -492,13 +394,6 @@ export class Client implements IClient {
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
-        } else if (status === 403) {
-            const _responseText = response.data;
-            let result403: any = null;
-            let resultData403  = _responseText;
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-
         } else if (status === 409) {
             const _responseText = response.data;
             let result409: any = null;
@@ -515,6 +410,72 @@ export class Client implements IClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
         return Promise.resolve<BankAccountResponseDto>(null as any);
+    }
+
+    /**
+     * @param id (optional) 
+     * @return No Content
+     */
+    bankDELETE(id: string | undefined, sellerId: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/bank/{sellerId}?";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        if (id === null)
+            throw new Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "DELETE",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processBankDELETE(_response);
+        });
+    }
+
+    protected processBankDELETE(response: AxiosResponse): Promise<void> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 204) {
+            const _responseText = response.data;
+            return Promise.resolve<void>(null as any);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            return throwException("Internal Server Error", status, _responseText, _headers);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     /**
@@ -559,13 +520,6 @@ export class Client implements IClient {
         if (status === 200) {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
-
-        } else if (status === 401) {
-            const _responseText = response.data;
-            let result401: any = null;
-            let resultData401  = _responseText;
-            result401 = ProblemDetails.fromJS(resultData401);
-            return throwException("Unauthorized", status, _responseText, _headers, result401);
 
         } else if (status === 404) {
             const _responseText = response.data;
@@ -655,8 +609,8 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    walletGET(sellerId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet/{sellerId}";
+    walletsGET(sellerId: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallets/{sellerId}";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -677,11 +631,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletGET(_response);
+            return this.processWalletsGET(_response);
         });
     }
 
-    protected processWalletGET(response: AxiosResponse): Promise<void> {
+    protected processWalletsGET(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -695,6 +649,75 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @param count (optional) 
+     * @return OK
+     */
+    withTransactions(sellerId: string, count: number | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallets/{sellerId}/with-transactions?";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        if (count === null)
+            throw new Error("The parameter 'count' cannot be null.");
+        else if (count !== undefined)
+            url_ += "count=" + encodeURIComponent("" + count) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processWithTransactions(_response);
+        });
+    }
+
+    protected processWithTransactions(response: AxiosResponse): Promise<void> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<void>(null as any);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -704,10 +727,10 @@ export class Client implements IClient {
 
     /**
      * @param body (optional) 
-     * @return OK
+     * @return Created
      */
-    walletPOST(body: WalletCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet";
+    walletsPOST(body: WalletCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallets";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -729,11 +752,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletPOST(_response);
+            return this.processWalletsPOST(_response);
         });
     }
 
-    protected processWalletPOST(response: AxiosResponse): Promise<void> {
+    protected processWalletsPOST(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -743,9 +766,23 @@ export class Client implements IClient {
                 }
             }
         }
-        if (status === 200) {
+        if (status === 201) {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 409) {
+            const _responseText = response.data;
+            let result409: any = null;
+            let resultData409  = _responseText;
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -759,7 +796,7 @@ export class Client implements IClient {
      * @return OK
      */
     balancePUT(sellerId: string, body: WalletUpdateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet/{sellerId}/balance";
+        let url_ = this.baseUrl + "/api/wallets/{sellerId}/balance";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -802,6 +839,13 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -813,8 +857,8 @@ export class Client implements IClient {
      * @param body (optional) 
      * @return OK
      */
-    addFunds(sellerId: string, body: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet/{sellerId}/add-funds";
+    deposits(sellerId: string, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallets/{sellerId}/deposits";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -839,11 +883,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processAddFunds(_response);
+            return this.processDeposits(_response);
         });
     }
 
-    protected processAddFunds(response: AxiosResponse): Promise<void> {
+    protected processDeposits(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -857,6 +901,20 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -868,8 +926,8 @@ export class Client implements IClient {
      * @param body (optional) 
      * @return OK
      */
-    deductFunds(sellerId: string, body: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet/{sellerId}/deduct-funds";
+    withdrawals(sellerId: string, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallets/{sellerId}/withdrawals";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
         url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
@@ -894,11 +952,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processDeductFunds(_response);
+            return this.processWithdrawals(_response);
         });
     }
 
-    protected processDeductFunds(response: AxiosResponse): Promise<void> {
+    protected processWithdrawals(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -912,6 +970,97 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @param startDate (optional) 
+     * @param endDate (optional) 
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    transactions(sellerId: string, startDate: Date | undefined, endDate: Date | undefined, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallets/{sellerId}/transactions?";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        if (startDate === null)
+            throw new Error("The parameter 'startDate' cannot be null.");
+        else if (startDate !== undefined)
+            url_ += "startDate=" + encodeURIComponent(startDate ? "" + startDate.toISOString() : "") + "&";
+        if (endDate === null)
+            throw new Error("The parameter 'endDate' cannot be null.");
+        else if (endDate !== undefined)
+            url_ += "endDate=" + encodeURIComponent(endDate ? "" + endDate.toISOString() : "") + "&";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processTransactions(_response);
+        });
+    }
+
+    protected processTransactions(response: AxiosResponse): Promise<void> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            return Promise.resolve<void>(null as any);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -923,8 +1072,8 @@ export class Client implements IClient {
      * @param body (optional) 
      * @return OK
      */
-    walletTransactionPOST(body: CreateTransactionRequest | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet-transaction";
+    walletTransactionsPOST(body: CreateTransactionRequest | undefined, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet-transactions";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -946,11 +1095,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletTransactionPOST(_response);
+            return this.processWalletTransactionsPOST(_response);
         });
     }
 
-    protected processWalletTransactionPOST(response: AxiosResponse): Promise<void> {
+    protected processWalletTransactionsPOST(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -964,6 +1113,20 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -974,8 +1137,8 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    walletTransactionGET(transactionId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet-transaction/{transactionId}";
+    walletTransactionsGET(transactionId: string, cancelToken?: CancelToken): Promise<void> {
+        let url_ = this.baseUrl + "/api/wallet-transactions/{transactionId}";
         if (transactionId === undefined || transactionId === null)
             throw new Error("The parameter 'transactionId' must be defined.");
         url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
@@ -996,11 +1159,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processWalletTransactionGET(_response);
+            return this.processWalletTransactionsGET(_response);
         });
     }
 
-    protected processWalletTransactionGET(response: AxiosResponse): Promise<void> {
+    protected processWalletTransactionsGET(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -1014,6 +1177,13 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -1025,7 +1195,7 @@ export class Client implements IClient {
      * @return OK
      */
     balanceGET(walletId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet-transaction/wallet/{walletId}/balance";
+        let url_ = this.baseUrl + "/api/wallet-transactions/wallet/{walletId}/balance";
         if (walletId === undefined || walletId === null)
             throw new Error("The parameter 'walletId' must be defined.");
         url_ = url_.replace("{walletId}", encodeURIComponent("" + walletId));
@@ -1064,6 +1234,13 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -1079,7 +1256,7 @@ export class Client implements IClient {
      * @return OK
      */
     history(walletId: string, startDate: Date, endDate: Date, status: TransactionStatus | undefined, type: TransactionType | undefined, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet-transaction/wallet/{walletId}/history?";
+        let url_ = this.baseUrl + "/api/wallet-transactions/wallet/{walletId}/history?";
         if (walletId === undefined || walletId === null)
             throw new Error("The parameter 'walletId' must be defined.");
         url_ = url_.replace("{walletId}", encodeURIComponent("" + walletId));
@@ -1142,6 +1319,13 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -1154,7 +1338,7 @@ export class Client implements IClient {
      * @return OK
      */
     status(transactionId: string, body: UpdateTransactionStatusRequest | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallet-transaction/{transactionId}/status";
+        let url_ = this.baseUrl + "/api/wallet-transactions/{transactionId}/status";
         if (transactionId === undefined || transactionId === null)
             throw new Error("The parameter 'transactionId' must be defined.");
         url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
@@ -1197,329 +1381,19 @@ export class Client implements IClient {
             const _responseText = response.data;
             return Promise.resolve<void>(null as any);
 
-        } else if (status !== 200 && status !== 204) {
+        } else if (status === 400) {
             const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
 
-    /**
-     * @param body (optional) 
-     * @return OK
-     */
-    withdrawPOST(body: WithdrawCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/withdraw";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: AxiosRequestConfig = {
-            data: content_,
-            method: "POST",
-            url: url_,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processWithdrawPOST(_response);
-        });
-    }
-
-    protected processWithdrawPOST(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
+        } else if (status === 404) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * @return OK
-     */
-    withdrawGET(id: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/withdraw/{id}";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processWithdrawGET(_response);
-        });
-    }
-
-    protected processWithdrawGET(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * @param page (optional) 
-     * @param pageSize (optional) 
-     * @return OK
-     */
-    seller(sellerId: string, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/withdraw/seller/{sellerId}?";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
-        if (page === null)
-            throw new Error("The parameter 'page' cannot be null.");
-        else if (page !== undefined)
-            url_ += "page=" + encodeURIComponent("" + page) + "&";
-        if (pageSize === null)
-            throw new Error("The parameter 'pageSize' cannot be null.");
-        else if (pageSize !== undefined)
-            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processSeller(_response);
-        });
-    }
-
-    protected processSeller(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * @param body (optional) 
-     * @return OK
-     */
-    process(id: string, body: WithdrawUpdateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/withdraw/{id}/process";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: AxiosRequestConfig = {
-            data: content_,
-            method: "PUT",
-            url: url_,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processProcess(_response);
-        });
-    }
-
-    protected processProcess(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * @param startDate (optional) 
-     * @param endDate (optional) 
-     * @return OK
-     */
-    summary(sellerId: string, startDate: Date | undefined, endDate: Date | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/withdraw/summary/{sellerId}?";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
-        if (startDate === null)
-            throw new Error("The parameter 'startDate' cannot be null.");
-        else if (startDate !== undefined)
-            url_ += "startDate=" + encodeURIComponent(startDate ? "" + startDate.toISOString() : "") + "&";
-        if (endDate === null)
-            throw new Error("The parameter 'endDate' cannot be null.");
-        else if (endDate !== undefined)
-            url_ += "endDate=" + encodeURIComponent(endDate ? "" + endDate.toISOString() : "") + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processSummary(_response);
-        });
-    }
-
-    protected processSummary(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * @return OK
-     */
-    pending( cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/withdraw/pending";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "GET",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processPending(_response);
-        });
-    }
-
-    protected processPending(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
@@ -1862,6 +1736,50 @@ export interface ICreateTransactionRequest {
     reference?: string | undefined;
 }
 
+export class FundsOperationRequest implements IFundsOperationRequest {
+    amount!: number;
+    description?: string | undefined;
+    reference?: string | undefined;
+
+    constructor(data?: IFundsOperationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.amount = _data["amount"];
+            this.description = _data["description"];
+            this.reference = _data["reference"];
+        }
+    }
+
+    static fromJS(data: any): FundsOperationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new FundsOperationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["amount"] = this.amount;
+        data["description"] = this.description;
+        data["reference"] = this.reference;
+        return data;
+    }
+}
+
+export interface IFundsOperationRequest {
+    amount: number;
+    description?: string | undefined;
+    reference?: string | undefined;
+}
+
 export enum PixKeyType {
     _0 = 0,
     _1 = 1,
@@ -1946,6 +1864,8 @@ export enum TransactionType {
     _1 = 1,
     _2 = 2,
     _3 = 3,
+    _4 = 4,
+    _5 = 5,
 }
 
 export class UpdateTransactionStatusRequest implements IUpdateTransactionStatusRequest {
@@ -1989,7 +1909,7 @@ export interface IUpdateTransactionStatusRequest {
 }
 
 export class WalletCreateDto implements IWalletCreateDto {
-    sellerId?: string;
+    sellerId!: string;
 
     constructor(data?: IWalletCreateDto) {
         if (data) {
@@ -2021,12 +1941,12 @@ export class WalletCreateDto implements IWalletCreateDto {
 }
 
 export interface IWalletCreateDto {
-    sellerId?: string;
+    sellerId: string;
 }
 
 export class WalletUpdateDto implements IWalletUpdateDto {
-    availableBalance?: number;
-    pendingBalance?: number;
+    availableBalance!: number;
+    pendingBalance!: number;
 
     constructor(data?: IWalletUpdateDto) {
         if (data) {
@@ -2060,100 +1980,8 @@ export class WalletUpdateDto implements IWalletUpdateDto {
 }
 
 export interface IWalletUpdateDto {
-    availableBalance?: number;
-    pendingBalance?: number;
-}
-
-export class WithdrawCreateDto implements IWithdrawCreateDto {
-    sellerId!: string;
-    amount!: number;
-    withdrawMethod!: string;
-    bankAccountId!: string;
-
-    constructor(data?: IWithdrawCreateDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.sellerId = _data["sellerId"];
-            this.amount = _data["amount"];
-            this.withdrawMethod = _data["withdrawMethod"];
-            this.bankAccountId = _data["bankAccountId"];
-        }
-    }
-
-    static fromJS(data: any): WithdrawCreateDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new WithdrawCreateDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["sellerId"] = this.sellerId;
-        data["amount"] = this.amount;
-        data["withdrawMethod"] = this.withdrawMethod;
-        data["bankAccountId"] = this.bankAccountId;
-        return data;
-    }
-}
-
-export interface IWithdrawCreateDto {
-    sellerId: string;
-    amount: number;
-    withdrawMethod: string;
-    bankAccountId: string;
-}
-
-export class WithdrawUpdateDto implements IWithdrawUpdateDto {
-    status!: string;
-    failureReason?: string | undefined;
-    transactionReceipt?: string | undefined;
-
-    constructor(data?: IWithdrawUpdateDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.status = _data["status"];
-            this.failureReason = _data["failureReason"];
-            this.transactionReceipt = _data["transactionReceipt"];
-        }
-    }
-
-    static fromJS(data: any): WithdrawUpdateDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new WithdrawUpdateDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["status"] = this.status;
-        data["failureReason"] = this.failureReason;
-        data["transactionReceipt"] = this.transactionReceipt;
-        return data;
-    }
-}
-
-export interface IWithdrawUpdateDto {
-    status: string;
-    failureReason?: string | undefined;
-    transactionReceipt?: string | undefined;
+    availableBalance: number;
+    pendingBalance: number;
 }
 
 export class ApiException extends Error {

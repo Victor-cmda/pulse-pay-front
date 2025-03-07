@@ -5,9 +5,8 @@ import {
   CreateTransactionRequest,
   WalletCreateDto,
   WalletUpdateDto,
-  WithdrawCreateDto,
-  WithdrawUpdateDto,
-  UpdateTransactionStatusRequest
+  UpdateTransactionStatusRequest,
+  FundsOperationRequest
 } from "./PulsePayApiService";
 import { setupInterceptors } from "../interceptor/apiInterceptor";
 
@@ -22,15 +21,12 @@ class PaymentService {
   setLogoutCallback(logoutCallback) {
     if (typeof logoutCallback === 'function') {
       this._logoutCallback = logoutCallback;
-      // Reinicialize os interceptors com o novo callback
       this.initializeInterceptors(this._logoutCallback);
     }
   }
 
   initializeInterceptors(logoutCallback) {
-    console.log("Inicializando interceptors...");
-    setupInterceptors(this.client.instance, logoutCallback); // ERRO: authClient não existe
-    console.log("Interceptors inicializados!");
+    setupInterceptors(this.client.instance, logoutCallback);
   }
 
   setAuthorizationHeader(token) {
@@ -40,6 +36,8 @@ class PaymentService {
       delete this.client.instance.defaults.headers.common["Authorization"];
     }
   }
+
+  // --------- BANK ACCOUNT OPERATIONS ---------
 
   async getBankAccount(id) {
     try {
@@ -73,9 +71,9 @@ class PaymentService {
     }
   }
 
-  async deleteBankAccount(id) {
+  async deleteBankAccount(id, sellerId) {
     try {
-      await this.client.bankDELETE(id);
+      await this.client.bankDELETE(id, sellerId);
       return {
         success: true,
         message: "Conta bancária excluída com sucesso"
@@ -90,7 +88,7 @@ class PaymentService {
 
   async getSellerBankAccounts(sellerId) {
     try {
-      const response = await this.client.sellerAll(sellerId);
+      const response = await this.client.seller(sellerId);
       return {
         success: true,
         data: response
@@ -155,7 +153,7 @@ class PaymentService {
 
   async getWallet(sellerId) {
     try {
-      const response = await this.client.walletGET(sellerId);
+      const response = await this.client.walletsGET(sellerId);
       return {
         success: true,
         data: response
@@ -168,10 +166,25 @@ class PaymentService {
     }
   }
 
+  async getWalletWithTransactions(sellerId, count) {
+    try {
+      const response = await this.client.withTransactions(sellerId, count);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar a carteira com transações"
+      };
+    }
+  }
+
   async createWallet(sellerId) {
     try {
       const dto = new WalletCreateDto({ sellerId });
-      await this.client.walletPOST(dto);
+      await this.client.walletsPOST(dto);
       return {
         success: true,
         message: "Carteira criada com sucesso"
@@ -203,9 +216,14 @@ class PaymentService {
     }
   }
 
-  async addFunds(sellerId, amount) {
+  async addFunds(sellerId, amount, description, reference) {
     try {
-      await this.client.addFunds(sellerId, amount);
+      const request = new FundsOperationRequest({
+        amount,
+        description,
+        reference
+      });
+      await this.client.deposits(sellerId, request);
       return {
         success: true,
         message: "Fundos adicionados com sucesso"
@@ -218,9 +236,14 @@ class PaymentService {
     }
   }
 
-  async deductFunds(sellerId, amount) {
+  async deductFunds(sellerId, amount, description, reference) {
     try {
-      await this.client.deductFunds(sellerId, amount);
+      const request = new FundsOperationRequest({
+        amount,
+        description,
+        reference
+      });
+      await this.client.withdrawals(sellerId, request);
       return {
         success: true,
         message: "Fundos deduzidos com sucesso"
@@ -233,12 +256,33 @@ class PaymentService {
     }
   }
 
+  async getWalletTransactions(sellerId, startDate, endDate, page, pageSize) {
+    try {
+      const response = await this.client.transactions(
+        sellerId,
+        startDate,
+        endDate,
+        page,
+        pageSize
+      );
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível recuperar as transações da carteira"
+      };
+    }
+  }
+
   // --------- TRANSACTION OPERATIONS ---------
 
   async createTransaction(transactionData) {
     try {
       const request = new CreateTransactionRequest(transactionData);
-      await this.client.walletTransactionPOST(request);
+      await this.client.walletTransactionsPOST(request);
       return {
         success: true,
         message: "Transação criada com sucesso"
@@ -253,7 +297,7 @@ class PaymentService {
 
   async getTransaction(transactionId) {
     try {
-      const response = await this.client.walletTransactionGET(transactionId);
+      const response = await this.client.walletTransactionsGET(transactionId);
       return {
         success: true,
         data: response
@@ -319,104 +363,6 @@ class PaymentService {
       return {
         success: false,
         message: error.message || "Não foi possível atualizar o status da transação"
-      };
-    }
-  }
-
-  // --------- WITHDRAW OPERATIONS ---------
-
-  async createWithdraw(withdrawData) {
-    try {
-      const dto = new WithdrawCreateDto(withdrawData);
-      await this.client.withdrawPOST(dto);
-      return {
-        success: true,
-        message: "Solicitação de saque criada com sucesso"
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || "Não foi possível criar a solicitação de saque"
-      };
-    }
-  }
-
-  async getWithdraw(id) {
-    try {
-      const response = await this.client.withdrawGET(id);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || "Não foi possível recuperar o saque"
-      };
-    }
-  }
-
-  async getSellerWithdraws(sellerId, page, pageSize) {
-    try {
-      const response = await this.client.seller(sellerId, page, pageSize);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || "Não foi possível recuperar os saques do vendedor"
-      };
-    }
-  }
-
-  async processWithdraw(id, status, failureReason, transactionReceipt) {
-    try {
-      const updateDto = new WithdrawUpdateDto({
-        status,
-        failureReason,
-        transactionReceipt
-      });
-      await this.client.process(id, updateDto);
-      return {
-        success: true,
-        message: "Saque processado com sucesso"
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || "Não foi possível processar o saque"
-      };
-    }
-  }
-
-  async getWithdrawSummary(sellerId, startDate, endDate) {
-    try {
-      const response = await this.client.summary(sellerId, startDate, endDate);
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || "Não foi possível recuperar o resumo de saques"
-      };
-    }
-  }
-
-  async getPendingWithdraws() {
-    try {
-      const response = await this.client.pending();
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message || "Não foi possível recuperar os saques pendentes"
       };
     }
   }

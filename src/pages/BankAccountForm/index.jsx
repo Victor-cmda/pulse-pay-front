@@ -263,8 +263,7 @@ const BankAccountForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     let formattedValue = value;
-
-    // Aplicar formatação adequada com base no campo
+  
     switch (name) {
       case 'branchNumber':
         formattedValue = formatBranchNumber(value);
@@ -281,12 +280,12 @@ const BankAccountForm = () => {
       default:
         formattedValue = value;
     }
-
+  
     setFormData((prev) => ({
       ...prev,
-      [name]: formattedValue,
+      [name]: formattedValue ?? '',
     }));
-
+  
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -295,7 +294,6 @@ const BankAccountForm = () => {
     }
   };
 
-  // Efeito para reformatar a chave PIX quando o tipo mudar
   useEffect(() => {
     if (formData.pixKey) {
       setFormData(prev => ({
@@ -693,7 +691,7 @@ const BankAccountForm = () => {
               <select
                 id="bankCode"
                 name="bankCode"
-                value={formData.bankCode}
+                value={formData.bankCode ?? ''}
                 onChange={handleBankSelect}
                 className={`w-full px-3 py-2 border rounded-lg ${errors.bankCode && formSubmitted
                   ? "border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400"
