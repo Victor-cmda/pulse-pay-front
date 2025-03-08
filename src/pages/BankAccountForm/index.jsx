@@ -487,7 +487,6 @@ const BankAccountForm = () => {
         });
         navigate("/bank");
       } else {
-        debugger;
         api.error({
           message: "Erro",
           description: response.message || "Erro ao salvar conta bancária.",

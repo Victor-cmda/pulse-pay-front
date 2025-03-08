@@ -23,7 +23,7 @@ export interface IClient {
     /**
      * @return OK
      */
-    seller(sellerId: string): Promise<BankAccountResponseDto[]>;
+    sellerAll(sellerId: string): Promise<BankAccountResponseDto[]>;
     /**
      * @param body (optional) 
      * @return Created
@@ -46,32 +46,56 @@ export interface IClient {
     /**
      * @return OK
      */
-    walletsGET(sellerId: string): Promise<void>;
+    walletsGET(id: string): Promise<WalletDtoApiResponse>;
+    /**
+     * @return OK
+     */
+    seller(sellerId: string): Promise<WalletDtoIEnumerableApiResponse>;
+    /**
+     * @return OK
+     */
+    type(sellerId: string, walletType: WalletType): Promise<WalletDtoApiResponse>;
     /**
      * @param count (optional) 
      * @return OK
      */
-    withTransactions(sellerId: string, count: number | undefined): Promise<void>;
+    withTransactions(id: string, count: number | undefined): Promise<WalletWithTransactionsDtoApiResponse>;
     /**
      * @param body (optional) 
      * @return Created
      */
-    walletsPOST(body: WalletCreateDto | undefined): Promise<void>;
+    walletsPOST(body: WalletCreateDto | undefined): Promise<WalletDtoApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
      */
-    balancePUT(sellerId: string, body: WalletUpdateDto | undefined): Promise<void>;
+    balancePUT(id: string, body: WalletUpdateDto | undefined): Promise<WalletDtoApiResponse>;
+    /**
+     * @return OK
+     */
+    balanceGET(id: string): Promise<DecimalApiResponse>;
+    /**
+     * @param sellerId (optional) 
+     * @return OK
+     */
+    default(id: string, sellerId: string | undefined): Promise<WalletDtoApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
      */
-    deposits(sellerId: string, body: FundsOperationRequest | undefined): Promise<void>;
+    deposits(id: string, body: FundsOperationRequest | undefined): Promise<WalletDtoApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
      */
-    withdrawals(sellerId: string, body: FundsOperationRequest | undefined): Promise<void>;
+    withdrawals(id: string, body: FundsOperationRequest | undefined): Promise<WalletDtoApiResponse>;
+    /**
+     * @param sourceWalletId (optional) 
+     * @param destinationWalletId (optional) 
+     * @param body (optional) 
+     * @return OK
+     */
+    transfer(sourceWalletId: string | undefined, destinationWalletId: string | undefined, body: FundsOperationRequest | undefined): Promise<ObjectApiResponse>;
     /**
      * @param startDate (optional) 
      * @param endDate (optional) 
@@ -79,7 +103,7 @@ export interface IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    transactions(sellerId: string, startDate: Date | undefined, endDate: Date | undefined, page: number | undefined, pageSize: number | undefined): Promise<void>;
+    transactions(id: string, startDate: Date | undefined, endDate: Date | undefined, page: number | undefined, pageSize: number | undefined): Promise<WalletTransactionDtoListApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
@@ -92,7 +116,7 @@ export interface IClient {
     /**
      * @return OK
      */
-    balanceGET(walletId: string): Promise<void>;
+    balanceGET2(walletId: string): Promise<void>;
     /**
      * @param status (optional) 
      * @param type (optional) 
@@ -269,7 +293,7 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    seller(sellerId: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto[]> {
+    sellerAll(sellerId: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto[]> {
         let url_ = this.baseUrl + "/api/bank/seller/{sellerId}";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
@@ -292,11 +316,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processSeller(_response);
+            return this.processSellerAll(_response);
         });
     }
 
-    protected processSeller(response: AxiosResponse): Promise<BankAccountResponseDto[]> {
+    protected processSellerAll(response: AxiosResponse): Promise<BankAccountResponseDto[]> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -609,17 +633,18 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    walletsGET(sellerId: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallets/{sellerId}";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+    walletsGET(id: string, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: AxiosRequestConfig = {
             method: "GET",
             url: url_,
             headers: {
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -635,7 +660,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processWalletsGET(response: AxiosResponse): Promise<void> {
+    protected processWalletsGET(response: AxiosResponse): Promise<WalletDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -647,31 +672,173 @@ export class Client implements IClient {
         }
         if (status === 200) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoApiResponse>(result200);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = ObjectApiResponse.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    seller(sellerId: string, cancelToken?: CancelToken): Promise<WalletDtoIEnumerableApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/seller/{sellerId}";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "application/json"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSeller(_response);
+        });
+    }
+
+    protected processSeller(response: AxiosResponse): Promise<WalletDtoIEnumerableApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoIEnumerableApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoIEnumerableApiResponse>(result200);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<WalletDtoIEnumerableApiResponse>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    type(sellerId: string, walletType: WalletType, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/seller/{sellerId}/type/{walletType}";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        if (walletType === undefined || walletType === null)
+            throw new Error("The parameter 'walletType' must be defined.");
+        url_ = url_.replace("{walletType}", encodeURIComponent("" + walletType));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "application/json"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processType(_response);
+        });
+    }
+
+    protected processType(response: AxiosResponse): Promise<WalletDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
     }
 
     /**
      * @param count (optional) 
      * @return OK
      */
-    withTransactions(sellerId: string, count: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallets/{sellerId}/with-transactions?";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+    withTransactions(id: string, count: number | undefined, cancelToken?: CancelToken): Promise<WalletWithTransactionsDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/with-transactions?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         if (count === null)
             throw new Error("The parameter 'count' cannot be null.");
         else if (count !== undefined)
@@ -682,6 +849,7 @@ export class Client implements IClient {
             method: "GET",
             url: url_,
             headers: {
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -697,7 +865,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processWithTransactions(response: AxiosResponse): Promise<void> {
+    protected processWithTransactions(response: AxiosResponse): Promise<WalletWithTransactionsDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -709,27 +877,37 @@ export class Client implements IClient {
         }
         if (status === 200) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletWithTransactionsDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletWithTransactionsDtoApiResponse>(result200);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = ObjectApiResponse.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletWithTransactionsDtoApiResponse>(null as any);
     }
 
     /**
      * @param body (optional) 
      * @return Created
      */
-    walletsPOST(body: WalletCreateDto | undefined, cancelToken?: CancelToken): Promise<void> {
+    walletsPOST(body: WalletCreateDto | undefined, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
         let url_ = this.baseUrl + "/api/wallets";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -741,6 +919,7 @@ export class Client implements IClient {
             url: url_,
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -756,7 +935,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processWalletsPOST(response: AxiosResponse): Promise<void> {
+    protected processWalletsPOST(response: AxiosResponse): Promise<WalletDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -768,38 +947,48 @@ export class Client implements IClient {
         }
         if (status === 201) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result201: any = null;
+            let resultData201  = _responseText;
+            result201 = WalletDtoApiResponse.fromJS(resultData201);
+            return Promise.resolve<WalletDtoApiResponse>(result201);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = ObjectApiResponse.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
         } else if (status === 409) {
             const _responseText = response.data;
             let result409: any = null;
             let resultData409  = _responseText;
-            result409 = ProblemDetails.fromJS(resultData409);
+            result409 = ObjectApiResponse.fromJS(resultData409);
             return throwException("Conflict", status, _responseText, _headers, result409);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
     }
 
     /**
      * @param body (optional) 
      * @return OK
      */
-    balancePUT(sellerId: string, body: WalletUpdateDto | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallets/{sellerId}/balance";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+    balancePUT(id: string, body: WalletUpdateDto | undefined, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/balance";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -810,6 +999,7 @@ export class Client implements IClient {
             url: url_,
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -825,7 +1015,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processBalancePUT(response: AxiosResponse): Promise<void> {
+    protected processBalancePUT(response: AxiosResponse): Promise<WalletDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -837,31 +1027,189 @@ export class Client implements IClient {
         }
         if (status === 200) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoApiResponse>(result200);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ObjectApiResponse.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = ObjectApiResponse.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    balanceGET(id: string, cancelToken?: CancelToken): Promise<DecimalApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/balance";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "application/json"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processBalanceGET(_response);
+        });
+    }
+
+    protected processBalanceGET(response: AxiosResponse): Promise<DecimalApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = DecimalApiResponse.fromJS(resultData200);
+            return Promise.resolve<DecimalApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<DecimalApiResponse>(null as any);
+    }
+
+    /**
+     * @param sellerId (optional) 
+     * @return OK
+     */
+    default(id: string, sellerId: string | undefined, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/default?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (sellerId === null)
+            throw new Error("The parameter 'sellerId' cannot be null.");
+        else if (sellerId !== undefined)
+            url_ += "sellerId=" + encodeURIComponent("" + sellerId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "application/json"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDefault(_response);
+        });
+    }
+
+    protected processDefault(response: AxiosResponse): Promise<WalletDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
     }
 
     /**
      * @param body (optional) 
      * @return OK
      */
-    deposits(sellerId: string, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallets/{sellerId}/deposits";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+    deposits(id: string, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/deposits";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -872,6 +1220,7 @@ export class Client implements IClient {
             url: url_,
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -887,7 +1236,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processDeposits(response: AxiosResponse): Promise<void> {
+    protected processDeposits(response: AxiosResponse): Promise<WalletDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -899,38 +1248,48 @@ export class Client implements IClient {
         }
         if (status === 200) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoApiResponse>(result200);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = ObjectApiResponse.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = ObjectApiResponse.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
     }
 
     /**
      * @param body (optional) 
      * @return OK
      */
-    withdrawals(sellerId: string, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallets/{sellerId}/withdrawals";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+    withdrawals(id: string, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<WalletDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/withdrawals";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -941,6 +1300,7 @@ export class Client implements IClient {
             url: url_,
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -956,7 +1316,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processWithdrawals(response: AxiosResponse): Promise<void> {
+    protected processWithdrawals(response: AxiosResponse): Promise<WalletDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -968,27 +1328,124 @@ export class Client implements IClient {
         }
         if (status === 200) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletDtoApiResponse>(result200);
 
         } else if (status === 400) {
             const _responseText = response.data;
             let result400: any = null;
             let resultData400  = _responseText;
-            result400 = ProblemDetails.fromJS(resultData400);
+            result400 = ObjectApiResponse.fromJS(resultData400);
             return throwException("Bad Request", status, _responseText, _headers, result400);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = ObjectApiResponse.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @param sourceWalletId (optional) 
+     * @param destinationWalletId (optional) 
+     * @param body (optional) 
+     * @return OK
+     */
+    transfer(sourceWalletId: string | undefined, destinationWalletId: string | undefined, body: FundsOperationRequest | undefined, cancelToken?: CancelToken): Promise<ObjectApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/transfer?";
+        if (sourceWalletId === null)
+            throw new Error("The parameter 'sourceWalletId' cannot be null.");
+        else if (sourceWalletId !== undefined)
+            url_ += "sourceWalletId=" + encodeURIComponent("" + sourceWalletId) + "&";
+        if (destinationWalletId === null)
+            throw new Error("The parameter 'destinationWalletId' cannot be null.");
+        else if (destinationWalletId !== undefined)
+            url_ += "destinationWalletId=" + encodeURIComponent("" + destinationWalletId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processTransfer(_response);
+        });
+    }
+
+    protected processTransfer(response: AxiosResponse): Promise<ObjectApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = ObjectApiResponse.fromJS(resultData200);
+            return Promise.resolve<ObjectApiResponse>(result200);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ObjectApiResponse.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<ObjectApiResponse>(null as any);
     }
 
     /**
@@ -998,11 +1455,11 @@ export class Client implements IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    transactions(sellerId: string, startDate: Date | undefined, endDate: Date | undefined, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/wallets/{sellerId}/transactions?";
-        if (sellerId === undefined || sellerId === null)
-            throw new Error("The parameter 'sellerId' must be defined.");
-        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+    transactions(id: string, startDate: Date | undefined, endDate: Date | undefined, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<WalletTransactionDtoListApiResponse> {
+        let url_ = this.baseUrl + "/api/wallets/{id}/transactions?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         if (startDate === null)
             throw new Error("The parameter 'startDate' cannot be null.");
         else if (startDate !== undefined)
@@ -1025,6 +1482,7 @@ export class Client implements IClient {
             method: "GET",
             url: url_,
             headers: {
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -1040,7 +1498,7 @@ export class Client implements IClient {
         });
     }
 
-    protected processTransactions(response: AxiosResponse): Promise<void> {
+    protected processTransactions(response: AxiosResponse): Promise<WalletTransactionDtoListApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -1052,20 +1510,30 @@ export class Client implements IClient {
         }
         if (status === 200) {
             const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = WalletTransactionDtoListApiResponse.fromJS(resultData200);
+            return Promise.resolve<WalletTransactionDtoListApiResponse>(result200);
 
         } else if (status === 404) {
             const _responseText = response.data;
             let result404: any = null;
             let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
+            result404 = ObjectApiResponse.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status === 500) {
+            const _responseText = response.data;
+            let result500: any = null;
+            let resultData500  = _responseText;
+            result500 = ObjectApiResponse.fromJS(resultData500);
+            return throwException("Internal Server Error", status, _responseText, _headers, result500);
 
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WalletTransactionDtoListApiResponse>(null as any);
     }
 
     /**
@@ -1194,7 +1662,7 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    balanceGET(walletId: string, cancelToken?: CancelToken): Promise<void> {
+    balanceGET2(walletId: string, cancelToken?: CancelToken): Promise<void> {
         let url_ = this.baseUrl + "/api/wallet-transactions/wallet/{walletId}/balance";
         if (walletId === undefined || walletId === null)
             throw new Error("The parameter 'walletId' must be defined.");
@@ -1216,11 +1684,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processBalanceGET(_response);
+            return this.processBalanceGET2(_response);
         });
     }
 
-    protected processBalanceGET(response: AxiosResponse): Promise<void> {
+    protected processBalanceGET2(response: AxiosResponse): Promise<void> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -1736,6 +2204,54 @@ export interface ICreateTransactionRequest {
     reference?: string | undefined;
 }
 
+export class DecimalApiResponse implements IDecimalApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: number;
+
+    constructor(data?: IDecimalApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            this.data = _data["data"];
+        }
+    }
+
+    static fromJS(data: any): DecimalApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecimalApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        data["data"] = this.data;
+        return data;
+    }
+}
+
+export interface IDecimalApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: number;
+}
+
 export class FundsOperationRequest implements IFundsOperationRequest {
     amount!: number;
     description?: string | undefined;
@@ -1778,6 +2294,118 @@ export interface IFundsOperationRequest {
     amount: number;
     description?: string | undefined;
     reference?: string | undefined;
+}
+
+export enum HttpStatusCode {
+    _100 = 100,
+    _101 = 101,
+    _102 = 102,
+    _103 = 103,
+    _200 = 200,
+    _201 = 201,
+    _202 = 202,
+    _203 = 203,
+    _204 = 204,
+    _205 = 205,
+    _206 = 206,
+    _207 = 207,
+    _208 = 208,
+    _226 = 226,
+    _300 = 300,
+    _301 = 301,
+    _302 = 302,
+    _303 = 303,
+    _304 = 304,
+    _305 = 305,
+    _306 = 306,
+    _307 = 307,
+    _308 = 308,
+    _400 = 400,
+    _401 = 401,
+    _402 = 402,
+    _403 = 403,
+    _404 = 404,
+    _405 = 405,
+    _406 = 406,
+    _407 = 407,
+    _408 = 408,
+    _409 = 409,
+    _410 = 410,
+    _411 = 411,
+    _412 = 412,
+    _413 = 413,
+    _414 = 414,
+    _415 = 415,
+    _416 = 416,
+    _417 = 417,
+    _421 = 421,
+    _422 = 422,
+    _423 = 423,
+    _424 = 424,
+    _426 = 426,
+    _428 = 428,
+    _429 = 429,
+    _431 = 431,
+    _451 = 451,
+    _500 = 500,
+    _501 = 501,
+    _502 = 502,
+    _503 = 503,
+    _504 = 504,
+    _505 = 505,
+    _506 = 506,
+    _507 = 507,
+    _508 = 508,
+    _510 = 510,
+    _511 = 511,
+}
+
+export class ObjectApiResponse implements IObjectApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: any | undefined;
+
+    constructor(data?: IObjectApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            this.data = _data["data"];
+        }
+    }
+
+    static fromJS(data: any): ObjectApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ObjectApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        data["data"] = this.data;
+        return data;
+    }
+}
+
+export interface IObjectApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: any | undefined;
 }
 
 export enum PixKeyType {
@@ -1910,6 +2538,8 @@ export interface IUpdateTransactionStatusRequest {
 
 export class WalletCreateDto implements IWalletCreateDto {
     sellerId!: string;
+    walletType!: WalletType;
+    isDefault?: boolean;
 
     constructor(data?: IWalletCreateDto) {
         if (data) {
@@ -1923,6 +2553,8 @@ export class WalletCreateDto implements IWalletCreateDto {
     init(_data?: any) {
         if (_data) {
             this.sellerId = _data["sellerId"];
+            this.walletType = _data["walletType"];
+            this.isDefault = _data["isDefault"];
         }
     }
 
@@ -1936,12 +2568,318 @@ export class WalletCreateDto implements IWalletCreateDto {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["sellerId"] = this.sellerId;
+        data["walletType"] = this.walletType;
+        data["isDefault"] = this.isDefault;
         return data;
     }
 }
 
 export interface IWalletCreateDto {
     sellerId: string;
+    walletType: WalletType;
+    isDefault?: boolean;
+}
+
+export class WalletDto implements IWalletDto {
+    id?: string;
+    sellerId?: string;
+    availableBalance?: number;
+    pendingBalance?: number;
+    totalBalance?: number;
+    walletType?: WalletType;
+    isDefault?: boolean;
+    lastUpdateAt?: Date;
+    createdAt?: Date;
+
+    constructor(data?: IWalletDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.sellerId = _data["sellerId"];
+            this.availableBalance = _data["availableBalance"];
+            this.pendingBalance = _data["pendingBalance"];
+            this.totalBalance = _data["totalBalance"];
+            this.walletType = _data["walletType"];
+            this.isDefault = _data["isDefault"];
+            this.lastUpdateAt = _data["lastUpdateAt"] ? new Date(_data["lastUpdateAt"].toString()) : <any>undefined;
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): WalletDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["sellerId"] = this.sellerId;
+        data["availableBalance"] = this.availableBalance;
+        data["pendingBalance"] = this.pendingBalance;
+        data["totalBalance"] = this.totalBalance;
+        data["walletType"] = this.walletType;
+        data["isDefault"] = this.isDefault;
+        data["lastUpdateAt"] = this.lastUpdateAt ? this.lastUpdateAt.toISOString() : <any>undefined;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IWalletDto {
+    id?: string;
+    sellerId?: string;
+    availableBalance?: number;
+    pendingBalance?: number;
+    totalBalance?: number;
+    walletType?: WalletType;
+    isDefault?: boolean;
+    lastUpdateAt?: Date;
+    createdAt?: Date;
+}
+
+export class WalletDtoApiResponse implements IWalletDtoApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletDto;
+
+    constructor(data?: IWalletDtoApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            this.data = _data["data"] ? WalletDto.fromJS(_data["data"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): WalletDtoApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletDtoApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        data["data"] = this.data ? this.data.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IWalletDtoApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletDto;
+}
+
+export class WalletDtoIEnumerableApiResponse implements IWalletDtoIEnumerableApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletDto[] | undefined;
+
+    constructor(data?: IWalletDtoIEnumerableApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            if (Array.isArray(_data["data"])) {
+                this.data = [] as any;
+                for (let item of _data["data"])
+                    this.data!.push(WalletDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WalletDtoIEnumerableApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletDtoIEnumerableApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        if (Array.isArray(this.data)) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IWalletDtoIEnumerableApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletDto[] | undefined;
+}
+
+export class WalletTransactionDto implements IWalletTransactionDto {
+    id?: string;
+    walletId?: string;
+    amount?: number;
+    type?: string | undefined;
+    status?: string | undefined;
+    description?: string | undefined;
+    reference?: string | undefined;
+    createdAt?: Date;
+    processedAt?: Date | undefined;
+
+    constructor(data?: IWalletTransactionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.walletId = _data["walletId"];
+            this.amount = _data["amount"];
+            this.type = _data["type"];
+            this.status = _data["status"];
+            this.description = _data["description"];
+            this.reference = _data["reference"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.processedAt = _data["processedAt"] ? new Date(_data["processedAt"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): WalletTransactionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletTransactionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["walletId"] = this.walletId;
+        data["amount"] = this.amount;
+        data["type"] = this.type;
+        data["status"] = this.status;
+        data["description"] = this.description;
+        data["reference"] = this.reference;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["processedAt"] = this.processedAt ? this.processedAt.toISOString() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IWalletTransactionDto {
+    id?: string;
+    walletId?: string;
+    amount?: number;
+    type?: string | undefined;
+    status?: string | undefined;
+    description?: string | undefined;
+    reference?: string | undefined;
+    createdAt?: Date;
+    processedAt?: Date | undefined;
+}
+
+export class WalletTransactionDtoListApiResponse implements IWalletTransactionDtoListApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletTransactionDto[] | undefined;
+
+    constructor(data?: IWalletTransactionDtoListApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            if (Array.isArray(_data["data"])) {
+                this.data = [] as any;
+                for (let item of _data["data"])
+                    this.data!.push(WalletTransactionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WalletTransactionDtoListApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletTransactionDtoListApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        if (Array.isArray(this.data)) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IWalletTransactionDtoListApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletTransactionDto[] | undefined;
+}
+
+export enum WalletType {
+    _0 = 0,
+    _1 = 1,
+    _2 = 2,
 }
 
 export class WalletUpdateDto implements IWalletUpdateDto {
@@ -1982,6 +2920,102 @@ export class WalletUpdateDto implements IWalletUpdateDto {
 export interface IWalletUpdateDto {
     availableBalance: number;
     pendingBalance: number;
+}
+
+export class WalletWithTransactionsDto implements IWalletWithTransactionsDto {
+    wallet?: WalletDto;
+    recentTransactions?: WalletTransactionDto[] | undefined;
+
+    constructor(data?: IWalletWithTransactionsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.wallet = _data["wallet"] ? WalletDto.fromJS(_data["wallet"]) : <any>undefined;
+            if (Array.isArray(_data["recentTransactions"])) {
+                this.recentTransactions = [] as any;
+                for (let item of _data["recentTransactions"])
+                    this.recentTransactions!.push(WalletTransactionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WalletWithTransactionsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletWithTransactionsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["wallet"] = this.wallet ? this.wallet.toJSON() : <any>undefined;
+        if (Array.isArray(this.recentTransactions)) {
+            data["recentTransactions"] = [];
+            for (let item of this.recentTransactions)
+                data["recentTransactions"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IWalletWithTransactionsDto {
+    wallet?: WalletDto;
+    recentTransactions?: WalletTransactionDto[] | undefined;
+}
+
+export class WalletWithTransactionsDtoApiResponse implements IWalletWithTransactionsDtoApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletWithTransactionsDto;
+
+    constructor(data?: IWalletWithTransactionsDtoApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            this.data = _data["data"] ? WalletWithTransactionsDto.fromJS(_data["data"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): WalletWithTransactionsDtoApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new WalletWithTransactionsDtoApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        data["data"] = this.data ? this.data.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IWalletWithTransactionsDtoApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: WalletWithTransactionsDto;
 }
 
 export class ApiException extends Error {
