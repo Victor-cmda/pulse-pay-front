@@ -14,10 +14,10 @@ import {
   Dashboard,
   Withdraw,
   About,
-  WalletManagement,
   BankAccountManagement,
   Notifications,
 } from "./pages";
+import { WalletManagement } from "./pages/WalletManagement/index.js";
 import { ProtectedRoute, PublicRoute } from "./routes";
 import { store, persistor } from "./store";
 import { Provider } from "react-redux";
