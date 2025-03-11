@@ -12,7 +12,6 @@ import {
   NotFound,
   Register,
   Dashboard,
-  Withdraw,
   About,
   BankAccountManagement,
   Notifications,
@@ -94,14 +93,6 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <UserConfig />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/withdraw"
-                element={
-                  <ProtectedRoute>
-                    <Withdraw />
                   </ProtectedRoute>
                 }
               />

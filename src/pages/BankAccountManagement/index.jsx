@@ -359,7 +359,7 @@ const BankAccountManagement = () => {
                 Você não possui nenhum vendedor cadastrado.
               </p>
               <Link
-                to="/sellers/new"
+                to="/configuration"
                 className="mt-2 inline-block text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
               >
                 Cadastrar novo vendedor

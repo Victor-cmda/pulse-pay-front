@@ -49,8 +49,10 @@ class AuthService {
       document: dto.document,
       phoneNumber: dto.phone,
       documentType: dto.documentType,
+      nationality: dto.nationality || null,
+      isForeigner: dto.isForeigner || false
     });
-
+  
     try {
       await this.authClient.register(registerDto);
       return { success: true, message: "Registration successful" };

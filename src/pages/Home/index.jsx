@@ -35,17 +35,17 @@ const Home = () => {
       color: "bg-gradient-to-r from-purple-500 to-pink-500",
     },
     {
-      title: "Transações",
+      title: "Carteira",
       icon: <Wallet className="w-6 h-6" />,
       description: "Gerencie suas movimentações",
-      path: "/transactions",
+      path: "/wallet",
       color: "bg-gradient-to-r from-cyan-500 to-blue-500",
     },
     {
-      title: "Pagamentos",
+      title: "Bancos",
       icon: <CreditCard className="w-6 h-6" />,
-      description: "Realize pagamentos e transferências",
-      path: "/payments",
+      description: "Gerêncie suas contas bancárias",
+      path: "/bank",
       color: "bg-gradient-to-r from-emerald-500 to-teal-500",
     },
   ];

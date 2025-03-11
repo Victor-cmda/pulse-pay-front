@@ -4,8 +4,6 @@ export { default as Login } from "./Login";
 export { default as Register } from "./Register";
 export { default as NotFound } from "./NotFound";
 export { default as Dashboard } from "./Dashboard";
-export { default as Withdraw } from "./Withdraw";
 export { default as About } from "./About";
-// export { default as WalletManagement } from "./WalletManagement";
 export { default as BankAccountManagement } from "./BankAccountManagement";
 export { default as Notifications } from "./Notifications";

@@ -10,7 +10,87 @@
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelToken } from 'axios';
 
-export class Client {
+export interface IClient {
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    register(body: RegisterDto | undefined): Promise<AuthResponseDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    login(body: LoginDto | undefined): Promise<AuthResponseDto>;
+    /**
+     * @return OK
+     */
+    sellerAll(sellerId: string): Promise<CommerceDto[]>;
+    /**
+     * @return OK
+     */
+    commerceGET(id: string): Promise<CommerceDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    commercePUT(id: string, body: CommerceUpdateDto | undefined): Promise<CommerceDto>;
+    /**
+     * @return OK
+     */
+    commerceDELETE(id: string): Promise<void>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    commercePOST(sellerId: string, body: CommerceCreateDto | undefined): Promise<CommerceDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    callback(id: string, body: CommerceCallbackUpdateDto | undefined): Promise<CommerceCallbackDto>;
+    /**
+     * @return OK
+     */
+    available(): Promise<SellerDto[]>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    sellerPOST(body: SellerDto | undefined): Promise<SellerDto>;
+    /**
+     * @return OK
+     */
+    sellerGET(id: string): Promise<SellerDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    sellerPUT(id: string, body: SellerDto | undefined): Promise<SellerDto>;
+    /**
+     * @return OK
+     */
+    sellerDELETE(id: string): Promise<void>;
+    /**
+     * @return OK
+     */
+    withCommerces(id: string): Promise<SellerWithCommercesDto>;
+    /**
+     * @return OK
+     */
+    configurationGET(): Promise<ConfigurationResponseDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    configurationPUT(body: UpdateConfigurationDto | undefined): Promise<ConfigurationResponseDto>;
+    /**
+     * @param body (optional) 
+     * @return Created
+     */
+    configurationPOST(body: UpdateConfigurationDto | undefined): Promise<ConfigurationResponseDto>;
+}
+
+export class Client implements IClient {
     protected instance: AxiosInstance;
     protected baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -1546,6 +1626,8 @@ export class RegisterDto implements IRegisterDto {
     document?: string | undefined;
     documentType?: string | undefined;
     phoneNumber?: string | undefined;
+    nationality?: string | undefined;
+    isForeigner?: boolean;
 
     constructor(data?: IRegisterDto) {
         if (data) {
@@ -1564,6 +1646,8 @@ export class RegisterDto implements IRegisterDto {
             this.document = _data["document"];
             this.documentType = _data["documentType"];
             this.phoneNumber = _data["phoneNumber"];
+            this.nationality = _data["nationality"];
+            this.isForeigner = _data["isForeigner"];
         }
     }
 
@@ -1582,6 +1666,8 @@ export class RegisterDto implements IRegisterDto {
         data["document"] = this.document;
         data["documentType"] = this.documentType;
         data["phoneNumber"] = this.phoneNumber;
+        data["nationality"] = this.nationality;
+        data["isForeigner"] = this.isForeigner;
         return data;
     }
 }
@@ -1593,6 +1679,8 @@ export interface IRegisterDto {
     document?: string | undefined;
     documentType?: string | undefined;
     phoneNumber?: string | undefined;
+    nationality?: string | undefined;
+    isForeigner?: boolean;
 }
 
 export class SellerDto implements ISellerDto {

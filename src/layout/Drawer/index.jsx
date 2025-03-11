@@ -144,29 +144,6 @@ const Drawer = () => {
                 </li>
                 <li>
                   <Link
-                    to="/withdraw"
-                    onClick={handleLinkClick}
-                    className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive("/withdraw")
-                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
-                        : "hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                    }`}
-                  >
-                    <LogOut
-                      className={`w-5 h-5 mr-3 ${
-                        isActive("/withdraw")
-                          ? "text-indigo-600 dark:text-indigo-400"
-                          : ""
-                      }`}
-                    />
-                    Sacar
-                    {isActive("/withdraw") && (
-                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
-                    )}
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     to="/bank"
                     onClick={handleLinkClick}
                     className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
