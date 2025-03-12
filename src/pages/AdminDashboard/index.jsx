@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useLoading } from "../../context/LoadingContext";
 import { paymentService } from "../../services/PaymentService";
 import { formatCurrency, formatDateTime } from "../../utils/formatters";
-import {
-  DashboardSummary,
-  PendingTransactionsTable,
-  BankAccountsTable,
-  WithdrawalsTable,
-  PixPaymentsTable,
-} from "../../components/Admin";
+import PixPaymentsTable from "../../components/admin/PixPaymentsTable";
+import PendingTransactionsTable from "../../components/admin/PendingTransactionsTable";
+import BankAccountsTable from "../../components/admin/BankAccountsTable";
+import WithdrawalsTable from "../../components/admin/WithdrawalsTable";
+import DashboardSummary from "../../components/admin/DashboardSummary";
 import {
   LineChart,
   Activity,
@@ -30,13 +28,11 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Dados para cada seção
   const [pendingTransactions, setPendingTransactions] = useState([]);
   const [pendingBankAccounts, setPendingBankAccounts] = useState([]);
   const [pendingWithdraws, setPendingWithdraws] = useState([]);
   const [pendingPixPayments, setPendingPixPayments] = useState([]);
 
-  // Carregar dados do dashboard ao iniciar
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -65,24 +61,23 @@ const AdminDashboard = () => {
 
   const fetchTabData = async () => {
     if (activeTab === "overview") return;
-
     startLoading(`Carregando dados de ${getTabName(activeTab)}...`);
-
     try {
       switch (activeTab) {
         case "transactions":
           const txResponse = await paymentService.getPendingTransactions();
           if (txResponse.success) {
-            // Certifique-se de acessar o array dentro de data
             setPendingTransactions(txResponse.data || []);
+            console.log("Transações carregadas:", txResponse.data);
           }
           break;
 
         case "bankAccounts":
           const baResponse = await paymentService.getUnverifiedBankAccounts();
           if (baResponse.success) {
-            debugger;
+            // Acessa data.data onde os registros estão armazenados
             setPendingBankAccounts(baResponse.data || []);
+            console.log("Contas bancárias carregadas:", baResponse.data);
           }
           break;
 
@@ -90,6 +85,7 @@ const AdminDashboard = () => {
           const wdResponse = await paymentService.getPendingWithdraws();
           if (wdResponse.success) {
             setPendingWithdraws(wdResponse.data || []);
+            console.log("Saques carregados:", wdResponse.data);
           }
           break;
 
@@ -97,6 +93,7 @@ const AdminDashboard = () => {
           const pixResponse = await paymentService.getPendingPixPayments();
           if (pixResponse.success) {
             setPendingPixPayments(pixResponse.data || []);
+            console.log("Pagamentos PIX carregados:", pixResponse.data);
           }
           break;
       }
@@ -122,7 +119,6 @@ const AdminDashboard = () => {
     return tabNames[tab] || tab;
   };
 
-  // Handlers para ações (aprovar/rejeitar)
   const handleApproveTransaction = async (id) => {
     startLoading("Aprovando transação...");
     try {
@@ -325,7 +321,6 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Alert for pending items */}
         {dashboardData &&
           (dashboardData.pendingTransactions > 0 ||
             dashboardData.pendingBankAccounts > 0 ||
@@ -345,7 +340,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-        {/* Navigation Tabs - Desktop */}
         <div className="hidden md:block mb-6">
           <div className="border-b border-slate-200 dark:border-slate-700">
             <nav className="flex -mb-px">
@@ -430,7 +424,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Conteúdo da aba atual */}
-        <div className="tab-content bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-5">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-indigo-400 mb-4"></div>
@@ -456,11 +450,13 @@ const AdminDashboard = () => {
               )}
 
               {activeTab === "bankAccounts" && (
-                <BankAccountsTable
-                  accounts={pendingBankAccounts}
-                  onApprove={handleApproveBankAccount}
-                  onReject={handleRejectBankAccount}
-                />
+                <>
+                  <BankAccountsTable
+                    accounts={pendingBankAccounts}
+                    onApprove={handleApproveBankAccount}
+                    onReject={handleRejectBankAccount}
+                  />
+                </>
               )}
 
               {activeTab === "withdraws" && (

@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Eye
 } from "lucide-react";
+import BankAccountDetailsModal from "./BankAccountDetailsModal ";
 
 const BankAccountsTable = ({ accounts, onApprove, onReject }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +26,9 @@ const BankAccountsTable = ({ accounts, onApprove, onReject }) => {
     accountType: "all",
     verificationStatus: "pending"
   });
+  
+  // Estado para controlar a exibição do modal de detalhes
+  const [selectedAccount, setSelectedAccount] = useState(null);
   
   const itemsPerPage = 10;
 
@@ -88,6 +92,16 @@ const BankAccountsTable = ({ accounts, onApprove, onReject }) => {
     if (reason !== null) {
       onReject(id, reason);
     }
+  };
+  
+  // Função para abrir o modal de detalhes da conta
+  const showAccountDetails = (account) => {
+    setSelectedAccount(account);
+  };
+  
+  // Função para fechar o modal de detalhes
+  const closeAccountDetails = () => {
+    setSelectedAccount(null);
   };
 
   const filteredAccounts = applyFilters(accounts || []);
@@ -319,6 +333,7 @@ const BankAccountsTable = ({ accounts, onApprove, onReject }) => {
                         <X className="w-4 h-4" />
                       </button>
                       <button
+                        onClick={() => showAccountDetails(account)}
                         className="inline-flex items-center p-1.5 text-white bg-slate-600 rounded-md hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
                         title="Ver detalhes"
                       >
@@ -394,6 +409,14 @@ const BankAccountsTable = ({ accounts, onApprove, onReject }) => {
             </div>
           )}
         </div>
+      )}
+      
+      {/* Modal de Detalhes */}
+      {selectedAccount && (
+        <BankAccountDetailsModal 
+          account={selectedAccount} 
+          onClose={closeAccountDetails} 
+        />
       )}
     </div>
   );

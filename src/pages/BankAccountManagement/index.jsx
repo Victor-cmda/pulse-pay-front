@@ -160,47 +160,47 @@ const BankAccountManagement = () => {
     }
   };
 
-  // Verificar conta bancária
-  const verifyBankAccount = async (id) => {
-    try {
-      const response = await paymentService.verifyBankAccount(id);
+  // // Verificar conta bancária
+  // const verifyBankAccount = async (id) => {
+  //   try {
+  //     const response = await paymentService.verifyBankAccount(id);
 
-      if (response.success) {
-        // Atualiza a conta na lista
-        setBankAccounts((prevAccounts) =>
-          prevAccounts.map((account) =>
-            account.id === id ? { ...account, isVerified: true } : account
-          )
-        );
+  //     if (response.success) {
+  //       // Atualiza a conta na lista
+  //       setBankAccounts((prevAccounts) =>
+  //         prevAccounts.map((account) =>
+  //           account.id === id ? { ...account, isVerified: true } : account
+  //         )
+  //       );
 
-        // Atualiza a conta selecionada se for a verificada
-        if (selectedAccount && selectedAccount.id === id) {
-          setSelectedAccount({
-            ...selectedAccount,
-            isVerified: true,
-          });
-        }
+  //       // Atualiza a conta selecionada se for a verificada
+  //       if (selectedAccount && selectedAccount.id === id) {
+  //         setSelectedAccount({
+  //           ...selectedAccount,
+  //           isVerified: true,
+  //         });
+  //       }
 
-        api.success({
-          message: "Sucesso",
-          description: response.message,
-          placement: "topRight",
-        });
-      } else {
-        api.error({
-          message: "Erro",
-          description: response.message,
-          placement: "topRight",
-        });
-      }
-    } catch (error) {
-      api.error({
-        message: "Erro",
-        description: "Erro ao verificar conta bancária. Tente novamente mais tarde.",
-        placement: "topRight",
-      });
-    }
-  };
+  //       api.success({
+  //         message: "Sucesso",
+  //         description: response.message,
+  //         placement: "topRight",
+  //       });
+  //     } else {
+  //       api.error({
+  //         message: "Erro",
+  //         description: response.message,
+  //         placement: "topRight",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     api.error({
+  //       message: "Erro",
+  //       description: "Erro ao verificar conta bancária. Tente novamente mais tarde.",
+  //       placement: "topRight",
+  //     });
+  //   }
+  // };
 
   // Formatar data
   const formatDate = (dateString) => {
@@ -722,7 +722,7 @@ const BankAccountManagement = () => {
                         </div>
                       )}
 
-                      {!selectedAccount.isVerified && (
+                      {/* {!selectedAccount.isVerified && (
                         <button
                           className="btn btn-primary w-full"
                           onClick={() => verifyBankAccount(selectedAccount.id)}
@@ -730,7 +730,7 @@ const BankAccountManagement = () => {
                           <ShieldCheck className="w-4 h-4 mr-1" />
                           Verificar Conta Bancária
                         </button>
-                      )}
+                      )} */}
 
                       {selectedAccount.isVerified && (
                         <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
