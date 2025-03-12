@@ -41,11 +41,15 @@ export const checkAdminStatus = createAsyncThunk(
     try {
       const response = await paymentService.checkStatus();
       if (response.success && response.data && response.data.isAdmin) {
+        // Armazena isAdmin no localStorage para persistência
+        localStorage.setItem("isAdmin", "true");
         return response.data.isAdmin;
       } else {
+        localStorage.removeItem("isAdmin");
         return false;
       }
     } catch (error) {
+      localStorage.removeItem("isAdmin");
       return rejectWithValue(error.message);
     }
   }
@@ -56,7 +60,8 @@ const userSlice = createSlice({
   initialState: {
     user: null,
     loading: false,
-    isAdmin: false,
+    isAdmin: localStorage.getItem("isAdmin") === "true",
+    adminChecked: localStorage.getItem("isAdmin") !== null && localStorage.getItem("isAdmin") !== false,
     error: null,
   },
   reducers: {
@@ -64,10 +69,12 @@ const userSlice = createSlice({
       state.user = null;
       state.loading = false;
       state.isAdmin = false;
+      state.adminChecked = false;
       state.error = null;
 
       localStorage.removeItem("token");
       localStorage.removeItem("expiresIn");
+      localStorage.removeItem("isAdmin");
 
       configureAuthHeaders(null);
     },
@@ -94,6 +101,7 @@ const userSlice = createSlice({
       .addCase(checkAdminStatus.rejected, (state) => {
         state.isAdmin = false;
         state.adminChecked = true;
+        localStorage.removeItem("isAdmin");
       });
   },
 });

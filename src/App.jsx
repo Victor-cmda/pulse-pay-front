@@ -21,30 +21,37 @@ import {
 import { WalletManagement } from "./pages/WalletManagement/index.js";
 import { AdminRoute, ProtectedRoute, PublicRoute } from "./routes";
 import { store, persistor } from "./store";
-import { Provider } from "react-redux";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import React, { useEffect } from "react";
 import { PersistGate } from "redux-persist/integration/react";
 import { LoadingSpinner } from "./components";
 import BankAccountForm from "./pages/BankAccountForm";
-import { configureAuthHeaders } from "./store/slices/userSlice";
+import { configureAuthHeaders, checkAdminStatus } from "./store/slices/userSlice";
 import { authService } from "./services/AuthService";
 import { paymentService } from "./services/PaymentService";
 import { LoadingProvider } from "./context/LoadingContext";
 
 const AuthSetup = () => {
+  const dispatch = useDispatch();
+  const { user, adminChecked } = useSelector((state) => state.user);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       configureAuthHeaders(token);
+      
+      if (user && !adminChecked) {
+        dispatch(checkAdminStatus());
+      }
     }
 
     const handleLogout = () => {
-      store.dispatch({ type: "user/logout" });
+      dispatch({ type: "user/logout" });
     };
 
     authService.setLogoutCallback(handleLogout);
     paymentService.setLogoutCallback(handleLogout);
-  }, []);
+  }, [dispatch, user, adminChecked]);
 
   return null;
 };
@@ -154,17 +161,22 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }/>
-              <Route path="/unauthorized" element={
-                <ProtectedRoute>
-                  <Unauthorized />
-                </ProtectedRoute>
-              } />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/unauthorized"
+                element={
+                  <ProtectedRoute>
+                    <Unauthorized />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
           </MainLayout>
