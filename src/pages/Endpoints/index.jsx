@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useLanguage } from "../../context/LanguageContext"; 
+import { useLanguage } from "../../context/LanguageContext";
 
 const ApiDocumentation = () => {
   const { t, language, setLanguage, languages } = useLanguage();
@@ -78,23 +78,21 @@ const ApiDocumentation = () => {
           id: "generateToken",
           method: "POST",
           path: "/oauth/v2/token",
-          description:
-            "Gera um token de acesso OAuth 2.0 através de credenciais do cliente",
-          authentication: "Basic Auth (Client ID e Client Secret)",
+          description: t.authentication.steps.step1,
+          authentication: t.authentication.title,
           parameters: [],
           headers: [
             {
               name: "Authorization",
               required: true,
               type: "string",
-              description:
-                "Basic authentication com Client ID e Client Secret codificados em Base64",
+              description: t.authentication.steps.step1,
             },
           ],
           responses: [
             {
               status: 200,
-              description: "Token gerado com sucesso",
+              description: t.apiEndpoints.responses,
               example: {
                 access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 token_type: "Bearer",
@@ -103,7 +101,7 @@ const ApiDocumentation = () => {
             },
             {
               status: 401,
-              description: "Credenciais inválidas ou ausentes",
+              description: t.authentication.steps.step2,
               example: { message: "Invalid credentials" },
             },
           ],
@@ -115,14 +113,14 @@ const ApiDocumentation = () => {
     },
     {
       id: "payments",
-      title: "Pagamentos",
-      description: "Endpoints para geração e consulta de pagamentos",
+      title: t.concepts.pix.title,
+      description: t.mainFeatures.pixPayments,
       endpoints: [
         {
           id: "pixPayment",
           method: "POST",
           path: "/pix",
-          description: "Gera um pagamento via PIX",
+          description: t.mainFeatures.pixPayments,
           authentication: "Bearer Token",
           parameters: [],
           headers: [
@@ -130,13 +128,13 @@ const ApiDocumentation = () => {
               name: "Authorization",
               required: true,
               type: "string",
-              description: "Bearer token obtido via endpoint de autenticação",
+              description: t.authentication.steps.step3,
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
-              description: "ID do vendedor no formato GUID",
+              description: t.concepts.sellerId.description,
             },
             {
               name: "Content-Type",
@@ -152,36 +150,34 @@ const ApiDocumentation = () => {
                 name: "amount",
                 type: "number",
                 required: true,
-                description: "Valor do pagamento",
+                description: t.apiEndpoints.body,
               },
               {
                 name: "description",
                 type: "string",
                 required: true,
-                description: "Descrição do pagamento",
+                description: t.apiEndpoints.body,
               },
               {
                 name: "expirationDate",
                 type: "string",
                 required: false,
-                description:
-                  "Data de expiração do pagamento (formato ISO 8601)",
+                description: "ISO 8601",
               },
               {
                 name: "callbackUrl",
                 type: "string",
                 required: false,
-                description:
-                  "URL para receber notificações de status do pagamento",
+                description: t.mainFeatures.paymentNotifications,
               },
             ],
           },
           responses: [
             {
               status: 200,
-              description: "Pagamento processado com sucesso",
+              description: t.apiEndpoints.responses,
               example: {
-                message: "Pagamento processado com sucesso",
+                message: t.apiEndpoints.responses,
                 details: {
                   paymentId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                   qrCode:
@@ -191,12 +187,12 @@ const ApiDocumentation = () => {
             },
             {
               status: 400,
-              description: "Requisição inválida",
+              description: t.apiEndpoints.responses,
               example: { error: "Invalid request parameters" },
             },
             {
               status: 401,
-              description: "Autenticação falhou",
+              description: t.authentication.steps.step2,
               example: { error: "Unauthorized access" },
             },
           ],
@@ -206,7 +202,7 @@ const ApiDocumentation = () => {
 -H "Content-Type: application/json" \\
 -d '{
   "amount": 100.50,
-  "description": "Pagamento de serviço",
+  "description": "${t.mainFeatures.pixPayments}",
   "expirationDate": "2023-12-31T23:59:59Z",
   "callbackUrl": "https://your-callback-url.com/notifications"
 }'`,
@@ -592,9 +588,7 @@ const ApiDocumentation = () => {
                                     {t.common.needHelp}
                                   </h4>
                                   <p className="text-sm text-indigo-800 dark:text-indigo-200 mb-3">
-                                    Nossa equipe de suporte está disponível para
-                                    ajudá-lo com qualquer dúvida sobre a
-                                    integração.
+                                    {t.support.technicalSupport.description}
                                   </p>
                                   <button className="inline-flex items-center text-sm font-medium text-white dark:text-indigo-900 bg-indigo-600 dark:bg-indigo-400 hover:bg-indigo-700 dark:hover:bg-indigo-300 transition-colors px-3 py-1.5 rounded-md">
                                     <svg
@@ -1039,19 +1033,19 @@ const ApiDocumentation = () => {
                                       <thead className="bg-slate-50 dark:bg-slate-800/50">
                                         <tr className="text-xs text-slate-500 dark:text-slate-400 text-left">
                                           <th className="px-4 py-2 font-medium">
-                                            Nome
+                                            {t.common.search}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Localização
+                                            {t.common.content}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Tipo
+                                            {t.apiEndpoints.body}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Obrigatório
+                                            {t.apiEndpoints.required}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Descrição
+                                            {t.apiEndpoints.responses}
                                           </th>
                                         </tr>
                                       </thead>
@@ -1103,16 +1097,16 @@ const ApiDocumentation = () => {
                                       <thead className="bg-slate-50 dark:bg-slate-800/50">
                                         <tr className="text-xs text-slate-500 dark:text-slate-400 text-left">
                                           <th className="px-4 py-2 font-medium">
-                                            Nome
+                                            {t.common.search}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Obrigatório
+                                            {t.apiEndpoints.required}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Tipo
+                                            {t.apiEndpoints.body}
                                           </th>
                                           <th className="px-4 py-2 font-medium">
-                                            Descrição
+                                            {t.apiEndpoints.responses}
                                           </th>
                                         </tr>
                                       </thead>
@@ -1160,16 +1154,16 @@ const ApiDocumentation = () => {
                                     <thead className="bg-slate-50 dark:bg-slate-800/50">
                                       <tr className="text-xs text-slate-500 dark:text-slate-400 text-left">
                                         <th className="px-4 py-2 font-medium">
-                                          Nome
+                                          {t.common.search}
                                         </th>
                                         <th className="px-4 py-2 font-medium">
-                                          Tipo
+                                          {t.apiEndpoints.body}
                                         </th>
                                         <th className="px-4 py-2 font-medium">
-                                          Obrigatório
+                                          {t.apiEndpoints.required}
                                         </th>
                                         <th className="px-4 py-2 font-medium">
-                                          Descrição
+                                          {t.apiEndpoints.responses}
                                         </th>
                                       </tr>
                                     </thead>

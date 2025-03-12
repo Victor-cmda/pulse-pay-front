@@ -135,22 +135,30 @@ const Navbar = () => {
 
       <div className="navbar-end">
         {/* Links visíveis apenas em telas maiores */}
-        {user ? (
-          <div className="hidden md:flex items-center space-x-1 mr-2">
-            <Link
-              to="/dashboard"
-              className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/wallet"
-              className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              Carteira
-            </Link>
-          </div>
-        ) : null}
+        <div className="hidden md:flex items-center space-x-1 mr-2">
+          <Link
+            to="/docs"
+            className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            Documentação
+          </Link>
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/wallet"
+                className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                Carteira
+              </Link>
+            </>
+          ) : null}
+        </div>
 
         <div className="flex items-center">
           {/* Componente de alternância de tema */}
