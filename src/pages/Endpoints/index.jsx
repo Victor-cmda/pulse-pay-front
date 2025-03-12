@@ -10,6 +10,7 @@ import {
   Lock,
   RefreshCw,
   Search,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +20,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useLanguage } from "../../context/LanguageContext"; 
 
 const ApiDocumentation = () => {
+  const { t, language, setLanguage, languages } = useLanguage();
   const [expandedSection, setExpandedSection] = useState("introduction");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -40,36 +43,36 @@ const ApiDocumentation = () => {
   const endpoints = [
     {
       id: "introduction",
-      title: "Introdução",
-      description: "Visão geral da API e como começar",
+      title: t.introduction.title,
+      description: t.introduction.description,
       endpoints: [
         {
           id: "overview",
           method: "",
-          path: "Visão Geral",
-          description: "Informações gerais sobre a API PulsePay",
+          path: t.introduction.overview.path,
+          description: t.introduction.overview.description,
           content: true,
         },
         {
           id: "getting-started",
           method: "",
-          path: "Começando",
-          description: "Guia passo a passo para começar a utilizar a API",
+          path: t.introduction.gettingStarted.path,
+          description: t.introduction.gettingStarted.description,
           content: true,
         },
         {
           id: "authentication-overview",
           method: "",
-          path: "Autenticação",
-          description: "Visão geral do processo de autenticação",
+          path: t.introduction.authentication.path,
+          description: t.introduction.authentication.description,
           content: true,
         },
       ],
     },
     {
       id: "authentication",
-      title: "Autenticação",
-      description: "Obtenha tokens de acesso para autenticação nas APIs",
+      title: t.authentication.title,
+      description: t.authentication.description,
       endpoints: [
         {
           id: "generateToken",
@@ -208,454 +211,6 @@ const ApiDocumentation = () => {
   "callbackUrl": "https://your-callback-url.com/notifications"
 }'`,
         },
-        {
-          id: "boletoPayment",
-          method: "POST",
-          path: "/boleto",
-          description: "Gera um pagamento via boleto bancário",
-          authentication: "Bearer Token",
-          parameters: [],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description: "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description: "ID do vendedor no formato GUID",
-            },
-            {
-              name: "Content-Type",
-              required: true,
-              type: "string",
-              description: "application/json",
-            },
-          ],
-          body: {
-            type: "object",
-            properties: [
-              {
-                name: "amount",
-                type: "number",
-                required: true,
-                description: "Valor do boleto",
-              },
-              {
-                name: "dueDate",
-                type: "string",
-                required: true,
-                description: "Data de vencimento do boleto (formato ISO 8601)",
-              },
-              {
-                name: "customer",
-                type: "object",
-                required: true,
-                description: "Dados do cliente",
-                properties: [
-                  {
-                    name: "name",
-                    type: "string",
-                    required: true,
-                    description: "Nome completo do cliente",
-                  },
-                  {
-                    name: "document",
-                    type: "string",
-                    required: true,
-                    description: "CPF ou CNPJ do cliente",
-                  },
-                  {
-                    name: "email",
-                    type: "string",
-                    required: false,
-                    description: "E-mail do cliente",
-                  },
-                  {
-                    name: "address",
-                    type: "object",
-                    required: false,
-                    description: "Endereço do cliente",
-                  },
-                ],
-              },
-              {
-                name: "description",
-                type: "string",
-                required: true,
-                description: "Descrição do pagamento",
-              },
-              {
-                name: "callbackUrl",
-                type: "string",
-                required: false,
-                description:
-                  "URL para receber notificações de status do pagamento",
-              },
-            ],
-          },
-          responses: [
-            {
-              status: 200,
-              description: "Boleto gerado com sucesso",
-              example: {
-                message: "Pagamento processado com sucesso",
-                details: {
-                  boletoId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  boletoUrl:
-                    "https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf",
-                  barCode: "23790123016789123456789123456789123456789123",
-                },
-              },
-            },
-            {
-              status: 400,
-              description: "Requisição inválida",
-              example: { error: "Invalid request parameters" },
-            },
-            {
-              status: 401,
-              description: "Autenticação falhou",
-              example: { error: "Unauthorized access" },
-            },
-          ],
-          requestExample: `curl -X POST https://api.example.com/boleto \\
--H "Authorization: Bearer your_access_token" \\
--H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
--H "Content-Type: application/json" \\
--d '{
-  "amount": 150.99,
-  "dueDate": "2023-12-31",
-  "customer": {
-    "name": "João Silva",
-    "document": "12345678900",
-    "email": "joao@example.com",
-    "address": {
-      "street": "Rua Exemplo",
-      "number": "123",
-      "city": "São Paulo",
-      "state": "SP",
-      "zipCode": "01234-567"
-    }
-  },
-  "description": "Fatura mensal",
-  "callbackUrl": "https://your-callback-url.com/notifications"
-}'`,
-        },
-        {
-          id: "boletoPdf",
-          method: "GET",
-          path: "/boleto/{id}/pdf",
-          description: "Obtém o arquivo PDF de um boleto bancário",
-          authentication: "Bearer Token",
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              type: "string",
-              description: "ID do boleto a ser recuperado",
-            },
-          ],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description: "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description: "ID do vendedor no formato GUID",
-            },
-          ],
-          responses: [
-            {
-              status: 200,
-              description: "PDF do boleto",
-              example: "Arquivo PDF binário",
-            },
-            {
-              status: 404,
-              description: "Boleto não encontrado",
-              example: { error: "Boleto not found" },
-            },
-            {
-              status: 401,
-              description: "Autenticação falhou",
-              example: { error: "Unauthorized access" },
-            },
-          ],
-          requestExample: `curl -X GET https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
--H "Authorization: Bearer your_access_token" \\
--H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
---output boleto.pdf`,
-        },
-      ],
-    },
-    {
-      id: "pixOperations",
-      title: "Operações PIX",
-      description: "Validação e gerenciamento de operações com chaves PIX",
-      endpoints: [
-        {
-          id: "validatePixKey",
-          method: "POST",
-          path: "/validate",
-          description: "Valida uma chave PIX",
-          authentication: "Bearer Token",
-          parameters: [],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description: "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description: "ID do vendedor no formato GUID",
-            },
-            {
-              name: "Content-Type",
-              required: true,
-              type: "string",
-              description: "application/json",
-            },
-          ],
-          body: {
-            type: "object",
-            properties: [
-              {
-                name: "pixKey",
-                type: "string",
-                required: true,
-                description: "Chave PIX a ser validada",
-              },
-              {
-                name: "pixKeyType",
-                type: "string",
-                required: true,
-                description:
-                  "Tipo da chave PIX (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
-              },
-            ],
-          },
-          responses: [
-            {
-              status: 200,
-              description: "Chave PIX validada com sucesso",
-              example: {
-                success: true,
-                data: {
-                  isValid: true,
-                  accountHolderName: "João Silva",
-                  bankName: "Banco Exemplo",
-                  bankCode: "123",
-                },
-              },
-            },
-            {
-              status: 400,
-              description: "Requisição inválida",
-              example: { success: false, message: "Chave PIX inválida" },
-            },
-            {
-              status: 401,
-              description: "Autenticação falhou",
-              example: { error: "Unauthorized access" },
-            },
-          ],
-          requestExample: `curl -X POST https://api.example.com/validate \\
--H "Authorization: Bearer your_access_token" \\
--H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
--H "Content-Type: application/json" \\
--d '{
-  "pixKey": "12345678900",
-  "pixKeyType": "CPF"
-}'`,
-        },
-        {
-          id: "createPayment",
-          method: "POST",
-          path: "/payment",
-          description: "Cria um pagamento PIX para uma chave PIX",
-          authentication: "Bearer Token",
-          parameters: [],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description: "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description: "ID do vendedor no formato GUID",
-            },
-            {
-              name: "Content-Type",
-              required: true,
-              type: "string",
-              description: "application/json",
-            },
-          ],
-          body: {
-            type: "object",
-            properties: [
-              {
-                name: "pixKey",
-                type: "string",
-                required: true,
-                description: "Chave PIX do destinatário",
-              },
-              {
-                name: "pixKeyType",
-                type: "string",
-                required: true,
-                description:
-                  "Tipo da chave PIX (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
-              },
-              {
-                name: "amount",
-                type: "number",
-                required: true,
-                description: "Valor do pagamento",
-              },
-              {
-                name: "description",
-                type: "string",
-                required: true,
-                description: "Descrição do pagamento",
-              },
-              {
-                name: "recipientName",
-                type: "string",
-                required: false,
-                description:
-                  "Nome do destinatário (opcional, será preenchido automaticamente se a chave for válida)",
-              },
-            ],
-          },
-          responses: [
-            {
-              status: 201,
-              description: "Pagamento criado com sucesso",
-              example: {
-                success: true,
-                data: {
-                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  pixKey: "12345678900",
-                  pixKeyType: "CPF",
-                  amount: 100.0,
-                  status: "PENDING",
-                  createdAt: "2023-04-10T15:30:45Z",
-                },
-              },
-            },
-            {
-              status: 400,
-              description: "Requisição inválida",
-              example: {
-                success: false,
-                message: "Parâmetros de solicitação inválidos",
-              },
-            },
-            {
-              status: 401,
-              description: "Autenticação falhou",
-              example: { error: "Unauthorized access" },
-            },
-            {
-              status: 409,
-              description: "Conflito",
-              example: {
-                success: false,
-                message: "Já existe um pagamento com essas características",
-              },
-            },
-          ],
-          requestExample: `curl -X POST https://api.example.com/payment \\
--H "Authorization: Bearer your_access_token" \\
--H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
--H "Content-Type: application/json" \\
--d '{
-  "pixKey": "12345678900",
-  "pixKeyType": "CPF",
-  "amount": 100.0,
-  "description": "Pagamento para João Silva"
-}'`,
-        },
-        {
-          id: "getPayment",
-          method: "GET",
-          path: "/{id}",
-          description: "Consulta detalhes de um pagamento PIX",
-          authentication: "Bearer Token",
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              type: "string",
-              description: "ID do pagamento no formato GUID",
-            },
-          ],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description: "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description: "ID do vendedor no formato GUID",
-            },
-          ],
-          responses: [
-            {
-              status: 200,
-              description: "Detalhes do pagamento",
-              example: {
-                success: true,
-                data: {
-                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  pixKey: "12345678900",
-                  pixKeyType: "CPF",
-                  amount: 100.0,
-                  status: "COMPLETED",
-                  createdAt: "2023-04-10T15:30:45Z",
-                  completedAt: "2023-04-10T15:35:22Z",
-                },
-              },
-            },
-            {
-              status: 404,
-              description: "Pagamento não encontrado",
-              example: { success: false, message: "Pagamento não encontrado" },
-            },
-            {
-              status: 401,
-              description: "Autenticação falhou",
-              example: { error: "Unauthorized access" },
-            },
-          ],
-          requestExample: `curl -X GET https://api.example.com/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
--H "Authorization: Bearer your_access_token" \\
--H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
-        },
       ],
     },
   ];
@@ -670,7 +225,8 @@ const ApiDocumentation = () => {
           endpoint.description
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          endpoint.method.toLowerCase().includes(searchTerm.toLowerCase())
+          (endpoint.method &&
+            endpoint.method.toLowerCase().includes(searchTerm.toLowerCase()))
       );
 
       return {
@@ -686,22 +242,48 @@ const ApiDocumentation = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
-            Documentação da API
+            {t.header.title}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Guia completo para integrar com nossas APIs de pagamentos
+            {t.header.subtitle}
           </p>
         </div>
 
-        <div className="relative w-full md:w-64">
-          <input
-            type="text"
-            placeholder="Buscar endpoints..."
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
+        <div className="flex gap-2 items-center">
+          <div className="relative w-full md:w-64">
+            <input
+              type="text"
+              placeholder={t.common.search}
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
+          </div>
+
+          <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn btn-ghost btn-circle">
+              <Globe className="h-5 w-5" />
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              {languages.map((lang) => (
+                <li key={lang.value}>
+                  <button
+                    onClick={() => setLanguage(lang.value)}
+                    className={`flex items-center ${
+                      language === lang.value ? "active font-medium" : ""
+                    }`}
+                  >
+                    <span className="mr-2">{lang.flag}</span>
+                    {lang.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -710,7 +292,7 @@ const ApiDocumentation = () => {
         <div className="hidden lg:block">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 sticky top-4">
             <h3 className="text-md font-semibold mb-4 text-slate-800 dark:text-white">
-              Conteúdo
+              {t.common.content}
             </h3>
             <ul className="space-y-1">
               {endpoints.map((section) => (
@@ -800,16 +382,10 @@ const ApiDocumentation = () => {
                               <div className="space-y-6">
                                 <div>
                                   <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-3">
-                                    O que é a API PulsePay?
+                                    {t.introduction.overview.title}
                                   </h3>
                                   <p className="text-slate-700 dark:text-slate-300">
-                                    A API PulsePay é uma solução completa para
-                                    processamento de pagamentos que permite
-                                    integrar múltiplas formas de pagamento ao
-                                    seu sistema, site ou aplicativo. Nossa API é
-                                    RESTful, usa JSON para formatação de dados e
-                                    segue padrões modernos de autenticação OAuth
-                                    2.0.
+                                    {t.introduction.overview.content}
                                   </p>
                                 </div>
 
@@ -833,12 +409,10 @@ const ApiDocumentation = () => {
                                       </svg>
                                     </div>
                                     <h4 className="text-md font-medium text-slate-900 dark:text-white mb-2">
-                                      Fácil Integração
+                                      {t.features.easyIntegration.title}
                                     </h4>
                                     <p className="text-sm text-slate-700 dark:text-slate-300">
-                                      Design intuitivo que permite implementação
-                                      rápida em qualquer plataforma ou linguagem
-                                      de programação.
+                                      {t.features.easyIntegration.content}
                                     </p>
                                   </div>
 
@@ -868,12 +442,10 @@ const ApiDocumentation = () => {
                                       </svg>
                                     </div>
                                     <h4 className="text-md font-medium text-slate-900 dark:text-white mb-2">
-                                      Segurança Avançada
+                                      {t.features.advancedSecurity.title}
                                     </h4>
                                     <p className="text-sm text-slate-700 dark:text-slate-300">
-                                      Transações protegidas com criptografia,
-                                      autenticação OAuth e conformidade com
-                                      padrões PCI.
+                                      {t.features.advancedSecurity.content}
                                     </p>
                                   </div>
 
@@ -897,19 +469,17 @@ const ApiDocumentation = () => {
                                       </svg>
                                     </div>
                                     <h4 className="text-md font-medium text-slate-900 dark:text-white mb-2">
-                                      Múltiplos Métodos
+                                      {t.features.multipleMethods.title}
                                     </h4>
                                     <p className="text-sm text-slate-700 dark:text-slate-300">
-                                      Suporte a diversos métodos de pagamento,
-                                      incluindo PIX, boletos bancários e
-                                      transferências.
+                                      {t.features.multipleMethods.content}
                                     </p>
                                   </div>
                                 </div>
 
                                 <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
                                   <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-3">
-                                    Principais recursos
+                                    {t.mainFeatures.title}
                                   </h3>
                                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                                     <li className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
@@ -927,7 +497,7 @@ const ApiDocumentation = () => {
                                       >
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
-                                      Geração de pagamentos PIX instantâneos
+                                      {t.mainFeatures.pixPayments}
                                     </li>
                                     <li className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                                       <svg
@@ -944,7 +514,7 @@ const ApiDocumentation = () => {
                                       >
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
-                                      Emissão de boletos bancários
+                                      {t.mainFeatures.bankSlips}
                                     </li>
                                     <li className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                                       <svg
@@ -961,7 +531,7 @@ const ApiDocumentation = () => {
                                       >
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
-                                      Validação de chaves PIX
+                                      {t.mainFeatures.pixKeyValidation}
                                     </li>
                                     <li className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                                       <svg
@@ -978,8 +548,7 @@ const ApiDocumentation = () => {
                                       >
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
-                                      Notificações de status de pagamento em
-                                      tempo real
+                                      {t.mainFeatures.paymentNotifications}
                                     </li>
                                     <li className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                                       <svg
@@ -996,7 +565,7 @@ const ApiDocumentation = () => {
                                       >
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
-                                      Consulta de status de transações
+                                      {t.mainFeatures.transactionStatus}
                                     </li>
                                     <li className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                                       <svg
@@ -1013,14 +582,14 @@ const ApiDocumentation = () => {
                                       >
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
-                                      Ambiente de sandbox para testes
+                                      {t.mainFeatures.sandboxEnvironment}
                                     </li>
                                   </ul>
                                 </div>
 
                                 <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800">
                                   <h4 className="text-md font-medium text-indigo-900 dark:text-indigo-300 mb-2">
-                                    Precisa de ajuda?
+                                    {t.common.needHelp}
                                   </h4>
                                   <p className="text-sm text-indigo-800 dark:text-indigo-200 mb-3">
                                     Nossa equipe de suporte está disponível para
@@ -1042,7 +611,7 @@ const ApiDocumentation = () => {
                                     >
                                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                     </svg>
-                                    Falar com o Suporte
+                                    {t.common.talkToSupport}
                                   </button>
                                 </div>
                               </div>
@@ -1052,12 +621,10 @@ const ApiDocumentation = () => {
                               <div className="space-y-6">
                                 <div>
                                   <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-3">
-                                    Começando a usar
+                                    {t.introduction.gettingStarted.title}
                                   </h3>
                                   <p className="text-slate-700 dark:text-slate-300">
-                                    Este guia ajudará você a configurar e
-                                    começar a usar a API PulsePay para processar
-                                    pagamentos em sua aplicação.
+                                    {t.introduction.gettingStarted.content}
                                   </p>
                                 </div>
 
@@ -1068,14 +635,16 @@ const ApiDocumentation = () => {
                                     </div>
                                     <div>
                                       <h4 className="text-md font-medium text-slate-900 dark:text-white mb-1">
-                                        Solicite suas credenciais
+                                        {
+                                          t.gettingStartedSteps
+                                            .requestCredentials.title
+                                        }
                                       </h4>
                                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                                        Entre em contato com nosso time
-                                        comercial para obter seu Client ID e
-                                        Client Secret. Estas credenciais são
-                                        necessárias para autenticar suas
-                                        solicitações à API.
+                                        {
+                                          t.gettingStartedSteps
+                                            .requestCredentials.content
+                                        }
                                       </p>
                                     </div>
                                   </div>
@@ -1086,18 +655,23 @@ const ApiDocumentation = () => {
                                     </div>
                                     <div>
                                       <h4 className="text-md font-medium text-slate-900 dark:text-white mb-1">
-                                        Faça testes no ambiente Sandbox
+                                        {
+                                          t.gettingStartedSteps.testSandbox
+                                            .title
+                                        }
                                       </h4>
                                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                                        Use nossas APIs de teste para validar
-                                        sua integração antes de ir para
-                                        produção. O ambiente sandbox permite
-                                        simular transações sem processá-las
-                                        realmente.
+                                        {
+                                          t.gettingStartedSteps.testSandbox
+                                            .content
+                                        }
                                       </p>
                                       <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                                         <p className="text-xs text-slate-700 dark:text-slate-300 font-mono">
-                                          URL Sandbox:{" "}
+                                          {
+                                            t.gettingStartedSteps.testSandbox
+                                              .sandboxUrl
+                                          }{" "}
                                           <code>
                                             https://sandbox.pulsepay.com.br
                                           </code>
@@ -1112,14 +686,16 @@ const ApiDocumentation = () => {
                                     </div>
                                     <div>
                                       <h4 className="text-md font-medium text-slate-900 dark:text-white mb-1">
-                                        Autentique-se
+                                        {
+                                          t.gettingStartedSteps.authenticate
+                                            .title
+                                        }
                                       </h4>
                                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                                        Use o endpoint{" "}
-                                        <code>/oauth/v2/token</code> para gerar
-                                        um token de acesso. O token JWT gerado
-                                        deve ser incluído em todas as
-                                        solicitações subsequentes.
+                                        {
+                                          t.gettingStartedSteps.authenticate
+                                            .content
+                                        }
                                       </p>
                                       <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                                         <p className="text-xs text-slate-700 dark:text-slate-300 font-mono">
@@ -1135,13 +711,13 @@ const ApiDocumentation = () => {
                                     </div>
                                     <div>
                                       <h4 className="text-md font-medium text-slate-900 dark:text-white mb-1">
-                                        Integre com sua aplicação
+                                        {t.gettingStartedSteps.integrate.title}
                                       </h4>
                                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                                        Siga a documentação de referência para
-                                        implementar os endpoints necessários.
-                                        Você pode começar com fluxos simples
-                                        como geração de PIX ou boletos.
+                                        {
+                                          t.gettingStartedSteps.integrate
+                                            .content
+                                        }
                                       </p>
                                     </div>
                                   </div>
@@ -1152,18 +728,23 @@ const ApiDocumentation = () => {
                                     </div>
                                     <div>
                                       <h4 className="text-md font-medium text-slate-900 dark:text-white mb-1">
-                                        Vá para produção
+                                        {
+                                          t.gettingStartedSteps.goToProduction
+                                            .title
+                                        }
                                       </h4>
                                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                                        Após completar seus testes, atualize
-                                        suas credenciais para o ambiente de
-                                        produção. Certifique-se de que todas as
-                                        implementações foram testadas
-                                        adequadamente.
+                                        {
+                                          t.gettingStartedSteps.goToProduction
+                                            .content
+                                        }
                                       </p>
                                       <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                                         <p className="text-xs text-slate-700 dark:text-slate-300 font-mono">
-                                          URL Produção:{" "}
+                                          {
+                                            t.gettingStartedSteps.goToProduction
+                                              .productionUrl
+                                          }{" "}
                                           <code>
                                             https://api.pulsepay.com.br
                                           </code>
@@ -1175,54 +756,21 @@ const ApiDocumentation = () => {
 
                                 <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-700">
                                   <h4 className="font-medium text-slate-900 dark:text-white mb-2">
-                                    SDKs em Desenvolvimento
+                                    {t.sdksInDevelopment.title}
                                   </h4>
                                   <div className="flex items-start space-x-3">
                                     <div className="mt-1 text-amber-500 dark:text-amber-400">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      >
-                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                        <line
-                                          x1="12"
-                                          y1="9"
-                                          x2="12"
-                                          y2="13"
-                                        ></line>
-                                        <line
-                                          x1="12"
-                                          y1="17"
-                                          x2="12.01"
-                                          y2="17"
-                                        ></line>
-                                      </svg>
+                                      <AlertCircle size={20} />
                                     </div>
                                     <div>
                                       <p className="text-sm text-slate-700 dark:text-slate-300 mb-2">
-                                        Nossas bibliotecas SDK e plugins para
-                                        integração estão atualmente em
-                                        desenvolvimento.
+                                        {t.sdksInDevelopment.message}
                                       </p>
                                       <p className="text-sm text-slate-700 dark:text-slate-300">
-                                        Estamos trabalhando para disponibilizar
-                                        SDKs para as principais linguagens de
-                                        programação e plugins para plataformas
-                                        de e-commerce populares. Enquanto isso,
-                                        você pode utilizar diretamente nossa API
-                                        REST com as instruções desta
-                                        documentação.
+                                        {t.sdksInDevelopment.additionalInfo}
                                       </p>
                                       <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-2 font-medium">
-                                        Acompanhe nossas atualizações para saber
-                                        quando os SDKs estarão disponíveis.
+                                        {t.sdksInDevelopment.updates}
                                       </p>
                                     </div>
                                   </div>
@@ -1234,20 +782,16 @@ const ApiDocumentation = () => {
                               <div className="space-y-6">
                                 <div>
                                   <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-3">
-                                    Visão Geral da Autenticação
+                                    {t.introduction.authentication.title}
                                   </h3>
                                   <p className="text-slate-700 dark:text-slate-300">
-                                    A API PulsePay utiliza o padrão OAuth 2.0
-                                    para autenticação, garantindo segurança nas
-                                    interações com os endpoints. Você precisará
-                                    obter um token de acesso JWT que deverá ser
-                                    incluído em todas as requisições.
+                                    {t.introduction.authentication.content}
                                   </p>
                                 </div>
 
                                 <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                                   <h4 className="font-medium text-slate-900 dark:text-white mb-2">
-                                    Fluxo de Autenticação
+                                    {t.authentication.title}
                                   </h4>
                                   <ol className="space-y-3">
                                     <li className="flex items-start">
@@ -1255,10 +799,7 @@ const ApiDocumentation = () => {
                                         1
                                       </span>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Envie suas credenciais (Client ID e
-                                        Client Secret) para o endpoint{" "}
-                                        <code>/oauth/v2/token</code> usando
-                                        autenticação Basic.
+                                        {t.authentication.steps.step1}
                                       </span>
                                     </li>
                                     <li className="flex items-start">
@@ -1266,9 +807,7 @@ const ApiDocumentation = () => {
                                         2
                                       </span>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Receba um token JWT válido que será
-                                        usado para autenticar as requisições
-                                        subsequentes.
+                                        {t.authentication.steps.step2}
                                       </span>
                                     </li>
                                     <li className="flex items-start">
@@ -1276,10 +815,7 @@ const ApiDocumentation = () => {
                                         3
                                       </span>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Inclua o token no cabeçalho{" "}
-                                        <code>Authorization</code> de todas as
-                                        requisições no formato{" "}
-                                        <code>Bearer {"{token}"}</code>.
+                                        {t.authentication.steps.step3}
                                       </span>
                                     </li>
                                     <li className="flex items-start">
@@ -1287,9 +823,7 @@ const ApiDocumentation = () => {
                                         4
                                       </span>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Inclua o ID do vendedor no cabeçalho{" "}
-                                        <code>SellerId</code> em todas as
-                                        requisições.
+                                        {t.authentication.steps.step4}
                                       </span>
                                     </li>
                                   </ol>
@@ -1297,7 +831,7 @@ const ApiDocumentation = () => {
 
                                 <div>
                                   <h4 className="text-md font-medium text-slate-900 dark:text-white mb-2">
-                                    Segurança do Token
+                                    {t.authentication.tokenSecurity.title}
                                   </h4>
                                   <ul className="space-y-2">
                                     <li className="flex items-start">
@@ -1316,8 +850,10 @@ const ApiDocumentation = () => {
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        O token JWT tem validade de 1 hora
-                                        (3.600 segundos).
+                                        {
+                                          t.authentication.tokenSecurity
+                                            .validity
+                                        }
                                       </span>
                                     </li>
                                     <li className="flex items-start">
@@ -1336,8 +872,10 @@ const ApiDocumentation = () => {
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Armazene de forma segura seu Client ID e
-                                        Client Secret.
+                                        {
+                                          t.authentication.tokenSecurity
+                                            .storeSecurely
+                                        }
                                       </span>
                                     </li>
                                     <li className="flex items-start">
@@ -1356,9 +894,10 @@ const ApiDocumentation = () => {
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Renove o token automaticamente antes que
-                                        expire para evitar falhas nas
-                                        requisições.
+                                        {
+                                          t.authentication.tokenSecurity
+                                            .renewAutomatically
+                                        }
                                       </span>
                                     </li>
                                     <li className="flex items-start">
@@ -1377,9 +916,10 @@ const ApiDocumentation = () => {
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                       </svg>
                                       <span className="text-sm text-slate-700 dark:text-slate-300">
-                                        Nunca compartilhe seus tokens ou
-                                        credenciais em código do lado do
-                                        cliente.
+                                        {
+                                          t.authentication.tokenSecurity
+                                            .neverShare
+                                        }
                                       </span>
                                     </li>
                                   </ul>
@@ -1413,11 +953,10 @@ const ApiDocumentation = () => {
                                         y2="8"
                                       ></line>
                                     </svg>
-                                    Exemplo de Autenticação
+                                    {t.authentication.example.title}
                                   </h4>
                                   <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
-                                    Veja um exemplo de como obter o token de
-                                    autenticação:
+                                    {t.authentication.example.description}
                                   </p>
                                   <div className="bg-slate-800 text-slate-300 p-3 rounded-lg overflow-x-auto">
                                     <pre className="text-xs font-mono whitespace-pre-wrap">
@@ -1476,7 +1015,9 @@ const ApiDocumentation = () => {
                                   className="h-7 px-2"
                                 >
                                   <Copy className="h-3.5 w-3.5 mr-1" />
-                                  <span className="text-xs">Copiar</span>
+                                  <span className="text-xs">
+                                    {t.common.copy}
+                                  </span>
                                 </Button>
                               </div>
                             </div>
@@ -1491,7 +1032,7 @@ const ApiDocumentation = () => {
                               endpoint.parameters.length > 0 && (
                                 <div>
                                   <h4 className="text-sm font-medium mb-3 text-slate-800 dark:text-white">
-                                    Parâmetros de URL
+                                    {t.apiEndpoints.parameters}
                                   </h4>
                                   <div className="overflow-auto">
                                     <table className="w-full border-collapse">
@@ -1530,11 +1071,11 @@ const ApiDocumentation = () => {
                                               <td className="px-4 py-2">
                                                 {param.required ? (
                                                   <span className="text-green-600 dark:text-green-400">
-                                                    Sim
+                                                    {t.apiEndpoints.required}
                                                   </span>
                                                 ) : (
                                                   <span className="text-slate-500 dark:text-slate-400">
-                                                    Não
+                                                    {t.apiEndpoints.notRequired}
                                                   </span>
                                                 )}
                                               </td>
@@ -1555,7 +1096,7 @@ const ApiDocumentation = () => {
                               endpoint.headers.length > 0 && (
                                 <div>
                                   <h4 className="text-sm font-medium mb-3 text-slate-800 dark:text-white">
-                                    Headers
+                                    {t.apiEndpoints.headers}
                                   </h4>
                                   <div className="overflow-auto">
                                     <table className="w-full border-collapse">
@@ -1585,11 +1126,11 @@ const ApiDocumentation = () => {
                                               <td className="px-4 py-2">
                                                 {header.required ? (
                                                   <span className="text-green-600 dark:text-green-400">
-                                                    Sim
+                                                    {t.apiEndpoints.required}
                                                   </span>
                                                 ) : (
                                                   <span className="text-slate-500 dark:text-slate-400">
-                                                    Não
+                                                    {t.apiEndpoints.notRequired}
                                                   </span>
                                                 )}
                                               </td>
@@ -1612,7 +1153,7 @@ const ApiDocumentation = () => {
                             {endpoint.body && (
                               <div>
                                 <h4 className="text-sm font-medium mb-3 text-slate-800 dark:text-white">
-                                  Body
+                                  {t.apiEndpoints.body}
                                 </h4>
                                 <div className="overflow-auto">
                                   <table className="w-full border-collapse">
@@ -1645,11 +1186,11 @@ const ApiDocumentation = () => {
                                             <td className="px-4 py-2">
                                               {prop.required ? (
                                                 <span className="text-green-600 dark:text-green-400">
-                                                  Sim
+                                                  {t.apiEndpoints.required}
                                                 </span>
                                               ) : (
                                                 <span className="text-slate-500 dark:text-slate-400">
-                                                  Não
+                                                  {t.apiEndpoints.notRequired}
                                                 </span>
                                               )}
                                             </td>
@@ -1658,7 +1199,7 @@ const ApiDocumentation = () => {
                                               {prop.properties && (
                                                 <div className="mt-2 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
                                                   <h6 className="text-xs font-medium mb-1 text-slate-700 dark:text-slate-300">
-                                                    Propriedades:
+                                                    {t.apiEndpoints.properties}
                                                   </h6>
                                                   <ul className="space-y-1">
                                                     {prop.properties.map(
@@ -1706,7 +1247,7 @@ const ApiDocumentation = () => {
                             {/* Exemplo de Requisição */}
                             <div>
                               <h4 className="text-sm font-medium mb-3 text-slate-800 dark:text-white">
-                                Exemplo de Requisição
+                                {t.apiEndpoints.requestExample}
                               </h4>
                               <div className="bg-slate-950 text-slate-300 p-4 rounded-lg overflow-x-auto">
                                 <pre className="text-xs font-mono whitespace-pre-wrap">
@@ -1718,7 +1259,7 @@ const ApiDocumentation = () => {
                             {/* Respostas */}
                             <div>
                               <h4 className="text-sm font-medium mb-3 text-slate-800 dark:text-white">
-                                Respostas
+                                {t.apiEndpoints.responses}
                               </h4>
                               <div className="divide-y divide-slate-200 dark:divide-slate-700">
                                 {endpoint.responses.map((response, index) => (
@@ -1779,17 +1320,16 @@ const ApiDocumentation = () => {
                 <Search className="w-8 h-8 text-slate-400 dark:text-slate-500" />
               </div>
               <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-2">
-                Nenhum endpoint encontrado
+                {t.common.noEndpointsFound}
               </h3>
               <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                Não encontramos nenhum endpoint com os critérios de busca
-                atuais.
+                {t.common.noEndpointsFoundDesc}
               </p>
               <button
                 onClick={() => setSearchTerm("")}
                 className="mt-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
               >
-                Limpar filtros
+                {t.common.clearFilters}
               </button>
             </div>
           )}
@@ -1797,70 +1337,57 @@ const ApiDocumentation = () => {
           {/* Seção de conceitos e termos */}
           <Card id="concepts">
             <CardHeader>
-              <CardTitle>Conceitos e Termos</CardTitle>
-              <CardDescription>
-                Termos e conceitos importantes para entender a API de pagamentos
-              </CardDescription>
+              <CardTitle>{t.concepts.title}</CardTitle>
+              <CardDescription>{t.concepts.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="space-y-4">
                 <div>
                   <dt className="text-sm font-semibold text-slate-900 dark:text-white">
-                    PIX
+                    {t.concepts.pix.title}
                   </dt>
                   <dd className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    Sistema de pagamentos instantâneos desenvolvido pelo Banco
-                    Central do Brasil. Permite transferências e pagamentos em
-                    segundos, a qualquer hora do dia, todos os dias do ano.
+                    {t.concepts.pix.description}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Boleto Bancário
+                    {t.concepts.bankSlip.title}
                   </dt>
                   <dd className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    Método de pagamento brasileiro onde o cliente recebe um
-                    documento com código de barras que pode ser pago em bancos,
-                    correspondentes bancários, caixas eletrônicos ou internet
-                    banking.
+                    {t.concepts.bankSlip.description}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Chave PIX
+                    {t.concepts.pixKey.title}
                   </dt>
                   <dd className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    Identificador usado para receber pagamentos PIX. Pode ser
-                    CPF/CNPJ, e-mail, número de telefone ou uma chave aleatória.
+                    {t.concepts.pixKey.description}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-semibold text-slate-900 dark:text-white">
-                    OAuth 2.0
+                    {t.concepts.oauth.title}
                   </dt>
                   <dd className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    Protocolo de autorização que permite que aplicativos
-                    obtenham acesso limitado a contas de usuários em um serviço
-                    HTTP. Nossa API utiliza tokens JWT para autenticação.
+                    {t.concepts.oauth.description}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Bearer Token
+                    {t.concepts.bearerToken.title}
                   </dt>
                   <dd className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    Tipo de token de acesso OAuth 2.0 onde o portador (bearer)
-                    do token tem acesso aos recursos protegidos.
+                    {t.concepts.bearerToken.description}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-semibold text-slate-900 dark:text-white">
-                    SellerId
+                    {t.concepts.sellerId.title}
                   </dt>
                   <dd className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    Identificador único do vendedor ou lojista na plataforma.
-                    Este valor deve ser enviado em todas as requisições no
-                    cabeçalho.
+                    {t.concepts.sellerId.description}
                   </dd>
                 </div>
               </dl>
@@ -1870,11 +1397,8 @@ const ApiDocumentation = () => {
           {/* SDKs e Integrações */}
           <Card id="sdks">
             <CardHeader>
-              <CardTitle>SDKs e Integrações</CardTitle>
-              <CardDescription>
-                Bibliotecas e ferramentas para facilitar a integração com nossa
-                API
-              </CardDescription>
+              <CardTitle>{t.sdks.title}</CardTitle>
+              <CardDescription>{t.sdks.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1884,15 +1408,14 @@ const ApiDocumentation = () => {
                 >
                   <h4 className="font-medium text-slate-900 dark:text-white mb-2 flex items-center">
                     <Code className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
-                    SDK para C#
+                    {t.sdks.csharp.title}
                   </h4>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Biblioteca oficial para integração com .NET Core e .NET
-                    Framework
+                    {t.sdks.csharp.description}
                   </p>
                   <div className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 flex items-center">
                     <ExternalLink className="w-3 h-3 mr-1" />
-                    Ver documentação
+                    {t.sdks.csharp.link}
                   </div>
                 </a>
 
@@ -1902,14 +1425,14 @@ const ApiDocumentation = () => {
                 >
                   <h4 className="font-medium text-slate-900 dark:text-white mb-2 flex items-center">
                     <Code className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
-                    SDK para PHP
+                    {t.sdks.php.title}
                   </h4>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Biblioteca oficial para integração com PHP 7.4+
+                    {t.sdks.php.description}
                   </p>
                   <div className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 flex items-center">
                     <ExternalLink className="w-3 h-3 mr-1" />
-                    Ver documentação
+                    {t.sdks.php.link}
                   </div>
                 </a>
 
@@ -1919,55 +1442,35 @@ const ApiDocumentation = () => {
                 >
                   <h4 className="font-medium text-slate-900 dark:text-white mb-2 flex items-center">
                     <Code className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
-                    SDK para JavaScript
+                    {t.sdks.javascript.title}
                   </h4>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Biblioteca oficial para Node.js e browsers
+                    {t.sdks.javascript.description}
                   </p>
                   <div className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 flex items-center">
                     <ExternalLink className="w-3 h-3 mr-1" />
-                    Ver documentação
+                    {t.sdks.javascript.link}
                   </div>
                 </a>
               </div>
 
               <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-700">
                 <h4 className="font-medium text-slate-900 dark:text-white mb-2">
-                  SDKs em Desenvolvimento
+                  {t.sdksInDevelopment.title}
                 </h4>
                 <div className="flex items-start space-x-3">
                   <div className="mt-1 text-amber-500 dark:text-amber-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                      <line x1="12" y1="9" x2="12" y2="13"></line>
-                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
+                    <AlertCircle size={20} />
                   </div>
                   <div>
                     <p className="text-sm text-slate-700 dark:text-slate-300 mb-2">
-                      Nossas bibliotecas SDK e plugins para integração estão
-                      atualmente em desenvolvimento.
+                      {t.sdksInDevelopment.message}
                     </p>
                     <p className="text-sm text-slate-700 dark:text-slate-300">
-                      Estamos trabalhando para disponibilizar SDKs para as
-                      principais linguagens de programação e plugins para
-                      plataformas de e-commerce populares. Enquanto isso, você
-                      pode utilizar diretamente nossa API REST com as instruções
-                      desta documentação.
+                      {t.sdksInDevelopment.additionalInfo}
                     </p>
                     <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-2 font-medium">
-                      Acompanhe nossas atualizações para saber quando os SDKs
-                      estarão disponíveis.
+                      {t.sdksInDevelopment.updates}
                     </p>
                   </div>
                 </div>
@@ -1978,20 +1481,17 @@ const ApiDocumentation = () => {
           {/* Suporte e Contato */}
           <Card id="support">
             <CardHeader>
-              <CardTitle>Suporte e Contato</CardTitle>
-              <CardDescription>
-                Obtenha ajuda com a integração e uso de nossa API
-              </CardDescription>
+              <CardTitle>{t.support.title}</CardTitle>
+              <CardDescription>{t.support.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
                   <h4 className="font-medium text-slate-900 dark:text-white mb-3">
-                    Suporte Técnico
+                    {t.support.technicalSupport.title}
                   </h4>
                   <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">
-                    Nossa equipe de suporte técnico está disponível para ajudar
-                    com questões de integração e problemas técnicos.
+                    {t.support.technicalSupport.description}
                   </p>
                   <a
                     href="mailto:suporte@pulsepay.com.br"
@@ -2003,11 +1503,10 @@ const ApiDocumentation = () => {
 
                 <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
                   <h4 className="font-medium text-slate-900 dark:text-white mb-3">
-                    Documentação Completa
+                    {t.support.completeDocumentation.title}
                   </h4>
                   <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">
-                    Acesse nossa documentação completa, incluindo guias passo a
-                    passo e tutoriais detalhados.
+                    {t.support.completeDocumentation.description}
                   </p>
                   <a
                     href="#"
