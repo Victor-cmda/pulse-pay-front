@@ -17,7 +17,7 @@ import {
 import { notification, Modal, Form, Input } from "antd";
 import ThemeToggle from "../../theme/ThemeToggle";
 import { authService } from "../../services/AuthService";
-import { useLoading } from '../../context/LoadingContext';
+import { useLoading } from "../../context/LoadingContext";
 
 const UserConfig = () => {
   const inputRefs = useRef([]);
@@ -154,10 +154,7 @@ const UserConfig = () => {
   const loadCommerceDetails = async (commerceId) => {
     setIsLoading(true);
     try {
-      console.log("Carregando detalhes do comércio:", commerceId);
       const response = await authService.getCommerceById(commerceId);
-      console.log("Resposta recebida:", response);
-
       const commerceData =
         response.success && response.data ? response.data : response;
 
@@ -172,7 +169,6 @@ const UserConfig = () => {
         },
       };
 
-      console.log("Comércio atualizado:", updatedCommerce);
       setSelectedCommerce(updatedCommerce);
     } catch (error) {
       console.error("Erro ao carregar detalhes:", error);
@@ -651,10 +647,6 @@ const UserConfig = () => {
                                     <button
                                       className="btn btn-sm btn-ghost"
                                       onClick={() => {
-                                        console.log(
-                                          "Comércio selecionado da tabela:",
-                                          commerce
-                                        );
                                         setActiveTab("callback");
                                         loadCommerceDetails(commerce.id);
                                       }}

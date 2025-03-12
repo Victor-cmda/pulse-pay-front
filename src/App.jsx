@@ -17,6 +17,7 @@ import {
   Notifications,
   AdminDashboard,
   Unauthorized,
+  Endpoints,
 } from "./pages";
 import { WalletManagement } from "./pages/WalletManagement/index.js";
 import { AdminRoute, ProtectedRoute, PublicRoute } from "./routes";
@@ -175,6 +176,12 @@ const App = () => {
                   <ProtectedRoute>
                     <Unauthorized />
                   </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/endpoints"
+                element={
+                    <Endpoints />
                 }
               />
               <Route path="*" element={<Navigate to="/404" replace />} />

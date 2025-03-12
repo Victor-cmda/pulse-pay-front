@@ -68,16 +68,13 @@ const AdminDashboard = () => {
           const txResponse = await paymentService.getPendingTransactions();
           if (txResponse.success) {
             setPendingTransactions(txResponse.data || []);
-            console.log("Transações carregadas:", txResponse.data);
           }
           break;
 
         case "bankAccounts":
           const baResponse = await paymentService.getUnverifiedBankAccounts();
           if (baResponse.success) {
-            // Acessa data.data onde os registros estão armazenados
             setPendingBankAccounts(baResponse.data || []);
-            console.log("Contas bancárias carregadas:", baResponse.data);
           }
           break;
 
@@ -85,7 +82,6 @@ const AdminDashboard = () => {
           const wdResponse = await paymentService.getPendingWithdraws();
           if (wdResponse.success) {
             setPendingWithdraws(wdResponse.data || []);
-            console.log("Saques carregados:", wdResponse.data);
           }
           break;
 
@@ -93,7 +89,6 @@ const AdminDashboard = () => {
           const pixResponse = await paymentService.getPendingPixPayments();
           if (pixResponse.success) {
             setPendingPixPayments(pixResponse.data || []);
-            console.log("Pagamentos PIX carregados:", pixResponse.data);
           }
           break;
       }

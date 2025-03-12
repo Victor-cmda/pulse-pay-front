@@ -101,25 +101,27 @@ const Navbar = () => {
   return (
     <div className="navbar bg-white dark:bg-slate-800 sticky top-0 z-40 shadow-sm border-b border-slate-200 dark:border-slate-700">
       <div className="navbar-start">
-        <label
-          htmlFor="my-drawer"
-          className="btn btn-ghost btn-circle drawer-button hover:bg-slate-100 dark:hover:bg-slate-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-slate-700 dark:text-slate-200"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {user ? (
+          <label
+            htmlFor="my-drawer"
+            className="btn btn-ghost btn-circle drawer-button hover:bg-slate-100 dark:hover:bg-slate-700"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h7"
-            />
-          </svg>
-        </label>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-slate-700 dark:text-slate-200"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+          </label>
+        ) : null}
       </div>
 
       <div className="navbar-center">
@@ -133,104 +135,108 @@ const Navbar = () => {
 
       <div className="navbar-end">
         {/* Links visíveis apenas em telas maiores */}
-        <div className="hidden md:flex items-center space-x-1 mr-2">
-          <Link
-            to="/dashboard"
-            className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/wallet"
-            className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          >
-            Carteira
-          </Link>
-        </div>
+        {user ? (
+          <div className="hidden md:flex items-center space-x-1 mr-2">
+            <Link
+              to="/dashboard"
+              className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/wallet"
+              className="px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              Carteira
+            </Link>
+          </div>
+        ) : null}
 
         <div className="flex items-center">
           {/* Componente de alternância de tema */}
           <ThemeToggle />
 
           {/* Botão de notificações com dropdown */}
-          <div className="relative notification-dropdown">
-            <button
-              className="btn btn-ghost btn-circle relative hover:bg-slate-100 dark:hover:bg-slate-700"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <Bell className="h-5 w-5 text-slate-700 dark:text-slate-200" />
-              {unreadCount > 0 && (
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full"></span>
-              )}
-            </button>
+          {user ? (
+            <div className="relative notification-dropdown">
+              <button
+                className="btn btn-ghost btn-circle relative hover:bg-slate-100 dark:hover:bg-slate-700"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <Bell className="h-5 w-5 text-slate-700 dark:text-slate-200" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full"></span>
+                )}
+              </button>
 
-            {/* Dropdown de notificações */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-slate-200 dark:border-slate-700">
-                <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                  <h3 className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Notificações
-                  </h3>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
-                    >
-                      Marcar todas como lidas
-                    </button>
-                  )}
-                </div>
-                <div className="max-h-72 overflow-y-auto">
-                  {notifications.length > 0 ? (
-                    <div className="py-1">
-                      {notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer ${
-                            !notification.read
-                              ? "bg-indigo-50 dark:bg-indigo-900/20"
-                              : ""
-                          }`}
-                          onClick={() => markAsRead(notification.id)}
-                        >
-                          <div className="flex justify-between">
-                            <p className="text-sm font-medium text-slate-800 dark:text-white">
-                              {notification.title}
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                              {notification.time}
-                            </p>
-                          </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                            {notification.message}
-                          </p>
-                          {!notification.read && (
-                            <div className="mt-1 flex justify-end">
-                              <span className="inline-block h-2 w-2 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+              {/* Dropdown de notificações */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-slate-200 dark:border-slate-700">
+                  <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                    <h3 className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Notificações
+                    </h3>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                      >
+                        Marcar todas como lidas
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      <div className="py-1">
+                        {notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer ${
+                              !notification.read
+                                ? "bg-indigo-50 dark:bg-indigo-900/20"
+                                : ""
+                            }`}
+                            onClick={() => markAsRead(notification.id)}
+                          >
+                            <div className="flex justify-between">
+                              <p className="text-sm font-medium text-slate-800 dark:text-white">
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {notification.time}
+                              </p>
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-6 text-center">
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Nenhuma notificação disponível
-                      </p>
-                    </div>
-                  )}
+                            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                              {notification.message}
+                            </p>
+                            {!notification.read && (
+                              <div className="mt-1 flex justify-end">
+                                <span className="inline-block h-2 w-2 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-6 text-center">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          Nenhuma notificação disponível
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2 border-t border-slate-200 dark:border-slate-700">
+                    <Link
+                      to="/notifications"
+                      className="block text-center w-full py-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md"
+                    >
+                      Ver todas as notificações
+                    </Link>
+                  </div>
                 </div>
-                <div className="p-2 border-t border-slate-200 dark:border-slate-700">
-                  <Link
-                    to="/notifications"
-                    className="block text-center w-full py-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md"
-                  >
-                    Ver todas as notificações
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : null}
 
           <div className="dropdown dropdown-end">
             <label
