@@ -15,9 +15,11 @@ import {
   About,
   BankAccountManagement,
   Notifications,
+  AdminDashboard,
+  Unauthorized,
 } from "./pages";
 import { WalletManagement } from "./pages/WalletManagement/index.js";
-import { ProtectedRoute, PublicRoute } from "./routes";
+import { AdminRoute, ProtectedRoute, PublicRoute } from "./routes";
 import { store, persistor } from "./store";
 import { Provider } from "react-redux";
 import React, { useEffect } from "react";
@@ -152,6 +154,17 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }/>
+              <Route path="/unauthorized" element={
+                <ProtectedRoute>
+                  <Unauthorized />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
           </MainLayout>

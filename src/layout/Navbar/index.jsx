@@ -11,16 +11,16 @@ import {
   LogOut,
   Settings,
   UserCircle,
+  Shield,
 } from "lucide-react";
 import ThemeToggle from "../../theme/ThemeToggle";
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.user);
+  const { user, isAdmin } = useSelector((state) => state.user);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Mock de notificações para demonstração
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -279,6 +279,17 @@ const Navbar = () => {
                       Sair
                     </button>
                   </li>
+                  {isAdmin && (
+                    <li>
+                      <Link
+                        to="/admin"
+                        className="flex items-center text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 py-2"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Painel de Administração
+                      </Link>
+                    </li>
+                  )}
                 </>
               ) : (
                 <>

@@ -354,6 +354,130 @@ class AuthService {
       };
     }
   }
+
+  // Novas rotas adicionadas a partir daqui
+  
+  // Rotas administrativas
+  async getUsers(page = 1, pageSize = 10) {
+    try {
+      const response = await this.authClient.users(page, pageSize);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter a lista de usuários"
+      };
+    }
+  }
+
+  async getUserById(userId) {
+    try {
+      const response = await this.authClient.users2(userId);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os dados do usuário"
+      };
+    }
+  }
+
+  async updateUserRoles(userId, roles) {
+    try {
+      await this.authClient.roles(userId, roles);
+      return {
+        success: true,
+        message: "Roles do usuário atualizadas com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar as roles do usuário"
+      };
+    }
+  }
+
+  async lockUser(userId) {
+    try {
+      await this.authClient.lock(userId);
+      return {
+        success: true,
+        message: "Usuário bloqueado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível bloquear o usuário"
+      };
+    }
+  }
+
+  async unlockUser(userId) {
+    try {
+      await this.authClient.unlock(userId);
+      return {
+        success: true,
+        message: "Usuário desbloqueado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível desbloquear o usuário"
+      };
+    }
+  }
+
+  async assignAdmin(email) {
+    try {
+      await this.authClient.assignAdmin(email);
+      return {
+        success: true,
+        message: "Permissões de administrador atribuídas com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atribuir permissões de administrador"
+      };
+    }
+  }
+
+  async checkAdmin() {
+    try {
+      await this.authClient.checkAdmin();
+      return {
+        success: true,
+        isAdmin: true
+      };
+    } catch (error) {
+      return {
+        success: false,
+        isAdmin: false,
+        message: error.message || "Falha ao verificar permissões de administrador"
+      };
+    }
+  }
+
+  async getSellerById(sellerId) {
+    try {
+      const response = await this.authClient.sellerGET(sellerId);
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os dados do seller"
+      };
+    }
+  }
 }
 
 export const authService = new AuthService();

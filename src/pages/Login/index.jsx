@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../store/slices/userSlice";
+import { checkAdminStatus, loginUser } from "../../store/slices/userSlice";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import ThemeToggle from "../../theme/ThemeToggle";
 
@@ -14,12 +14,20 @@ const Login = () => {
   const [activeInput, setActiveInput] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.user);
+  const { user, adminChecked, loading, error } = useSelector(
+    (state) => state.user
+  );
 
   // Estado para controlar animações
   const [showPage, setShowPage] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showFeatures, setShowFeatures] = useState(false);
+
+  useEffect(() => {
+    if (user && !adminChecked) {
+      dispatch(checkAdminStatus());
+    }
+  }, [user, adminChecked, dispatch]);
 
   useEffect(() => {
     // Sequência de animações ao carregar
@@ -61,6 +69,7 @@ const Login = () => {
     try {
       setIsLoading(true);
       await dispatch(loginUser({ email, password })).unwrap();
+      await dispatch(checkAdminStatus()).unwrap();
       setShowPage(false);
       setTimeout(() => {
         navigate("/");

@@ -35,17 +35,35 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+export const checkAdminStatus = createAsyncThunk(
+  "user/checkAdminStatus",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await paymentService.checkStatus();
+      if (response.success && response.data && response.data.isAdmin) {
+        return response.data.isAdmin;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState: {
     user: null,
     loading: false,
+    isAdmin: false,
     error: null,
   },
   reducers: {
     logout: (state) => {
       state.user = null;
       state.loading = false;
+      state.isAdmin = false;
       state.error = null;
 
       localStorage.removeItem("token");
@@ -68,6 +86,14 @@ const userSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(checkAdminStatus.fulfilled, (state, action) => {
+        state.isAdmin = action.payload;
+        state.adminChecked = true;
+      })
+      .addCase(checkAdminStatus.rejected, (state) => {
+        state.isAdmin = false;
+        state.adminChecked = true;
       });
   },
 });

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/userSlice";
@@ -11,14 +11,15 @@ import {
   ChartBarIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
-import { PiggyBank, Wallet, LogOut } from "lucide-react";
+import { PiggyBank, Wallet, LogOut, Shield } from "lucide-react";
+import { authService } from "../../services/AuthService";
 
 const Drawer = () => {
   const drawerCheckboxRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
+  const { user, isAdmin } = useSelector((state) => state.user);
 
   const handleLinkClick = () => {
     if (drawerCheckboxRef.current) {
@@ -211,6 +212,31 @@ const Drawer = () => {
                     )}
                   </Link>
                 </li>
+                {isAdmin && (
+                  <li>
+                    <Link
+                      to="/admin"
+                      onClick={handleLinkClick}
+                      className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive("/admin")
+                          ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                      }`}
+                    >
+                      <Shield
+                        className={`w-5 h-5 mr-3 ${
+                          isActive("/admin")
+                            ? "text-indigo-600 dark:text-indigo-400"
+                            : ""
+                        }`}
+                      />
+                      Administração
+                      {isActive("/admin") && (
+                        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+                      )}
+                    </Link>
+                  </li>
+                )}
               </ul>
             </div>
 

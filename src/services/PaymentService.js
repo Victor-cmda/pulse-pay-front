@@ -8,6 +8,16 @@ import {
   UpdateTransactionStatusRequest,
   FundsOperationRequest,
   WalletType,
+  PixValidationRequestDto,
+  CustomerPayoutCreateDto,
+  DepositRequestDto,
+  WithdrawRequestDto,
+  PaymentCallbackDto,
+  PayoutConfirmationDto,
+  PayoutRejectionDto,
+  PayoutConfirmationWithProofDto,
+  TransactionStatus,
+  TransactionType
 } from "./PulsePayApiService";
 import { setupInterceptors } from "../interceptor/apiInterceptor";
 
@@ -160,7 +170,7 @@ class PaymentService {
   // Método para obter todas as carteiras de um vendedor
   async seller(sellerId) {
     try {
-      const response = await this.client.seller(sellerId);
+      const response = await this.client.seller2(sellerId);
       return {
         success: true,
         data: response.data
@@ -294,7 +304,7 @@ class PaymentService {
   async deposits(walletId, operationData) {
     try {
       const request = new FundsOperationRequest(operationData);
-      const response = await this.client.deposits(walletId, request);
+      const response = await this.client.depositsPOST2(walletId, request);
       return {
         success: true,
         data: response.data,
@@ -438,6 +448,533 @@ class PaymentService {
       return {
         success: false,
         message: error.message || "Não foi possível atualizar o status da transação"
+      };
+    }
+  }
+
+  // --------- DASHBOARD E ADMINISTRAÇÃO ---------
+
+  // Obter resumo do dashboard administrativo
+  async getDashboardSummary() {
+    try {
+      const response = await this.client.summary();
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter o resumo do dashboard"
+      };
+    }
+  }
+
+  // Verificar status do sistema
+  async checkStatus() {
+    try {
+      const response = await this.client.checkStatus();
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível verificar o status do sistema"
+      };
+    }
+  }
+
+  // Obter transações pendentes (admin)
+  async getPendingTransactions(page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.pending(page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter as transações pendentes"
+      };
+    }
+  }
+
+  // Aprovar transação pendente
+  async approveTransaction(transactionId) {
+    try {
+      const response = await this.client.approve(transactionId);
+      return {
+        success: true,
+        data: response.data,
+        message: "Transação aprovada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível aprovar a transação"
+      };
+    }
+  }
+
+  // Rejeitar transação pendente
+  async rejectTransaction(transactionId, reason) {
+    try {
+      const response = await this.client.reject(transactionId, reason);
+      return {
+        success: true,
+        data: response.data,
+        message: "Transação rejeitada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível rejeitar a transação"
+      };
+    }
+  }
+
+  // --------- GERENCIAMENTO DE CONTAS BANCÁRIAS ---------
+
+  // Obter contas bancárias não verificadas (admin)
+  async getUnverifiedBankAccounts(page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.unverified(page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter as contas bancárias não verificadas"
+      };
+    }
+  }
+
+  // Verificar uma conta bancária como administrador
+  async verifyBankAccountAdmin(id) {
+    try {
+      const response = await this.client.verify(id);
+      return {
+        success: true,
+        data: response.data,
+        message: "Conta bancária verificada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível verificar a conta bancária"
+      };
+    }
+  }
+
+  // Rejeitar uma conta bancária como administrador
+  async rejectBankAccount(id, reason) {
+    try {
+      const response = await this.client.reject2(id, reason);
+      return {
+        success: true,
+        data: response.data,
+        message: "Conta bancária rejeitada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível rejeitar a conta bancária"
+      };
+    }
+  }
+
+  // --------- GERENCIAMENTO DE PIX ---------
+
+  // Validar chave PIX
+  async validatePixKey(pixKey, pixKeyType) {
+    try {
+      const request = new PixValidationRequestDto({
+        pixKey: pixKey,
+        pixKeyType: pixKeyType
+      });
+      const response = await this.client.validate2(request);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível validar a chave PIX"
+      };
+    }
+  }
+
+  // Criar um pagamento PIX
+  async createPayment(paymentData) {
+    try {
+      const request = new CustomerPayoutCreateDto(paymentData);
+      const response = await this.client.payment(request);
+      return {
+        success: true,
+        data: response.data,
+        message: "Pagamento criado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar o pagamento"
+      };
+    }
+  }
+
+  // Obter detalhes de um pagamento PIX
+  async getPayment(paymentId) {
+    try {
+      const response = await this.client.customerPayouts(paymentId);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os detalhes do pagamento"
+      };
+    }
+  }
+
+  // Obter pagamentos PIX pendentes (admin)
+  async getPendingPixPayments(page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.pending3(page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os pagamentos PIX pendentes"
+      };
+    }
+  }
+
+  // Confirmar um pagamento PIX
+  async confirmPixPayment(payoutId, paymentProofId) {
+    try {
+      const request = new PayoutConfirmationDto({
+        paymentProofId: paymentProofId
+      });
+      const response = await this.client.confirm2(payoutId, request);
+      return {
+        success: true,
+        data: response.data,
+        message: "Pagamento PIX confirmado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível confirmar o pagamento PIX"
+      };
+    }
+  }
+
+  // Rejeitar um pagamento PIX
+  async rejectPixPayment(payoutId, reason) {
+    try {
+      const request = new PayoutRejectionDto({
+        rejectionReason: reason
+      });
+      const response = await this.client.reject4(payoutId, request);
+      return {
+        success: true,
+        data: response.data,
+        message: "Pagamento PIX rejeitado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível rejeitar o pagamento PIX"
+      };
+    }
+  }
+
+  // Confirmar um pagamento PIX com comprovante
+  async confirmPayoutWithProof(payoutId, value, proofReference, notes) {
+    try {
+      const request = new PayoutConfirmationWithProofDto({
+        value: value,
+        proofReference: proofReference,
+        notes: notes
+      });
+      const response = await this.client.confirm(payoutId, request);
+      return {
+        success: true,
+        data: response.data,
+        message: "Pagamento confirmado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível confirmar o pagamento"
+      };
+    }
+  }
+
+  // Rejeitar um pagamento
+  async rejectPayout(payoutId, rejectionReason) {
+    try {
+      const response = await this.client.reject3(payoutId, rejectionReason);
+      return {
+        success: true,
+        data: response.data,
+        message: "Pagamento rejeitado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível rejeitar o pagamento"
+      };
+    }
+  }
+
+  // Obter pagamentos pendentes de administrador
+  async getPendingAdminPayouts(page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.pending2(page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os pagamentos pendentes"
+      };
+    }
+  }
+
+  // --------- GERENCIAMENTO DE DEPÓSITOS ---------
+
+  // Criar um novo depósito
+  async createDeposit(depositData) {
+    try {
+      const request = new DepositRequestDto(depositData);
+      const response = await this.client.depositsPOST(request);
+      return {
+        success: true,
+        data: response.data,
+        message: "Depósito criado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar o depósito"
+      };
+    }
+  }
+
+  // Obter detalhes de um depósito
+  async getDeposit(depositId) {
+    try {
+      const response = await this.client.depositsGET(depositId);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os detalhes do depósito"
+      };
+    }
+  }
+
+  // Obter depósitos de um vendedor
+  async getSellerDeposits(sellerId, page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.seller(sellerId, page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os depósitos do vendedor"
+      };
+    }
+  }
+
+  // Processar um callback de pagamento
+  async processPaymentCallback(callbackData) {
+    try {
+      const request = new PaymentCallbackDto(callbackData);
+      await this.client.callback(request);
+      return {
+        success: true,
+        message: "Callback de pagamento processado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível processar o callback de pagamento"
+      };
+    }
+  }
+
+  // --------- GERENCIAMENTO DE SAQUES ---------
+
+  // Criar um novo saque
+  async createWithdraw(withdrawData) {
+    try {
+      const request = new WithdrawRequestDto(withdrawData);
+      const response = await this.client.withdrawsPOST(request);
+      return {
+        success: true,
+        data: response.data,
+        message: "Solicitação de saque criada com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível criar a solicitação de saque"
+      };
+    }
+  }
+
+  // Obter detalhes de um saque
+  async getWithdraw(withdrawId) {
+    try {
+      const response = await this.client.withdrawsGET(withdrawId);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os detalhes do saque"
+      };
+    }
+  }
+
+  // Obter saques de um vendedor
+  async getSellerWithdraws(sellerId, page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.seller3(sellerId, page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os saques do vendedor"
+      };
+    }
+  }
+
+  // Obter saques pendentes (admin)
+  async getPendingWithdraws(page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.pending4(page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter os saques pendentes"
+      };
+    }
+  }
+
+  // Aprovar um saque
+  async approveWithdraw(withdrawId) {
+    try {
+      const response = await this.client.approve2(withdrawId);
+      return {
+        success: true,
+        data: response.data,
+        message: "Saque aprovado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível aprovar o saque"
+      };
+    }
+  }
+
+  // Rejeitar um saque
+  async rejectWithdraw(withdrawId, reason) {
+    try {
+      const response = await this.client.reject5(withdrawId, reason);
+      return {
+        success: true,
+        data: response.data,
+        message: "Saque rejeitado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível rejeitar o saque"
+      };
+    }
+  }
+
+  // Processar um saque
+  async processWithdraw(withdrawId, receipt) {
+    try {
+      const response = await this.client.process(withdrawId, receipt);
+      return {
+        success: true,
+        data: response.data,
+        message: "Saque processado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível processar o saque"
+      };
+    }
+  }
+
+  // --------- MÉTODOS ADICIONAIS DE CARTEIRA ---------
+
+  // Obter todas as carteiras (admin)
+  async getAllWallets(page = 1, pageSize = 20) {
+    try {
+      const response = await this.client.all(page, pageSize);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível obter todas as carteiras"
+      };
+    }
+  }
+
+  // Atualizar o saldo de uma carteira (admin)
+  async updateWalletBalanceAdmin(walletId, balanceData) {
+    try {
+      const dto = new WalletUpdateDto(balanceData);
+      const response = await this.client.balancePUT2(walletId, dto);
+      return {
+        success: true,
+        data: response.data,
+        message: "Saldo da carteira atualizado com sucesso"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Não foi possível atualizar o saldo da carteira"
       };
     }
   }
