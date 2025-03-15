@@ -209,4 +209,22 @@ export default {
     requestExample: "Ejemplo de Solicitud",
     responses: "Respuestas",
   },
+  payouts: {
+    title: "Transferencias",
+    description:
+      "Endpoints para validación de llaves PIX y realización de transferencias",
+    validatePixKey: {
+      title: "Validar Llave PIX",
+      description: "Valida una llave PIX antes de hacer una transferencia",
+    },
+    createPayment: {
+      title: "Crear Transferencia",
+      description: "Crea una nueva transferencia PIX a un destinatario",
+    },
+    getPayment: {
+      title: "Consultar Transferencia",
+      description:
+        "Obtiene el estado y detalles de una transferencia específica",
+    },
+  },
 };

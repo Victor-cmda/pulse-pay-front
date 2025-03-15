@@ -204,4 +204,20 @@ export default {
     requestExample: "Request Example",
     responses: "Responses",
   },
+  payouts: {
+    title: "Transfers",
+    description: "Endpoints for PIX key validation and money transfers",
+    validatePixKey: {
+      title: "Validate PIX Key",
+      description: "Validates a PIX key before making a transfer",
+    },
+    createPayment: {
+      title: "Create Transfer",
+      description: "Creates a new PIX transfer to a recipient",
+    },
+    getPayment: {
+      title: "Query Transfer",
+      description: "Get the status and details of a specific transfer",
+    },
+  },
 };

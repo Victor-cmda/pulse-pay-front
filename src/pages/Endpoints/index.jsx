@@ -79,7 +79,7 @@ const ApiDocumentation = () => {
           method: "POST",
           path: "/oauth/v2/token",
           description: t.authentication.steps.step1,
-          authentication: t.authentication.title,
+          authentication: "Basic Auth",
           parameters: [],
           headers: [
             {
@@ -177,7 +177,7 @@ const ApiDocumentation = () => {
               status: 200,
               description: t.apiEndpoints.responses,
               example: {
-                message: t.apiEndpoints.responses,
+                message: "Pagamento processado com sucesso",
                 details: {
                   paymentId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                   qrCode:
@@ -193,7 +193,7 @@ const ApiDocumentation = () => {
             {
               status: 401,
               description: t.authentication.steps.step2,
-              example: { error: "Unauthorized access" },
+              example: { error: "Invalid or missing SellerId in header." },
             },
           ],
           requestExample: `curl -X POST https://api.example.com/pix \\
@@ -207,16 +207,516 @@ const ApiDocumentation = () => {
   "callbackUrl": "https://your-callback-url.com/notifications"
 }'`,
         },
+        {
+          id: "boletoPayment",
+          method: "POST",
+          path: "/boleto",
+          description: t.mainFeatures.bankSlips,
+          authentication: "Bearer Token",
+          parameters: [],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description: t.authentication.steps.step3,
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description: t.concepts.sellerId.description,
+            },
+            {
+              name: "Content-Type",
+              required: true,
+              type: "string",
+              description: "application/json",
+            },
+          ],
+          body: {
+            type: "object",
+            properties: [
+              {
+                name: "amount",
+                type: "number",
+                required: true,
+                description: t.apiEndpoints.body,
+              },
+              {
+                name: "description",
+                type: "string",
+                required: true,
+                description: t.apiEndpoints.body,
+              },
+              {
+                name: "customerName",
+                type: "string",
+                required: true,
+                description: t.concepts.bankSlip.description,
+              },
+              {
+                name: "customerDocument",
+                type: "string",
+                required: true,
+                description: "CPF/CNPJ",
+              },
+              {
+                name: "dueDate",
+                type: "string",
+                required: true,
+                description: "ISO 8601",
+              },
+              {
+                name: "callbackUrl",
+                type: "string",
+                required: false,
+                description: t.mainFeatures.paymentNotifications,
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 200,
+              description: t.apiEndpoints.responses,
+              example: {
+                message: "Pagamento processado com sucesso",
+                details: {
+                  bankSlipId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  barcode:
+                    "34191.79001 01043.510047 91020.150008 5 88790000029999",
+                  pdfUrl:
+                    "https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf",
+                },
+              },
+            },
+            {
+              status: 400,
+              description: t.apiEndpoints.responses,
+              example: { error: "Invalid request parameters" },
+            },
+            {
+              status: 401,
+              description: t.authentication.steps.step2,
+              example: { error: "Invalid or missing SellerId in header." },
+            },
+          ],
+          requestExample: `curl -X POST https://api.example.com/boleto \\
+-H "Authorization: Bearer your_access_token" \\
+-H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "amount": 299.99,
+  "description": "${t.mainFeatures.bankSlips}",
+  "customerName": "Cliente Exemplo",
+  "customerDocument": "12345678900",
+  "dueDate": "2023-12-31",
+  "callbackUrl": "https://your-callback-url.com/notifications"
+}'`,
+        },
+        {
+          id: "boletoPdf",
+          method: "GET",
+          path: "/boleto/{Id}/pdf",
+          description: t.mainFeatures.bankSlips,
+          authentication: "Bearer Token",
+          parameters: [
+            {
+              name: "Id",
+              in: "path",
+              required: true,
+              type: "string",
+              description: t.concepts.bankSlip.description,
+            },
+          ],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description: t.authentication.steps.step3,
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description: t.concepts.sellerId.description,
+            },
+          ],
+          responses: [
+            {
+              status: 200,
+              description: t.apiEndpoints.responses,
+              example: "PDF Document (binary)",
+            },
+            {
+              status: 404,
+              description: t.apiEndpoints.responses,
+              example: {},
+            },
+            {
+              status: 400,
+              description: t.apiEndpoints.responses,
+              example: { error: "Error message" },
+            },
+          ],
+          requestExample: `curl -X GET https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
+-H "Authorization: Bearer your_access_token" \\
+-H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+--output boleto.pdf`,
+        },
+        {
+          id: "notifyPix",
+          method: "GET",
+          path: "/notify-pix",
+          description: t.mainFeatures.paymentNotifications,
+          authentication: "None",
+          parameters: [
+            {
+              name: "transaction_id",
+              in: "query",
+              required: true,
+              type: "string",
+              description: t.concepts.pix.description,
+            },
+            {
+              name: "status",
+              in: "query",
+              required: true,
+              type: "string",
+              description: t.concepts.pix.description,
+            },
+            {
+              name: "amount",
+              in: "query",
+              required: true,
+              type: "integer",
+              description: t.concepts.pix.description,
+            },
+          ],
+          responses: [
+            {
+              status: 200,
+              description: t.apiEndpoints.responses,
+              example: {},
+            },
+          ],
+          requestExample: `curl -X GET "https://api.example.com/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
+        },
+      ],
+    },
+    {
+      id: "payouts",
+      title: "Transferências", // Sugestão: adicionar ao arquivo de traduções como t.payouts.title
+      description:
+        "Endpoints para validação de chaves PIX e realização de transferências", // Sugestão: adicionar ao arquivo de traduções como t.payouts.description
+      endpoints: [
+        {
+          id: "validatePixKey",
+          method: "POST",
+          path: "/validate",
+          description: t.mainFeatures.pixKeyValidation,
+          authentication: "Bearer Token",
+          parameters: [],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description: t.authentication.steps.step3,
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description: t.concepts.sellerId.description,
+            },
+            {
+              name: "Content-Type",
+              required: true,
+              type: "string",
+              description: "application/json",
+            },
+          ],
+          body: {
+            type: "object",
+            properties: [
+              {
+                name: "pixKeyType",
+                type: "string",
+                required: true,
+                description: t.concepts.pixKey.description,
+              },
+              {
+                name: "pixKeyValue",
+                type: "string",
+                required: true,
+                description: t.concepts.pixKey.description,
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 200,
+              description: t.apiEndpoints.responses,
+              example: {
+                data: {
+                  keyType: "CPF",
+                  keyValue: "12345678900",
+                  bankName: "Banco Exemplo",
+                  accountHolderName: "Nome do Titular",
+                  documentType: "CPF",
+                  documentValue: "123.456.789-00",
+                  isValid: true,
+                },
+                statusCode: 200,
+                message: "Chave PIX validada com sucesso",
+              },
+            },
+            {
+              status: 400,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 400,
+                message: "Chave PIX inválida ou não encontrada",
+              },
+            },
+            {
+              status: 500,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 500,
+                message:
+                  "Ocorreu um erro interno ao processar sua solicitação.",
+              },
+            },
+          ],
+          requestExample: `curl -X POST https://api.example.com/validate \\
+-H "Authorization: Bearer your_access_token" \\
+-H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "pixKeyType": "CPF",
+  "pixKeyValue": "12345678900"
+}'`,
+        },
+        {
+          id: "createPayment",
+          method: "POST",
+          path: "/payment",
+          description: t.mainFeatures.pixPayments,
+          authentication: "Bearer Token",
+          parameters: [],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description: t.authentication.steps.step3,
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description: t.concepts.sellerId.description,
+            },
+            {
+              name: "Content-Type",
+              required: true,
+              type: "string",
+              description: "application/json",
+            },
+          ],
+          body: {
+            type: "object",
+            properties: [
+              {
+                name: "amount",
+                type: "number",
+                required: true,
+                description: t.apiEndpoints.body,
+              },
+              {
+                name: "description",
+                type: "string",
+                required: true,
+                description: t.apiEndpoints.body,
+              },
+              {
+                name: "pixKeyType",
+                type: "string",
+                required: true,
+                description: t.concepts.pixKey.description,
+              },
+              {
+                name: "pixKeyValue",
+                type: "string",
+                required: true,
+                description: t.concepts.pixKey.description,
+              },
+              {
+                name: "recipientName",
+                type: "string",
+                required: true,
+                description: t.concepts.pixKey.description,
+              },
+              {
+                name: "recipientDocument",
+                type: "string",
+                required: true,
+                description: "CPF/CNPJ do destinatário",
+              },
+              {
+                name: "externalReference",
+                type: "string",
+                required: false,
+                description: "Referência externa para controle do cliente",
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 201,
+              description: t.apiEndpoints.responses,
+              example: {
+                data: {
+                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  amount: 100.5,
+                  description: "Pagamento para Fornecedor XYZ",
+                  status: "Pending",
+                  pixKeyType: "CPF",
+                  pixKeyValue: "12345678900",
+                  recipientName: "Nome do Destinatário",
+                  recipientDocument: "123.456.789-00",
+                  externalReference: "REF-001",
+                  createdAt: "2023-12-15T10:30:00Z",
+                },
+                statusCode: 201,
+                message: "Pagamento criado com sucesso",
+              },
+            },
+            {
+              status: 400,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 400,
+                message: "Dados de pagamento inválidos",
+              },
+            },
+            {
+              status: 409,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 409,
+                message: "Já existe um pagamento com essa referência externa",
+              },
+            },
+            {
+              status: 500,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 500,
+                message:
+                  "Ocorreu um erro interno ao processar sua solicitação.",
+              },
+            },
+          ],
+          requestExample: `curl -X POST https://api.example.com/payment \\
+-H "Authorization: Bearer your_access_token" \\
+-H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "amount": 100.50,
+  "description": "Pagamento para Fornecedor XYZ",
+  "pixKeyType": "CPF",
+  "pixKeyValue": "12345678900",
+  "recipientName": "Nome do Destinatário",
+  "recipientDocument": "123.456.789-00",
+  "externalReference": "REF-001"
+}'`,
+        },
+        {
+          id: "getPayment",
+          method: "GET",
+          path: "/{id:guid}",
+          description: t.mainFeatures.transactionStatus,
+          authentication: "Bearer Token",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              type: "guid",
+              description: "ID único do pagamento",
+            },
+          ],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description: t.authentication.steps.step3,
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description: t.concepts.sellerId.description,
+            },
+          ],
+          responses: [
+            {
+              status: 200,
+              description: t.apiEndpoints.responses,
+              example: {
+                data: {
+                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  amount: 100.5,
+                  description: "Pagamento para Fornecedor XYZ",
+                  status: "Completed",
+                  pixKeyType: "CPF",
+                  pixKeyValue: "12345678900",
+                  recipientName: "Nome do Destinatário",
+                  recipientDocument: "123.456.789-00",
+                  externalReference: "REF-001",
+                  createdAt: "2023-12-15T10:30:00Z",
+                  completedAt: "2023-12-15T10:32:15Z",
+                },
+                statusCode: 200,
+                message: "Dados do pagamento recuperados com sucesso",
+              },
+            },
+            {
+              status: 404,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 404,
+                message: "Pagamento não encontrado",
+              },
+            },
+            {
+              status: 500,
+              description: t.apiEndpoints.responses,
+              example: {
+                statusCode: 500,
+                message:
+                  "Ocorreu um erro interno ao processar sua solicitação.",
+              },
+            },
+          ],
+          requestExample: `curl -X GET https://api.example.com/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+-H "Authorization: Bearer your_access_token" \\
+-H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+        },
       ],
     },
   ];
 
-  // Filtra os endpoints com base no termo de pesquisa
   const filteredEndpoints = endpoints
     .map((section) => {
       const filteredEndpointsInSection = section.endpoints.filter(
         (endpoint) =>
-          endpoint.content || // Sempre inclui itens de conteúdo na busca
+          endpoint.content ||
           endpoint.path.toLowerCase().includes(searchTerm.toLowerCase()) ||
           endpoint.description
             .toLowerCase()
@@ -610,7 +1110,6 @@ const ApiDocumentation = () => {
                                 </div>
                               </div>
                             )}
-
                             {endpoint.id === "getting-started" && (
                               <div className="space-y-6">
                                 <div>
@@ -966,7 +1465,6 @@ const ApiDocumentation = () => {
                         </Card>
                       );
                     } else {
-                      // Renderiza endpoints técnicos da API
                       return (
                         <Card
                           key={endpoint.id}
