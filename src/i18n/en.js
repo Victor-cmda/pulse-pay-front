@@ -9,6 +9,16 @@ export default {
     noEndpointsFound: "No endpoints found",
     noEndpointsFoundDesc:
       "We couldn't find any endpoints with the current search criteria.",
+    authentication: {
+      bearer: "Bearer Token",
+      basic: "Basic Auth",
+      none: "None",
+    },
+    headers: {
+      authorization: "Bearer token obtained through authentication endpoint",
+      sellerId: "Seller ID in GUID format",
+      contentType: "application/json",
+    },
   },
   header: {
     title: "API Documentation",
@@ -125,6 +135,24 @@ export default {
       title: "Authentication Example",
       description: "See an example of how to obtain the authentication token:",
     },
+    endpoints: {
+      generateToken: {
+        description:
+          "Generates an OAuth 2.0 access token using client credentials",
+        authentication: "Basic Auth (Client ID and Client Secret)",
+        headers: {
+          authorization:
+            "Basic authentication with Client ID and Client Secret encoded in Base64",
+        },
+        responses: {
+          success: "Token generated successfully",
+          unauthorized: "Invalid or missing credentials",
+        },
+        requestExample: `curl -X POST https://api.example.com/oauth/v2/token \\
+  -H "Authorization: Basic eW91cl9jbGllbnRfaWQ6eW91cl9jbGllbnRfc2VjcmV0" \\
+  -H "Content-Type: application/json"`,
+      },
+    },
   },
   concepts: {
     title: "Concepts and Terms",
@@ -204,20 +232,258 @@ export default {
     requestExample: "Request Example",
     responses: "Responses",
   },
+  payments: {
+    title: "Payments",
+    description: "Endpoints for generating and querying payments",
+    endpoints: {
+      pixPayment: {
+        description: "Generates a payment via PIX",
+        body: {
+          amount: "Payment amount",
+          description: "Payment description",
+          expirationDate: "Payment expiration date (ISO 8601 format)",
+          callbackUrl: "URL to receive payment status notifications",
+        },
+        responses: {
+          success: "Payment processed successfully",
+          badRequest: "Invalid request",
+          unauthorized: "Authentication failed",
+        },
+        requestExample: `curl -X POST https://api.example.com/pix \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 100.50,
+    "description": "Service payment",
+    "expirationDate": "2023-12-31T23:59:59Z",
+    "callbackUrl": "https://your-callback-url.com/notifications"
+  }'`,
+      },
+      boletoPayment: {
+        description: "Issues a bank slip for payment",
+        body: {
+          amount: "Bank slip amount",
+          description: "Payment description",
+          customerName: "Customer/payer name",
+          customerDocument: "Customer/payer CPF/CNPJ",
+          dueDate: "Bank slip due date (ISO 8601 format)",
+          callbackUrl: "URL to receive payment status notifications",
+        },
+        responses: {
+          success: "Bank slip generated successfully",
+          badRequest: "Invalid request",
+          unauthorized: "Authentication failed",
+        },
+        requestExample: `curl -X POST https://api.example.com/boleto \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 299.99,
+    "description": "Product payment",
+    "customerName": "Example Customer",
+    "customerDocument": "12345678900",
+    "dueDate": "2023-12-31",
+    "callbackUrl": "https://your-callback-url.com/notifications"
+  }'`,
+      },
+      boletoPdf: {
+        description: "Gets the PDF of a previously generated bank slip",
+        parameters: {
+          id: "Bank slip ID",
+        },
+        responses: {
+          success: "Bank slip PDF returned successfully",
+          notFound: "Bank slip not found",
+          badRequest: "Invalid request",
+        },
+        requestExample: `curl -X GET https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  --output boleto.pdf`,
+      },
+      notifyPix: {
+        description: "Receives PIX payment notification",
+        parameters: {
+          transactionId: "PIX transaction ID",
+          status: "Transaction status (approved, rejected, etc)",
+          amount: "Payment amount in cents",
+        },
+        responses: {
+          success: "Notification received successfully",
+        },
+        requestExample: `curl -X GET "https://api.example.com/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
+      },
+    },
+  },
   payouts: {
     title: "Transfers",
     description: "Endpoints for PIX key validation and money transfers",
     validatePixKey: {
       title: "Validate PIX Key",
       description: "Validates a PIX key before making a transfer",
+      body: {
+        pixKeyType: "PIX key type (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
+        pixKeyValue: "PIX key value",
+      },
+      responses: {
+        success: "PIX key validated successfully",
+        badRequest: "Invalid PIX key",
+        serverError: "Internal error",
+      },
+      requestExample: `curl -X POST https://api.example.com/validate \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "pixKeyType": "CPF",
+    "pixKeyValue": "12345678900"
+  }'`,
     },
     createPayment: {
       title: "Create Transfer",
       description: "Creates a new PIX transfer to a recipient",
+      body: {
+        amount: "Amount to be transferred",
+        description: "Transfer description",
+        pixKeyType: "PIX key type (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
+        pixKeyValue: "PIX key value",
+        recipientName: "Recipient name",
+        recipientDocument: "Recipient CPF/CNPJ",
+        externalReference: "External reference for client control",
+      },
+      responses: {
+        created: "Transfer created successfully",
+        badRequest: "Invalid request",
+        conflict: "Conflict",
+        serverError: "Internal error",
+      },
+      requestExample: `curl -X POST https://api.example.com/payment \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 100.50,
+    "description": "Payment to Supplier XYZ",
+    "pixKeyType": "CPF",
+    "pixKeyValue": "12345678900",
+    "recipientName": "Recipient Name",
+    "recipientDocument": "123.456.789-00",
+    "externalReference": "REF-001"
+  }'`,
     },
     getPayment: {
       title: "Query Transfer",
       description: "Get the status and details of a specific transfer",
+      parameters: {
+        id: "Unique payment ID",
+      },
+      responses: {
+        success: "Query performed successfully",
+        notFound: "Payment not found",
+        serverError: "Internal error",
+      },
+      requestExample: `curl -X GET https://api.example.com/payment/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+    },
+  },
+  transactions: {
+    title: "Transactions",
+    description: "Endpoints for querying and managing transactions",
+    endpoints: {
+      getTransactions: {
+        description: "Lists all seller's transactions",
+        parameters: {
+          startDate: "Start date for filtering (ISO 8601 format)",
+          endDate: "End date for filtering (ISO 8601 format)",
+          status: "Transactions status (Pending, Completed, Failed, etc)",
+          page: "Page for pagination (default: 1)",
+          pageSize: "Page size for pagination (default: 20)",
+        },
+        responses: {
+          success: "Transaction list returned successfully",
+          badRequest: "Invalid request",
+          serverError: "Internal error",
+        },
+        requestExample: `curl -X GET "https://api.example.com/transactions?startDate=2023-12-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&status=Completed&page=1&pageSize=20" \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+      },
+      getTransaction: {
+        description: "Queries the details of a specific transaction",
+        parameters: {
+          id: "Unique transaction ID",
+        },
+        responses: {
+          success: "Transaction found successfully",
+          notFound: "Transaction not found",
+          serverError: "Internal error",
+        },
+        requestExample: `curl -X GET https://api.example.com/transaction/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+      },
+    },
+  },
+  webhooks: {
+    title: "Webhooks",
+    description: "Endpoints for configuring and managing webhooks",
+    endpoints: {
+      getWebhooks: {
+        description: "Lists all configured webhooks",
+        responses: {
+          success: "Webhook list returned successfully",
+          serverError: "Internal error",
+        },
+        requestExample: `curl -X GET https://api.example.com/webhooks \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+      },
+      createWebhook: {
+        description: "Creates a new webhook configuration",
+        body: {
+          url: "URL for sending notifications",
+          events: "List of events for which the webhook will be triggered",
+          isActive: "Indicates if the webhook is active",
+        },
+        responses: {
+          created: "Webhook created successfully",
+          badRequest: "Invalid request",
+          serverError: "Internal error",
+        },
+        requestExample: `curl -X POST https://api.example.com/webhooks \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "url": "https://example.com/webhook",
+    "events": ["payment.created", "payment.completed"],
+    "isActive": true
+  }'`,
+      },
+      testWebhook: {
+        description: "Sends a test event to a webhook",
+        parameters: {
+          id: "Unique webhook ID",
+        },
+        body: {
+          eventType: "Type of event to be tested",
+        },
+        responses: {
+          success: "Test event sent successfully",
+          notFound: "Webhook not found",
+          serverError: "Internal error",
+        },
+        requestExample: `curl -X POST https://api.example.com/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "eventType": "payment.completed"
+  }'`,
+      },
     },
   },
 };

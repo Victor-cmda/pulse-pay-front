@@ -9,6 +9,17 @@ export default {
     noEndpointsFound: "No se encontraron endpoints",
     noEndpointsFoundDesc:
       "No pudimos encontrar ningún endpoint con los criterios de búsqueda actuales.",
+    authentication: {
+      bearer: "Bearer Token",
+      basic: "Autenticación Básica",
+      none: "Ninguna",
+    },
+    headers: {
+      authorization:
+        "Token Bearer obtenido a través del endpoint de autenticación",
+      sellerId: "ID del vendedor en formato GUID",
+      contentType: "application/json",
+    },
   },
   header: {
     title: "Documentación de la API",
@@ -128,6 +139,24 @@ export default {
       title: "Ejemplo de Autenticación",
       description: "Vea un ejemplo de cómo obtener el token de autenticación:",
     },
+    endpoints: {
+      generateToken: {
+        description:
+          "Genera un token de acceso OAuth 2.0 mediante credenciales de cliente",
+        authentication: "Basic Auth (Client ID y Client Secret)",
+        headers: {
+          authorization:
+            "Autenticación Basic con Client ID y Client Secret codificados en Base64",
+        },
+        responses: {
+          success: "Token generado con éxito",
+          unauthorized: "Credenciales inválidas o ausentes",
+        },
+        requestExample: `curl -X POST https://api.example.com/oauth/v2/token \\
+  -H "Authorization: Basic eW91cl9jbGllbnRfaWQ6eW91cl9jbGllbnRfc2VjcmV0" \\
+  -H "Content-Type: application/json"`,
+      },
+    },
   },
   concepts: {
     title: "Conceptos y Términos",
@@ -209,6 +238,92 @@ export default {
     requestExample: "Ejemplo de Solicitud",
     responses: "Respuestas",
   },
+  payments: {
+    title: "Pagos",
+    description: "Endpoints para generación y consulta de pagos",
+    endpoints: {
+      pixPayment: {
+        description: "Genera un pago vía PIX",
+        body: {
+          amount: "Monto del pago",
+          description: "Descripción del pago",
+          expirationDate: "Fecha de expiración del pago (formato ISO 8601)",
+          callbackUrl: "URL para recibir notificaciones de estado del pago",
+        },
+        responses: {
+          success: "Pago procesado con éxito",
+          badRequest: "Solicitud inválida",
+          unauthorized: "Autenticación fallida",
+        },
+        requestExample: `curl -X POST https://api.example.com/pix \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 100.50,
+    "description": "Pago de servicio",
+    "expirationDate": "2023-12-31T23:59:59Z",
+    "callbackUrl": "https://your-callback-url.com/notifications"
+  }'`,
+      },
+      boletoPayment: {
+        description: "Emite un boleto bancario para pago",
+        body: {
+          amount: "Valor del boleto",
+          description: "Descripción del pago",
+          customerName: "Nombre del cliente/pagador",
+          customerDocument: "CPF/CNPJ del cliente/pagador",
+          dueDate: "Fecha de vencimiento del boleto (formato ISO 8601)",
+          callbackUrl: "URL para recibir notificaciones de estado del pago",
+        },
+        responses: {
+          success: "Boleto generado con éxito",
+          badRequest: "Solicitud inválida",
+          unauthorized: "Autenticación fallida",
+        },
+        requestExample: `curl -X POST https://api.example.com/boleto \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 299.99,
+    "description": "Pago de producto",
+    "customerName": "Cliente Ejemplo",
+    "customerDocument": "12345678900",
+    "dueDate": "2023-12-31",
+    "callbackUrl": "https://your-callback-url.com/notifications"
+  }'`,
+      },
+      boletoPdf: {
+        description:
+          "Obtiene el PDF de un boleto bancario generado previamente",
+        parameters: {
+          id: "ID del boleto bancario",
+        },
+        responses: {
+          success: "PDF del boleto retornado con éxito",
+          notFound: "Boleto no encontrado",
+          badRequest: "Solicitud inválida",
+        },
+        requestExample: `curl -X GET https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  --output boleto.pdf`,
+      },
+      notifyPix: {
+        description: "Recibe notificación de pago PIX",
+        parameters: {
+          transactionId: "ID de la transacción PIX",
+          status: "Estado de la transacción (approved, rejected, etc)",
+          amount: "Valor del pago en centavos",
+        },
+        responses: {
+          success: "Notificación recibida con éxito",
+        },
+        requestExample: `curl -X GET "https://api.example.com/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
+      },
+    },
+  },
   payouts: {
     title: "Transferencias",
     description:
@@ -216,15 +331,169 @@ export default {
     validatePixKey: {
       title: "Validar Llave PIX",
       description: "Valida una llave PIX antes de hacer una transferencia",
+      body: {
+        pixKeyType: "Tipo de la llave PIX (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
+        pixKeyValue: "Valor de la llave PIX",
+      },
+      responses: {
+        success: "Llave PIX validada con éxito",
+        badRequest: "Llave PIX inválida",
+        serverError: "Error interno",
+      },
+      requestExample: `curl -X POST https://api.example.com/validate \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "pixKeyType": "CPF",
+    "pixKeyValue": "12345678900"
+  }'`,
     },
     createPayment: {
       title: "Crear Transferencia",
       description: "Crea una nueva transferencia PIX a un destinatario",
+      body: {
+        amount: "Valor a ser transferido",
+        description: "Descripción de la transferencia",
+        pixKeyType: "Tipo de la llave PIX (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
+        pixKeyValue: "Valor de la llave PIX",
+        recipientName: "Nombre del destinatario",
+        recipientDocument: "CPF/CNPJ del destinatario",
+        externalReference: "Referencia externa para control del cliente",
+      },
+      responses: {
+        created: "Transferencia creada con éxito",
+        badRequest: "Solicitud inválida",
+        conflict: "Conflicto",
+        serverError: "Error interno",
+      },
+      requestExample: `curl -X POST https://api.example.com/payment \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 100.50,
+    "description": "Pago para Proveedor XYZ",
+    "pixKeyType": "CPF",
+    "pixKeyValue": "12345678900",
+    "recipientName": "Nombre del Destinatario",
+    "recipientDocument": "123.456.789-00",
+    "externalReference": "REF-001"
+  }'`,
     },
     getPayment: {
       title: "Consultar Transferencia",
       description:
         "Obtiene el estado y detalles de una transferencia específica",
+      parameters: {
+        id: "ID único del pago",
+      },
+      responses: {
+        success: "Consulta realizada con éxito",
+        notFound: "Pago no encontrado",
+        serverError: "Error interno",
+      },
+      requestExample: `curl -X GET https://api.example.com/payment/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+    },
+  },
+  transactions: {
+    title: "Transacciones",
+    description: "Endpoints para consulta y gestión de transacciones",
+    endpoints: {
+      getTransactions: {
+        description: "Lista todas las transacciones del vendedor",
+        parameters: {
+          startDate: "Fecha de inicio para filtrar (formato ISO 8601)",
+          endDate: "Fecha de fin para filtrar (formato ISO 8601)",
+          status:
+            "Estado de las transacciones (Pending, Completed, Failed, etc)",
+          page: "Página para paginación (predeterminado: 1)",
+          pageSize: "Tamaño de página para paginación (predeterminado: 20)",
+        },
+        responses: {
+          success: "Lista de transacciones retornada con éxito",
+          badRequest: "Solicitud inválida",
+          serverError: "Error interno",
+        },
+        requestExample: `curl -X GET "https://api.example.com/transactions?startDate=2023-12-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&status=Completed&page=1&pageSize=20" \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+      },
+      getTransaction: {
+        description: "Consulta los detalles de una transacción específica",
+        parameters: {
+          id: "ID único de la transacción",
+        },
+        responses: {
+          success: "Transacción encontrada con éxito",
+          notFound: "Transacción no encontrada",
+          serverError: "Error interno",
+        },
+        requestExample: `curl -X GET https://api.example.com/transaction/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+      },
+    },
+  },
+  webhooks: {
+    title: "Webhooks",
+    description: "Endpoints para configuración y gestión de webhooks",
+    endpoints: {
+      getWebhooks: {
+        description: "Lista todos los webhooks configurados",
+        responses: {
+          success: "Lista de webhooks retornada con éxito",
+          serverError: "Error interno",
+        },
+        requestExample: `curl -X GET https://api.example.com/webhooks \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+      },
+      createWebhook: {
+        description: "Crea una nueva configuración de webhook",
+        body: {
+          url: "URL para envío de notificaciones",
+          events: "Lista de eventos para los cuales el webhook será accionado",
+          isActive: "Indica si el webhook está activo",
+        },
+        responses: {
+          created: "Webhook creado con éxito",
+          badRequest: "Solicitud inválida",
+          serverError: "Error interno",
+        },
+        requestExample: `curl -X POST https://api.example.com/webhooks \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "url": "https://example.com/webhook",
+    "events": ["payment.created", "payment.completed"],
+    "isActive": true
+  }'`,
+      },
+      testWebhook: {
+        description: "Envía un evento de prueba a un webhook",
+        parameters: {
+          id: "ID único del webhook",
+        },
+        body: {
+          eventType: "Tipo del evento a ser probado",
+        },
+        responses: {
+          success: "Evento de prueba enviado con éxito",
+          notFound: "Webhook no encontrado",
+          serverError: "Error interno",
+        },
+        requestExample: `curl -X POST https://api.example.com/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
+  -H "Authorization: Bearer your_access_token" \\
+  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "eventType": "payment.completed"
+  }'`,
+      },
     },
   },
 };
