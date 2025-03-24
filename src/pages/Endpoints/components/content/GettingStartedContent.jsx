@@ -43,7 +43,7 @@ const GettingStartedContent = ({ t }) => {
             <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
               <p className="text-xs text-slate-700 dark:text-slate-300 font-mono">
                 {t.gettingStartedSteps.testSandbox.sandboxUrl}{" "}
-                <code>https://sandbox.pulsepay.com.br</code>
+                <code>https://pulsepay.technocenterinformatica.com.br/sandbox</code>
               </p>
             </div>
           </div>
@@ -96,7 +96,7 @@ const GettingStartedContent = ({ t }) => {
             <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
               <p className="text-xs text-slate-700 dark:text-slate-300 font-mono">
                 {t.gettingStartedSteps.goToProduction.productionUrl}{" "}
-                <code>https://api.pulsepay.com.br</code>
+                <code>https://pulsepay.technocenterinformatica.com.br/sandbox</code>
               </p>
             </div>
           </div>

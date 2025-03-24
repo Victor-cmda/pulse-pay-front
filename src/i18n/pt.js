@@ -151,7 +151,7 @@ export default {
           success: "Token gerado com sucesso",
           unauthorized: "Credenciais inválidas ou ausentes",
         },
-        requestExample: `curl -X POST https://api.example.com/oauth/v2/token \\
+        requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/oauth/v2/token \\
   -H "Authorization: Basic eW91cl9jbGllbnRfaWQ6eW91cl9jbGllbnRfc2VjcmV0" \\
   -H "Content-Type: application/json"`,
       },
@@ -254,7 +254,7 @@ export default {
           badRequest: "Requisição inválida",
           unauthorized: "Autenticação falhou",
         },
-        requestExample: `curl -X POST https://api.example.com/pix \\
+        requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/pix \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   -H "Content-Type: application/json" \\
@@ -280,7 +280,7 @@ export default {
           badRequest: "Requisição inválida",
           unauthorized: "Autenticação falhou",
         },
-        requestExample: `curl -X POST https://api.example.com/boleto \\
+        requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/boleto \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   -H "Content-Type: application/json" \\
@@ -303,7 +303,7 @@ export default {
           notFound: "Boleto não encontrado",
           badRequest: "Requisição inválida",
         },
-        requestExample: `curl -X GET https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
+        requestExample: `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   --output boleto.pdf`,
@@ -318,7 +318,7 @@ export default {
         responses: {
           success: "Notificação recebida com sucesso",
         },
-        requestExample: `curl -X GET "https://api.example.com/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
+        requestExample: `curl -X GET "https://pulsepay.technocenterinformatica.com.br/sandbox/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
       },
     },
   },
@@ -338,7 +338,7 @@ export default {
         badRequest: "Chave PIX inválida",
         serverError: "Erro interno",
       },
-      requestExample: `curl -X POST https://api.example.com/validate \\
+      requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/validate \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   -H "Content-Type: application/json" \\
@@ -365,7 +365,7 @@ export default {
         conflict: "Conflito",
         serverError: "Erro interno",
       },
-      requestExample: `curl -X POST https://api.example.com/payment \\
+      requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/payment \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   -H "Content-Type: application/json" \\
@@ -390,7 +390,7 @@ export default {
         notFound: "Pagamento não encontrado",
         serverError: "Erro interno",
       },
-      requestExample: `curl -X GET https://api.example.com/payment/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+      requestExample: `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/payment/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
     },
@@ -413,7 +413,7 @@ export default {
           badRequest: "Requisição inválida",
           serverError: "Erro interno",
         },
-        requestExample: `curl -X GET "https://api.example.com/transactions?startDate=2023-12-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&status=Completed&page=1&pageSize=20" \\
+        requestExample: `curl -X GET "https://pulsepay.technocenterinformatica.com.br/sandbox/transactions?startDate=2023-12-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&status=Completed&page=1&pageSize=20" \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
       },
@@ -427,7 +427,7 @@ export default {
           notFound: "Transação não encontrada",
           serverError: "Erro interno",
         },
-        requestExample: `curl -X GET https://api.example.com/transaction/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+        requestExample: `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/transaction/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
       },
@@ -443,7 +443,7 @@ export default {
           success: "Lista de webhooks retornada com sucesso",
           serverError: "Erro interno",
         },
-        requestExample: `curl -X GET https://api.example.com/webhooks \\
+        requestExample: `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
       },
@@ -459,7 +459,7 @@ export default {
           badRequest: "Requisição inválida",
           serverError: "Erro interno",
         },
-        requestExample: `curl -X POST https://api.example.com/webhooks \\
+        requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   -H "Content-Type: application/json" \\
@@ -482,7 +482,7 @@ export default {
           notFound: "Webhook não encontrado",
           serverError: "Erro interno",
         },
-        requestExample: `curl -X POST https://api.example.com/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
+        requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
   -H "Authorization: Bearer your_access_token" \\
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   -H "Content-Type: application/json" \\

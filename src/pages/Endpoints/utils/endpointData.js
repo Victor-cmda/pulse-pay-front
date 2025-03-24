@@ -79,7 +79,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.authentication.endpoints?.generateToken?.requestExample ||
-            `curl -X POST https://api.example.com/oauth/v2/token \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/oauth/v2/token \\
     -H "Authorization: Basic eW91cl9jbGllbnRfaWQ6eW91cl9jbGllbnRfc2VjcmV0" \\
     -H "Content-Type: application/json"`,
         },
@@ -193,7 +193,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payments?.endpoints?.pixPayment?.requestExample ||
-            `curl -X POST https://api.example.com/pix \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/pix \\
     -H "Authorization: Bearer your_access_token" \\
     -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
     -H "Content-Type: application/json" \\
@@ -302,7 +302,7 @@ export function getEndpointsData(t) {
                   barcode:
                     "34191.79001 01043.510047 91020.150008 5 88790000029999",
                   pdfUrl:
-                    "https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf",
+                    "https://pulsepay.technocenterinformatica.com.br/sandbox/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf",
                 },
               },
             },
@@ -323,7 +323,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payments?.endpoints?.boletoPayment?.requestExample ||
-            `curl -X POST https://api.example.com/boleto \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/boleto \\
     -H "Authorization: Bearer your_access_token" \\
     -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
     -H "Content-Type: application/json" \\
@@ -397,7 +397,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payments?.endpoints?.boletoPdf?.requestExample ||
-            `curl -X GET https://api.example.com/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
+            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
     -H "Authorization: Bearer your_access_token" \\
     -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
     --output boleto.pdf`,
@@ -452,7 +452,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payments?.endpoints?.notifyPix?.requestExample ||
-            `curl -X GET "https://api.example.com/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
+            `curl -X GET "https://pulsepay.technocenterinformatica.com.br/sandbox/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
         },
       ],
     },
@@ -556,7 +556,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payouts?.endpoints?.validatePixKey?.requestExample ||
-            `curl -X POST https://api.example.com/validate \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/validate \\
     -H "Authorization: Bearer your_access_token" \\
     -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
     -H "Content-Type: application/json" \\
@@ -714,7 +714,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payouts?.endpoints?.createPayment?.requestExample ||
-            `curl -X POST https://api.example.com/payment \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/payment \\
     -H "Authorization: Bearer your_access_token" \\
     -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
     -H "Content-Type: application/json" \\
@@ -810,7 +810,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.payouts?.endpoints?.getPayment?.requestExample ||
-            `curl -X GET https://api.example.com/payment/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/payment/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
     -H "Authorization: Bearer your_access_token" \\
     -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
         },
@@ -958,7 +958,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.transactions?.endpoints?.getTransactions?.requestExample ||
-            `curl -X GET "https://api.example.com/transactions?startDate=2023-12-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&status=Completed&page=1
+            `curl -X GET "https://pulsepay.technocenterinformatica.com.br/sandbox/transactions?startDate=2023-12-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&status=Completed&page=1
             -H "Authorization: Bearer your_access_token" \\
  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
         },
@@ -1049,7 +1049,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.transactions?.endpoints?.getTransaction?.requestExample ||
-            `curl -X GET https://api.example.com/transaction/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/transaction/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
  -H "Authorization: Bearer your_access_token" \\
  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
         },
@@ -1125,7 +1125,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.webhooks?.endpoints?.getWebhooks?.requestExample ||
-            `curl -X GET https://api.example.com/webhooks \\
+            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
  -H "Authorization: Bearer your_access_token" \\
  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
         },
@@ -1232,7 +1232,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.webhooks?.endpoints?.createWebhook?.requestExample ||
-            `curl -X POST https://api.example.com/webhooks \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
  -H "Authorization: Bearer your_access_token" \\
  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
  -H "Content-Type: application/json" \\
@@ -1332,7 +1332,7 @@ export function getEndpointsData(t) {
           ],
           requestExample:
             t.webhooks?.endpoints?.testWebhook?.requestExample ||
-            `curl -X POST https://api.example.com/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
  -H "Authorization: Bearer your_access_token" \\
  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
  -H "Content-Type: application/json" \\

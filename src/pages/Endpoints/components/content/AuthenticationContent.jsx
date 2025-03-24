@@ -162,7 +162,7 @@ const AuthenticationContent = ({ t }) => {
         </p>
         <div className="bg-slate-800 text-slate-300 p-3 rounded-lg overflow-x-auto">
           <pre className="text-xs font-mono whitespace-pre-wrap">
-            {`curl -X POST https://api.pulsepay.com.br/oauth/v2/token \\
+            {`curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/oauth/v2/token \\
 -H "Authorization: Basic $(echo -n 'your_client_id:your_client_secret' | base64)" \\
 -H "Content-Type: application/json"`}
           </pre>
