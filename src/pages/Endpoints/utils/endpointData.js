@@ -1095,25 +1095,21 @@ export function getEndpointsData(t) {
                 t.webhooks?.endpoints?.getWebhooks?.responses?.success ||
                 "Lista de webhooks retornada com sucesso",
               example: {
-                data: [
+                "data": [
                   {
-                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                    url: "https://example.com/webhook",
-                    events: ["payment.created", "payment.completed"],
-                    isActive: true,
-                    createdAt: "2023-01-15T10:30:00Z",
-                  },
-                  {
-                    id: "4fa85f64-5717-4562-b3fc-2c963f66afa7",
-                    url: "https://example.com/webhook2",
-                    events: ["withdrawal.created", "withdrawal.completed"],
-                    isActive: false,
-                    createdAt: "2023-02-20T14:15:00Z",
-                  },
+                    "id": "456oc8d8-13e0-4db8-92b5-8dc54a433a97",
+                    "customer_id": "2985746",
+                    "transaction_id": "193846",
+                    "amount": "213.21",
+                    "status": "paid",
+                    "type": "payment",
+                    "payment_status": "paid",
+                    "exchange": "5.52"
+                  }
                 ],
-                statusCode: 200,
-                message: "Webhooks recuperados com sucesso",
-              },
+                "statusCode": 200,
+                "message": "Webhooks recuperados com sucesso"
+              }
             },
             {
               status: 500,

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLoading } from "../../context/LoadingContext";
 import { paymentService } from "../../services/PaymentService";
-import { formatCurrency, formatDateTime } from "../../utils/formatters";
-import PixPaymentsTable from "../../components/admin/PixPaymentsTable";
-import PendingTransactionsTable from "../../components/admin/PendingTransactionsTable";
-import BankAccountsTable from "../../components/admin/BankAccountsTable";
-import WithdrawalsTable from "../../components/admin/WithdrawalsTable";
-import DashboardSummary from "../../components/admin/DashboardSummary";
+import PixPaymentsTable from "../../components/Admin/PixPaymentsTable";
+import PendingTransactionsTable from "../../components/Admin/PendingTransactionsTable";
+import BankAccountsTable from "../../components/Admin/BankAccountsTable";
+import WithdrawalsTable from "../../components/Admin/WithdrawalsTable";
+import DashboardSummary from "../../components/Admin/DashboardSummary";
 import {
   LineChart,
   Activity,
