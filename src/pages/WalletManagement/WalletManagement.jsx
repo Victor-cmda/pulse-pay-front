@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { notification } from "antd";
 import {
   Wallet,
   RefreshCcw,
@@ -8,10 +7,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Info,
-  Ban,
   ArrowRight,
   PiggyBank,
 } from "lucide-react";
+import { notification } from "antd";
 import { paymentService } from "../../services/PaymentService";
 import { authService } from "../../services/AuthService";
 import { useLoading } from "../../context/LoadingContext";
@@ -32,19 +31,22 @@ const WalletManagement = () => {
   const [api, contextHolder] = notification.useNotification();
   const [mounted, setMounted] = useState(false);
 
+  // Seller state
   const [sellerLoading, setSellerLoading] = useState(false);
   const [sellers, setSellers] = useState([]);
   const [selectedSellerId, setSelectedSellerId] = useState(null);
 
+  // Wallet state
   const [activeWallet, setActiveWallet] = useState(null);
   const [wallets, setWallets] = useState([]);
   const [walletWithTransactions, setWalletWithTransactions] = useState(null);
-  
-  // Store deposit and withdrawal wallets separately for clear UI communication
+
+  // Categorized wallets by type
   const [depositWallet, setDepositWallet] = useState(null);
   const [withdrawalWallet, setWithdrawalWallet] = useState(null);
   const [generalWallet, setGeneralWallet] = useState(null);
-  
+
+  // Transaction state
   const [transactionHistory, setTransactionHistory] = useState({
     transactions: [],
     pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
@@ -56,6 +58,7 @@ const WalletManagement = () => {
     },
   });
 
+  // UI state
   const [activeTab, setActiveTab] = useState("transactions");
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -66,12 +69,11 @@ const WalletManagement = () => {
     sourceWallet: null,
     destinationWallet: null,
     amount: "",
-    description: ""
+    description: "",
   });
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [depositResponse, setDepositResponse] = useState(null);
 
   // Load sellers when component is mounted
   useEffect(() => {
@@ -111,7 +113,7 @@ const WalletManagement = () => {
     let withdrawal = null;
     let general = null;
 
-    walletsList.forEach(wallet => {
+    walletsList.forEach((wallet) => {
       if (wallet.walletType === 0) {
         deposit = wallet;
       } else if (wallet.walletType === 1) {
@@ -132,7 +134,9 @@ const WalletManagement = () => {
 
     startLoading("Carregando dados da carteira...");
     try {
-      const walletsResponse = await paymentService.seller(selectedSellerId);
+      const walletsResponse = await paymentService.getSellerWallets(
+        selectedSellerId
+      );
 
       if (!walletsResponse.success) {
         throw new Error(
@@ -144,12 +148,13 @@ const WalletManagement = () => {
 
       if (Array.isArray(carteiras) && carteiras.length > 0) {
         setWallets(carteiras);
-        
+
         // Categorize wallets
         categorizeWallets(carteiras);
 
         // Set default active wallet based on available wallets
-        const defaultWallet = carteiras.find((w) => w.isDefault) || carteiras[0];
+        const defaultWallet =
+          carteiras.find((w) => w.isDefault) || carteiras[0];
         setActiveWallet(defaultWallet);
 
         if (defaultWallet?.id) {
@@ -163,7 +168,10 @@ const WalletManagement = () => {
       }
     } catch (error) {
       console.error("Error loading data:", error);
-      showErrorNotification("Erro ao carregar dados da carteira", error.message);
+      showErrorNotification(
+        "Erro ao carregar dados da carteira",
+        error.message
+      );
     } finally {
       stopLoading();
     }
@@ -192,7 +200,7 @@ const WalletManagement = () => {
   const loadWalletTransactions = async (walletId) => {
     try {
       const walletWithTransactionsResponse =
-        await paymentService.withTransactions(walletId, 5);
+        await paymentService.getWalletWithTransactions(walletId, 5);
 
       if (
         walletWithTransactionsResponse.success &&
@@ -215,7 +223,7 @@ const WalletManagement = () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const response = await paymentService.transactions(
+      const response = await paymentService.getWalletTransactions(
         walletId,
         thirtyDaysAgo,
         now,
@@ -293,7 +301,7 @@ const WalletManagement = () => {
     return wallet && (wallet.walletType === 1 || wallet.walletType === 2);
   };
 
-  // Handle deposit process - now returns PIX data for QR code
+  // Handle deposit process - exclusively via PIX
   const handleDeposit = async (amount, description, reference) => {
     if (!activeWallet?.id) {
       showErrorNotification("Erro", "ID da carteira não encontrado");
@@ -313,44 +321,40 @@ const WalletManagement = () => {
       } else if (generalWallet) {
         setActiveWallet(generalWallet);
       }
-      
+
       return null;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      showErrorNotification(
-        "Erro",
-        "Por favor, insira um valor válido"
-      );
+      showErrorNotification("Erro", "Por favor, insira um valor válido");
       return null;
     }
 
     startLoading("Gerando QR Code PIX...");
     try {
-      // First step: Create a deposit request that will generate a PIX QR code
+      // Create a deposit request that will generate a PIX QR code
       const depositRequest = {
         sellerId: selectedSellerId,
         walletId: activeWallet.id,
         amount: parseFloat(amount),
-        sellerName: "Usuário PulsePay", // This should be replaced with actual user data
-        sellerEmail: "usuario@example.com", // This should be replaced with actual user data
-        sellerDocument: "12345678900", // This should be replaced with actual user data
+        sellerName: "Usuário PulsePay", // This would be replaced with actual user data
+        sellerEmail: "usuario@example.com", // This would be replaced with actual user data
+        sellerDocument: "12345678900", // This would be replaced with actual user data
         sellerDocumentType: "CPF", // This could be CPF or CNPJ
       };
-      
-      // This would be a new API call to request a PIX deposit
-      // In a real implementation, you'd create a service method for this
+
       const response = await paymentService.createDeposit(depositRequest);
 
       if (!response.success) {
         throw new Error(response.message || "Erro ao processar depósito");
       }
 
-      showSuccessNotification("QR Code gerado", "Escaneie o QR Code para concluir o pagamento");
-      setDepositResponse(response.data);
-      
-      return response.data;
+      showSuccessNotification(
+        "QR Code gerado",
+        "Escaneie o QR Code para concluir o pagamento"
+      );
 
+      return response.data;
     } catch (error) {
       console.error("Erro ao processar depósito:", error);
       showErrorNotification(
@@ -383,15 +387,12 @@ const WalletManagement = () => {
       } else if (generalWallet) {
         setActiveWallet(generalWallet);
       }
-      
+
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      showErrorNotification(
-        "Erro",
-        "Por favor, insira um valor válido"
-      );
+      showErrorNotification("Erro", "Por favor, insira um valor válido");
       return;
     }
 
@@ -402,7 +403,7 @@ const WalletManagement = () => {
 
     startLoading("Processando saque...");
     try {
-      const response = await paymentService.withdrawals(activeWallet.id, {
+      const response = await paymentService.withdrawFunds(activeWallet.id, {
         amount: parseFloat(amount),
         description: description || "Saque de fundos",
         reference: reference || null,
@@ -418,10 +419,7 @@ const WalletManagement = () => {
       await loadData();
     } catch (error) {
       console.error("Erro ao processar saque:", error);
-      showErrorNotification(
-        "Erro",
-        error.message || "Erro ao processar saque"
-      );
+      showErrorNotification("Erro", error.message || "Erro ao processar saque");
     } finally {
       stopLoading();
     }
@@ -429,27 +427,31 @@ const WalletManagement = () => {
 
   // Handle transfer between wallets
   const handleTransfer = async () => {
-    const { sourceWallet, destinationWallet, amount, description } = transferData;
-    
+    const { sourceWallet, destinationWallet, amount, description } =
+      transferData;
+
     if (!sourceWallet || !destinationWallet) {
-      showErrorNotification("Erro", "Selecione as carteiras de origem e destino");
+      showErrorNotification(
+        "Erro",
+        "Selecione as carteiras de origem e destino"
+      );
       return;
     }
-    
+
     if (!amount || parseFloat(amount) <= 0) {
       showErrorNotification("Erro", "Por favor, insira um valor válido");
       return;
     }
-    
+
     if (parseFloat(amount) > (sourceWallet?.availableBalance || 0)) {
       showErrorNotification("Erro", "Saldo insuficiente na carteira de origem");
       return;
     }
-    
+
     startLoading("Processando transferência entre carteiras...");
     try {
       // Call the transfer API
-      const response = await paymentService.transfer(
+      const response = await paymentService.transferFunds(
         sourceWallet.id,
         destinationWallet.id,
         {
@@ -459,7 +461,9 @@ const WalletManagement = () => {
       );
 
       if (!response.success) {
-        throw new Error(response.message || "Erro ao transferir entre carteiras");
+        throw new Error(
+          response.message || "Erro ao transferir entre carteiras"
+        );
       }
 
       showSuccessNotification("Sucesso", "Transferência realizada com sucesso");
@@ -468,7 +472,7 @@ const WalletManagement = () => {
         sourceWallet: null,
         destinationWallet: null,
         amount: "",
-        description: ""
+        description: "",
       });
 
       await loadData();
@@ -487,7 +491,10 @@ const WalletManagement = () => {
   const setWalletAsDefault = async (walletId) => {
     startLoading("Definindo carteira padrão...");
     try {
-      const response = await paymentService.default(walletId, selectedSellerId);
+      const response = await paymentService.setDefaultWallet(
+        walletId,
+        selectedSellerId
+      );
 
       if (!response.success) {
         throw new Error(response.message || "Erro ao definir carteira padrão");
@@ -498,7 +505,6 @@ const WalletManagement = () => {
         "Carteira definida como padrão com sucesso"
       );
 
-      // Reload data
       await loadData();
     } catch (error) {
       console.error("Erro ao definir carteira padrão:", error);
@@ -538,7 +544,7 @@ const WalletManagement = () => {
   const createWallet = async (walletType, isDefault = true) => {
     try {
       startLoading(`Criando carteira de ${getWalletTypeLabel(walletType)}...`);
-      const response = await paymentService.walletsPOST({
+      const response = await paymentService.createWallet({
         sellerId: selectedSellerId,
         walletType: walletType,
         isDefault: isDefault,
@@ -623,9 +629,9 @@ const WalletManagement = () => {
     setTransferData({
       ...transferData,
       sourceWallet: source,
-      destinationWallet: destination
+      destinationWallet: destination,
     });
-    
+
     setShowTransferModal(true);
   };
 
@@ -637,7 +643,7 @@ const WalletManagement = () => {
       open={showDepositModal}
     >
       <div className="modal-box bg-white dark:bg-slate-800 shadow-xl rounded-lg">
-        <DepositModal 
+        <DepositModal
           wallet={activeWallet}
           onDeposit={handleDeposit}
           onClose={() => setShowDepositModal(false)}
@@ -657,7 +663,7 @@ const WalletManagement = () => {
       open={showWithdrawModal}
     >
       <div className="modal-box bg-white dark:bg-slate-800 shadow-xl rounded-lg">
-        <WithdrawModal 
+        <WithdrawModal
           wallet={activeWallet}
           onWithdraw={handleWithdraw}
           onClose={() => setShowWithdrawModal(false)}
@@ -681,7 +687,7 @@ const WalletManagement = () => {
           <Wallet className="w-5 h-5 text-indigo-600" />
           Selecionar Carteira
         </h3>
-        <WalletSelector 
+        <WalletSelector
           wallets={wallets}
           currentWallet={activeWallet}
           onSelectWallet={switchToWallet}
@@ -726,16 +732,20 @@ const WalletManagement = () => {
           <ArrowRight className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           Transferir Entre Carteiras
         </h3>
-        
+
         <div className="space-y-6">
           <div className="flex gap-3 p-4 rounded-lg bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
             <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium mb-1">Transferência entre carteiras</p>
-              <p className="text-sm">Transferir saldo de uma carteira para outra. Ideal para movimentar saldo da carteira de depósito para a carteira de saque.</p>
+              <p className="text-sm">
+                Transferir saldo de uma carteira para outra. Ideal para
+                movimentar saldo da carteira de depósito para a carteira de
+                saque.
+              </p>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -745,19 +755,20 @@ const WalletManagement = () => {
                 className="w-full rounded-lg border border-slate-300 py-3 px-4 bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 value={transferData.sourceWallet?.id || ""}
                 onChange={(e) => {
-                  const wallet = wallets.find(w => w.id === e.target.value);
-                  setTransferData({...transferData, sourceWallet: wallet});
+                  const wallet = wallets.find((w) => w.id === e.target.value);
+                  setTransferData({ ...transferData, sourceWallet: wallet });
                 }}
               >
                 <option value="">Selecione a carteira de origem</option>
-                {wallets.map(wallet => (
+                {wallets.map((wallet) => (
                   <option key={wallet.id} value={wallet.id}>
-                    Carteira de {getWalletTypeLabel(wallet.walletType)} - Saldo: R${wallet.availableBalance.toFixed(2)}
+                    Carteira de {getWalletTypeLabel(wallet.walletType)} - Saldo:
+                    R${wallet.availableBalance.toFixed(2)}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Carteira de Destino
@@ -766,19 +777,22 @@ const WalletManagement = () => {
                 className="w-full rounded-lg border border-slate-300 py-3 px-4 bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 value={transferData.destinationWallet?.id || ""}
                 onChange={(e) => {
-                  const wallet = wallets.find(w => w.id === e.target.value);
-                  setTransferData({...transferData, destinationWallet: wallet});
+                  const wallet = wallets.find((w) => w.id === e.target.value);
+                  setTransferData({
+                    ...transferData,
+                    destinationWallet: wallet,
+                  });
                 }}
               >
                 <option value="">Selecione a carteira de destino</option>
-                {wallets.map(wallet => (
+                {wallets.map((wallet) => (
                   <option key={wallet.id} value={wallet.id}>
                     Carteira de {getWalletTypeLabel(wallet.walletType)}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Valor a Transferir
@@ -787,7 +801,9 @@ const WalletManagement = () => {
                 <input
                   type="number"
                   value={transferData.amount}
-                  onChange={(e) => setTransferData({...transferData, amount: e.target.value})}
+                  onChange={(e) =>
+                    setTransferData({ ...transferData, amount: e.target.value })
+                  }
                   placeholder="0,00"
                   className="w-full rounded-lg border border-slate-300 py-3 pl-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 />
@@ -796,7 +812,7 @@ const WalletManagement = () => {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Descrição (opcional)
@@ -804,14 +820,19 @@ const WalletManagement = () => {
               <input
                 type="text"
                 value={transferData.description}
-                onChange={(e) => setTransferData({...transferData, description: e.target.value})}
+                onChange={(e) =>
+                  setTransferData({
+                    ...transferData,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Ex: Transferência para pagamentos"
                 className="w-full rounded-lg border border-slate-300 py-3 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
               />
             </div>
           </div>
         </div>
-        
+
         <div className="modal-action mt-8 flex gap-3">
           <button
             className="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300"
@@ -822,7 +843,11 @@ const WalletManagement = () => {
           <button
             className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center gap-2 transition-colors"
             onClick={handleTransfer}
-            disabled={!transferData.sourceWallet || !transferData.destinationWallet || !transferData.amount}
+            disabled={
+              !transferData.sourceWallet ||
+              !transferData.destinationWallet ||
+              !transferData.amount
+            }
           >
             <ArrowRight className="w-4 h-4" />
             Transferir Fundos
@@ -838,7 +863,7 @@ const WalletManagement = () => {
   // Render wallet summary with clear visuals for each wallet type
   const renderWalletSummary = () => {
     if (wallets.length === 0) return null;
-    
+
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
@@ -846,7 +871,7 @@ const WalletManagement = () => {
             <PiggyBank className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             {getWalletConfiguration()}
           </h2>
-          
+
           {wallets.length > 1 && (
             <button
               onClick={prepareTransfer}
@@ -859,7 +884,7 @@ const WalletManagement = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Only show wallets with clear categorization */}
+          {/* Deposit Wallet Card */}
           {hasDepositWallet && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-emerald-200 dark:border-emerald-900 overflow-hidden">
               <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-200 dark:border-emerald-900/50">
@@ -878,7 +903,7 @@ const WalletManagement = () => {
                   Recebe todos os pagamentos e depósitos
                 </p>
               </div>
-              
+
               <div className="p-5">
                 <div className="mb-5">
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
@@ -916,7 +941,7 @@ const WalletManagement = () => {
                     }}
                     className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
-                    Depositar
+                    Depositar via PIX
                   </button>
                   <button
                     onClick={() => {
@@ -931,7 +956,8 @@ const WalletManagement = () => {
               </div>
             </div>
           )}
-          
+
+          {/* Withdrawal Wallet Card */}
           {hasWithdrawalWallet && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-rose-200 dark:border-rose-900 overflow-hidden">
               <div className="p-4 bg-rose-50 dark:bg-rose-900/20 border-b border-rose-200 dark:border-rose-900/50">
@@ -950,7 +976,7 @@ const WalletManagement = () => {
                   Utilizada para saques e reembolsos
                 </p>
               </div>
-              
+
               <div className="p-5">
                 <div className="mb-5">
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
@@ -1004,7 +1030,8 @@ const WalletManagement = () => {
               </div>
             </div>
           )}
-          
+
+          {/* General Wallet Card */}
           {hasGeneralWallet && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-indigo-200 dark:border-indigo-900 overflow-hidden">
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-200 dark:border-indigo-900/50">
@@ -1021,7 +1048,7 @@ const WalletManagement = () => {
                   Gerencia todos os depósitos e saques
                 </p>
               </div>
-              
+
               <div className="p-5">
                 <div className="mb-5">
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
@@ -1059,7 +1086,7 @@ const WalletManagement = () => {
                     }}
                     className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
-                    Depositar
+                    Depositar via PIX
                   </button>
                   <button
                     onClick={() => {
@@ -1141,7 +1168,7 @@ const WalletManagement = () => {
               Por favor, selecione um vendedor para visualizar suas carteiras.
             </p>
 
-            <SellerSelector 
+            <SellerSelector
               sellers={sellers}
               selectedSellerId={selectedSellerId}
               onSelectSeller={setSelectedSellerId}
@@ -1173,12 +1200,10 @@ const WalletManagement = () => {
           </div>
         )}
 
-        {/* Wallet Summary - more visual distinction between wallet types */}
         {renderWalletSummary()}
 
-        {/* Empty wallet state - if seller is selected but no wallets */}
         {!activeWallet && !sellerLoading && selectedSellerId && (
-          <EmptyWalletState 
+          <EmptyWalletState
             onCreateWallet={() => setShowWalletTypeSelection(true)}
           />
         )}
@@ -1232,11 +1257,13 @@ const WalletManagement = () => {
                   )}
                 </h3>
 
-                <TransactionList 
+                <TransactionList
                   transactions={transactionHistory.transactions}
                   pagination={transactionHistory.pagination}
                   summary={transactionHistory.summary}
-                  onPageChange={(page) => loadTransactions(activeWallet.id, page, pageSize)}
+                  onPageChange={(page) =>
+                    loadTransactions(activeWallet.id, page, pageSize)
+                  }
                 />
               </div>
             )}
@@ -1244,32 +1271,38 @@ const WalletManagement = () => {
             {activeTab === "details" && (
               <div className="p-6">
                 <WalletDetails wallet={activeWallet} />
-                
-                {/* Add wallet type specific warnings or info */}
+
+                {/* Wallet type specific info */}
                 {activeWallet.walletType === 0 && (
                   <div className="mt-4 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-900/50">
                     <div className="flex gap-3">
                       <Info className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                       <div>
-                        <h4 className="font-medium text-emerald-800 dark:text-emerald-400 mb-1">Carteira de Depósito</h4>
+                        <h4 className="font-medium text-emerald-800 dark:text-emerald-400 mb-1">
+                          Carteira de Depósito
+                        </h4>
                         <p className="text-sm text-emerald-700 dark:text-emerald-500">
-                          Esta carteira é destinada a receber pagamentos e depósitos. 
-                          Para realizar saques, você precisa transferir o saldo para sua carteira de saque.
+                          Esta carteira é destinada a receber pagamentos e
+                          depósitos. Para realizar saques, você pode transferir
+                          o saldo para sua carteira de saque.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
-                
+
                 {activeWallet.walletType === 1 && (
                   <div className="mt-4 p-4 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900/50">
                     <div className="flex gap-3">
                       <Info className="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
                       <div>
-                        <h4 className="font-medium text-rose-800 dark:text-rose-400 mb-1">Carteira de Saque</h4>
+                        <h4 className="font-medium text-rose-800 dark:text-rose-400 mb-1">
+                          Carteira de Saque
+                        </h4>
                         <p className="text-sm text-rose-700 dark:text-rose-500">
-                          Esta carteira é destinada a realizar saques e reembolsos. 
-                          Para obter mais fundos, transfira da sua carteira de depósito.
+                          Esta carteira é destinada a realizar saques e
+                          reembolsos. Para obter mais fundos, transfira da sua
+                          carteira de depósito.
                         </p>
                       </div>
                     </div>
