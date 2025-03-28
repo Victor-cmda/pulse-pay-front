@@ -66,6 +66,26 @@ export interface IClient {
      */
     pending2(page: number | undefined, pageSize: number | undefined): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse>;
     /**
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    pending3(page: number | undefined, pageSize: number | undefined): Promise<RefundResponseDtoIEnumerableApiResponse>;
+    /**
+     * @return OK
+     */
+    approve2(id: string): Promise<RefundResponseDtoApiResponse>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    reject4(id: string, body: string | undefined): Promise<RefundResponseDtoApiResponse>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    complete(id: string, body: string | undefined): Promise<RefundResponseDtoApiResponse>;
+    /**
      * @return OK
      */
     bankGET(id: string): Promise<BankAccountResponseDto>;
@@ -89,10 +109,6 @@ export interface IClient {
      */
     bankDELETE(id: string | undefined, sellerId: string): Promise<void>;
     /**
-     * @return OK
-     */
-    verify2(id: string): Promise<void>;
-    /**
      * @param body (optional) 
      * @return OK
      */
@@ -111,6 +127,16 @@ export interface IClient {
      * @return OK
      */
     customerPayouts(id: string): Promise<CustomerPayoutResponseDtoApiResponse>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    dashboard(body: string[] | undefined): Promise<DashboardDataDto>;
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    historyAll(body: string[] | undefined): Promise<TransactionDataDto[]>;
     /**
      * @param body (optional) 
      * @return Created
@@ -136,7 +162,7 @@ export interface IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    pending3(page: number | undefined, pageSize: number | undefined): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse>;
+    pending4(page: number | undefined, pageSize: number | undefined): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
@@ -146,7 +172,22 @@ export interface IClient {
      * @param body (optional) 
      * @return OK
      */
-    reject4(payoutId: string, body: PayoutRejectionDto | undefined): Promise<CustomerPayoutResponseDtoApiResponse>;
+    reject5(payoutId: string, body: PayoutRejectionDto | undefined): Promise<CustomerPayoutResponseDtoApiResponse>;
+    /**
+     * @param body (optional) 
+     * @return Created
+     */
+    refundPOST(body: RefundRequestDto | undefined): Promise<RefundResponseDtoApiResponse>;
+    /**
+     * @return OK
+     */
+    refundGET(id: string): Promise<RefundResponseDtoApiResponse>;
+    /**
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    seller2(sellerId: string, page: number | undefined, pageSize: number | undefined): Promise<RefundResponseDtoIEnumerableApiResponse>;
     /**
      * @return OK
      */
@@ -154,7 +195,7 @@ export interface IClient {
     /**
      * @return OK
      */
-    seller2(sellerId: string): Promise<WalletDtoIEnumerableApiResponse>;
+    seller3(sellerId: string): Promise<WalletDtoIEnumerableApiResponse>;
     /**
      * @return OK
      */
@@ -259,22 +300,22 @@ export interface IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    seller3(sellerId: string, page: number | undefined, pageSize: number | undefined): Promise<WithdrawDtoIEnumerableApiResponse>;
+    seller4(sellerId: string, page: number | undefined, pageSize: number | undefined): Promise<WithdrawDtoIEnumerableApiResponse>;
     /**
      * @param page (optional) 
      * @param pageSize (optional) 
      * @return OK
      */
-    pending4(page: number | undefined, pageSize: number | undefined): Promise<WithdrawDtoIEnumerableApiResponse>;
+    pending5(page: number | undefined, pageSize: number | undefined): Promise<WithdrawDtoIEnumerableApiResponse>;
     /**
      * @return OK
      */
-    approve2(id: string): Promise<WithdrawDtoApiResponse>;
+    approve3(id: string): Promise<WithdrawDtoApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
      */
-    reject5(id: string, body: string | undefined): Promise<WithdrawDtoApiResponse>;
+    reject6(id: string, body: string | undefined): Promise<WithdrawDtoApiResponse>;
     /**
      * @param body (optional) 
      * @return OK
@@ -988,6 +1029,260 @@ export class Client implements IClient {
     }
 
     /**
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    pending3(page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<RefundResponseDtoIEnumerableApiResponse> {
+        let url_ = this.baseUrl + "/api/admin/refunds/pending?";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processPending3(_response);
+        });
+    }
+
+    protected processPending3(response: AxiosResponse): Promise<RefundResponseDtoIEnumerableApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = RefundResponseDtoIEnumerableApiResponse.fromJS(resultData200);
+            return Promise.resolve<RefundResponseDtoIEnumerableApiResponse>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoIEnumerableApiResponse>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    approve2(id: string, cancelToken?: CancelToken): Promise<RefundResponseDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/admin/refund/{id}/approve";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "POST",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processApprove2(_response);
+        });
+    }
+
+    protected processApprove2(response: AxiosResponse): Promise<RefundResponseDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = RefundResponseDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<RefundResponseDtoApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    reject4(id: string, body: string | undefined, cancelToken?: CancelToken): Promise<RefundResponseDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/admin/refund/{id}/reject";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processReject4(_response);
+        });
+    }
+
+    protected processReject4(response: AxiosResponse): Promise<RefundResponseDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = RefundResponseDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<RefundResponseDtoApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    complete(id: string, body: string | undefined, cancelToken?: CancelToken): Promise<RefundResponseDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/admin/refund/{id}/complete";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processComplete(_response);
+        });
+    }
+
+    protected processComplete(response: AxiosResponse): Promise<RefundResponseDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = RefundResponseDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<RefundResponseDtoApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoApiResponse>(null as any);
+    }
+
+    /**
      * @return OK
      */
     bankGET(id: string, cancelToken?: CancelToken): Promise<BankAccountResponseDto> {
@@ -1345,67 +1640,6 @@ export class Client implements IClient {
     }
 
     /**
-     * @return OK
-     */
-    verify2(id: string, cancelToken?: CancelToken): Promise<void> {
-        let url_ = this.baseUrl + "/api/bank/{id}/verify";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: AxiosRequestConfig = {
-            method: "POST",
-            url: url_,
-            headers: {
-            },
-            cancelToken
-        };
-
-        return this.instance.request(options_).catch((_error: any) => {
-            if (isAxiosError(_error) && _error.response) {
-                return _error.response;
-            } else {
-                throw _error;
-            }
-        }).then((_response: AxiosResponse) => {
-            return this.processVerify2(_response);
-        });
-    }
-
-    protected processVerify2(response: AxiosResponse): Promise<void> {
-        const status = response.status;
-        let _headers: any = {};
-        if (response.headers && typeof response.headers === "object") {
-            for (const k in response.headers) {
-                if (response.headers.hasOwnProperty(k)) {
-                    _headers[k] = response.headers[k];
-                }
-            }
-        }
-        if (status === 200) {
-            const _responseText = response.data;
-            return Promise.resolve<void>(null as any);
-
-        } else if (status === 404) {
-            const _responseText = response.data;
-            let result404: any = null;
-            let resultData404  = _responseText;
-            result404 = ProblemDetails.fromJS(resultData404);
-            return throwException("Not Found", status, _responseText, _headers, result404);
-
-        } else if (status === 500) {
-            const _responseText = response.data;
-            return throwException("Internal Server Error", status, _responseText, _headers);
-
-        } else if (status !== 200 && status !== 204) {
-            const _responseText = response.data;
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
      * @param body (optional) 
      * @return OK
      */
@@ -1661,6 +1895,125 @@ export class Client implements IClient {
 
     /**
      * @param body (optional) 
+     * @return OK
+     */
+    dashboard(body: string[] | undefined, cancelToken?: CancelToken): Promise<DashboardDataDto> {
+        let url_ = this.baseUrl + "/api/dashboard";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processDashboard(_response);
+        });
+    }
+
+    protected processDashboard(response: AxiosResponse): Promise<DashboardDataDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = DashboardDataDto.fromJS(resultData200);
+            return Promise.resolve<DashboardDataDto>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<DashboardDataDto>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    historyAll(body: string[] | undefined, cancelToken?: CancelToken): Promise<TransactionDataDto[]> {
+        let url_ = this.baseUrl + "/api/history";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processHistoryAll(_response);
+        });
+    }
+
+    protected processHistoryAll(response: AxiosResponse): Promise<TransactionDataDto[]> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TransactionDataDto.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return Promise.resolve<TransactionDataDto[]>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<TransactionDataDto[]>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
      * @return Created
      */
     depositsPOST(body: DepositRequestDto | undefined, cancelToken?: CancelToken): Promise<DepositDtoApiResponse> {
@@ -1890,7 +2243,7 @@ export class Client implements IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    pending3(page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse> {
+    pending4(page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse> {
         let url_ = this.baseUrl + "/api/admin/pix/pending?";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
@@ -1918,11 +2271,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processPending3(_response);
+            return this.processPending4(_response);
         });
     }
 
-    protected processPending3(response: AxiosResponse): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse> {
+    protected processPending4(response: AxiosResponse): Promise<CustomerPayoutResponseDtoIEnumerableApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -2016,7 +2369,7 @@ export class Client implements IClient {
      * @param body (optional) 
      * @return OK
      */
-    reject4(payoutId: string, body: PayoutRejectionDto | undefined, cancelToken?: CancelToken): Promise<CustomerPayoutResponseDtoApiResponse> {
+    reject5(payoutId: string, body: PayoutRejectionDto | undefined, cancelToken?: CancelToken): Promise<CustomerPayoutResponseDtoApiResponse> {
         let url_ = this.baseUrl + "/api/admin/pix/{payoutId}/reject";
         if (payoutId === undefined || payoutId === null)
             throw new Error("The parameter 'payoutId' must be defined.");
@@ -2043,11 +2396,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processReject4(_response);
+            return this.processReject5(_response);
         });
     }
 
-    protected processReject4(response: AxiosResponse): Promise<CustomerPayoutResponseDtoApiResponse> {
+    protected processReject5(response: AxiosResponse): Promise<CustomerPayoutResponseDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -2076,6 +2429,201 @@ export class Client implements IClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
         return Promise.resolve<CustomerPayoutResponseDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return Created
+     */
+    refundPOST(body: RefundRequestDto | undefined, cancelToken?: CancelToken): Promise<RefundResponseDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/refund";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            method: "POST",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processRefundPOST(_response);
+        });
+    }
+
+    protected processRefundPOST(response: AxiosResponse): Promise<RefundResponseDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 201) {
+            const _responseText = response.data;
+            let result201: any = null;
+            let resultData201  = _responseText;
+            result201 = RefundResponseDtoApiResponse.fromJS(resultData201);
+            return Promise.resolve<RefundResponseDtoApiResponse>(result201);
+
+        } else if (status === 400) {
+            const _responseText = response.data;
+            let result400: any = null;
+            let resultData400  = _responseText;
+            result400 = ObjectApiResponse.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    refundGET(id: string, cancelToken?: CancelToken): Promise<RefundResponseDtoApiResponse> {
+        let url_ = this.baseUrl + "/api/refund/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processRefundGET(_response);
+        });
+    }
+
+    protected processRefundGET(response: AxiosResponse): Promise<RefundResponseDtoApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = RefundResponseDtoApiResponse.fromJS(resultData200);
+            return Promise.resolve<RefundResponseDtoApiResponse>(result200);
+
+        } else if (status === 404) {
+            const _responseText = response.data;
+            let result404: any = null;
+            let resultData404  = _responseText;
+            result404 = ObjectApiResponse.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoApiResponse>(null as any);
+    }
+
+    /**
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    seller2(sellerId: string, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<RefundResponseDtoIEnumerableApiResponse> {
+        let url_ = this.baseUrl + "/api/refund/seller/{sellerId}?";
+        if (sellerId === undefined || sellerId === null)
+            throw new Error("The parameter 'sellerId' must be defined.");
+        url_ = url_.replace("{sellerId}", encodeURIComponent("" + sellerId));
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: AxiosRequestConfig = {
+            method: "GET",
+            url: url_,
+            headers: {
+                "Accept": "text/plain"
+            },
+            cancelToken
+        };
+
+        return this.instance.request(options_).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processSeller2(_response);
+        });
+    }
+
+    protected processSeller2(response: AxiosResponse): Promise<RefundResponseDtoIEnumerableApiResponse> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (const k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+            result200 = RefundResponseDtoIEnumerableApiResponse.fromJS(resultData200);
+            return Promise.resolve<RefundResponseDtoIEnumerableApiResponse>(result200);
+
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<RefundResponseDtoIEnumerableApiResponse>(null as any);
     }
 
     /**
@@ -2149,7 +2697,7 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    seller2(sellerId: string, cancelToken?: CancelToken): Promise<WalletDtoIEnumerableApiResponse> {
+    seller3(sellerId: string, cancelToken?: CancelToken): Promise<WalletDtoIEnumerableApiResponse> {
         let url_ = this.baseUrl + "/api/wallets/seller/{sellerId}";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
@@ -2172,11 +2720,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processSeller2(_response);
+            return this.processSeller3(_response);
         });
     }
 
-    protected processSeller2(response: AxiosResponse): Promise<WalletDtoIEnumerableApiResponse> {
+    protected processSeller3(response: AxiosResponse): Promise<WalletDtoIEnumerableApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -3581,7 +4129,7 @@ export class Client implements IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    seller3(sellerId: string, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<WithdrawDtoIEnumerableApiResponse> {
+    seller4(sellerId: string, page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<WithdrawDtoIEnumerableApiResponse> {
         let url_ = this.baseUrl + "/api/withdraws/seller/{sellerId}?";
         if (sellerId === undefined || sellerId === null)
             throw new Error("The parameter 'sellerId' must be defined.");
@@ -3612,11 +4160,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processSeller3(_response);
+            return this.processSeller4(_response);
         });
     }
 
-    protected processSeller3(response: AxiosResponse): Promise<WithdrawDtoIEnumerableApiResponse> {
+    protected processSeller4(response: AxiosResponse): Promise<WithdrawDtoIEnumerableApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -3645,7 +4193,7 @@ export class Client implements IClient {
      * @param pageSize (optional) 
      * @return OK
      */
-    pending4(page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<WithdrawDtoIEnumerableApiResponse> {
+    pending5(page: number | undefined, pageSize: number | undefined, cancelToken?: CancelToken): Promise<WithdrawDtoIEnumerableApiResponse> {
         let url_ = this.baseUrl + "/api/withdraws/pending?";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
@@ -3673,11 +4221,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processPending4(_response);
+            return this.processPending5(_response);
         });
     }
 
-    protected processPending4(response: AxiosResponse): Promise<WithdrawDtoIEnumerableApiResponse> {
+    protected processPending5(response: AxiosResponse): Promise<WithdrawDtoIEnumerableApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -3704,7 +4252,7 @@ export class Client implements IClient {
     /**
      * @return OK
      */
-    approve2(id: string, cancelToken?: CancelToken): Promise<WithdrawDtoApiResponse> {
+    approve3(id: string, cancelToken?: CancelToken): Promise<WithdrawDtoApiResponse> {
         let url_ = this.baseUrl + "/api/withdraws/{id}/approve";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3727,11 +4275,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processApprove2(_response);
+            return this.processApprove3(_response);
         });
     }
 
-    protected processApprove2(response: AxiosResponse): Promise<WithdrawDtoApiResponse> {
+    protected processApprove3(response: AxiosResponse): Promise<WithdrawDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -3759,7 +4307,7 @@ export class Client implements IClient {
      * @param body (optional) 
      * @return OK
      */
-    reject5(id: string, body: string | undefined, cancelToken?: CancelToken): Promise<WithdrawDtoApiResponse> {
+    reject6(id: string, body: string | undefined, cancelToken?: CancelToken): Promise<WithdrawDtoApiResponse> {
         let url_ = this.baseUrl + "/api/withdraws/{id}/reject";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3786,11 +4334,11 @@ export class Client implements IClient {
                 throw _error;
             }
         }).then((_response: AxiosResponse) => {
-            return this.processReject5(_response);
+            return this.processReject6(_response);
         });
     }
 
-    protected processReject5(response: AxiosResponse): Promise<WithdrawDtoApiResponse> {
+    protected processReject6(response: AxiosResponse): Promise<WithdrawDtoApiResponse> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -4331,6 +4879,46 @@ export interface IBankAccountValidationDto {
     validationErrors?: string[] | undefined;
 }
 
+export class BarChartDataDto implements IBarChartDataDto {
+    day?: string | undefined;
+    count?: number;
+
+    constructor(data?: IBarChartDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.day = _data["day"];
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): BarChartDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BarChartDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["day"] = this.day;
+        data["count"] = this.count;
+        return data;
+    }
+}
+
+export interface IBarChartDataDto {
+    day?: string | undefined;
+    count?: number;
+}
+
 export class CreateTransactionRequest implements ICreateTransactionRequest {
     walletId!: string;
     amount!: number;
@@ -4597,6 +5185,90 @@ export interface ICustomerPayoutResponseDtoIEnumerableApiResponse {
     statusCode?: HttpStatusCode;
     message?: string | undefined;
     data?: CustomerPayoutResponseDto[] | undefined;
+}
+
+export class DashboardDataDto implements IDashboardDataDto {
+    barChartData?: BarChartDataDto[] | undefined;
+    pieChartData?: PieChartDataDto[] | undefined;
+    lineChartDotsData?: LineChartDataDto[] | undefined;
+    lineChartData?: LineChartDataDto[] | undefined;
+    overviewData?: OverviewDataDto;
+
+    constructor(data?: IDashboardDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["barChartData"])) {
+                this.barChartData = [] as any;
+                for (let item of _data["barChartData"])
+                    this.barChartData!.push(BarChartDataDto.fromJS(item));
+            }
+            if (Array.isArray(_data["pieChartData"])) {
+                this.pieChartData = [] as any;
+                for (let item of _data["pieChartData"])
+                    this.pieChartData!.push(PieChartDataDto.fromJS(item));
+            }
+            if (Array.isArray(_data["lineChartDotsData"])) {
+                this.lineChartDotsData = [] as any;
+                for (let item of _data["lineChartDotsData"])
+                    this.lineChartDotsData!.push(LineChartDataDto.fromJS(item));
+            }
+            if (Array.isArray(_data["lineChartData"])) {
+                this.lineChartData = [] as any;
+                for (let item of _data["lineChartData"])
+                    this.lineChartData!.push(LineChartDataDto.fromJS(item));
+            }
+            this.overviewData = _data["overviewData"] ? OverviewDataDto.fromJS(_data["overviewData"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): DashboardDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new DashboardDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.barChartData)) {
+            data["barChartData"] = [];
+            for (let item of this.barChartData)
+                data["barChartData"].push(item.toJSON());
+        }
+        if (Array.isArray(this.pieChartData)) {
+            data["pieChartData"] = [];
+            for (let item of this.pieChartData)
+                data["pieChartData"].push(item.toJSON());
+        }
+        if (Array.isArray(this.lineChartDotsData)) {
+            data["lineChartDotsData"] = [];
+            for (let item of this.lineChartDotsData)
+                data["lineChartDotsData"].push(item.toJSON());
+        }
+        if (Array.isArray(this.lineChartData)) {
+            data["lineChartData"] = [];
+            for (let item of this.lineChartData)
+                data["lineChartData"].push(item.toJSON());
+        }
+        data["overviewData"] = this.overviewData ? this.overviewData.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IDashboardDataDto {
+    barChartData?: BarChartDataDto[] | undefined;
+    pieChartData?: PieChartDataDto[] | undefined;
+    lineChartDotsData?: LineChartDataDto[] | undefined;
+    lineChartData?: LineChartDataDto[] | undefined;
+    overviewData?: OverviewDataDto;
 }
 
 export class DecimalApiResponse implements IDecimalApiResponse {
@@ -4995,6 +5667,62 @@ export enum HttpStatusCode {
     _511 = 511,
 }
 
+export class LineChartDataDto implements ILineChartDataDto {
+    date?: string | undefined;
+    hour?: string | undefined;
+    pix?: number;
+    credit?: number;
+    bankSlip?: number;
+    totalAmount?: number;
+
+    constructor(data?: ILineChartDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.date = _data["date"];
+            this.hour = _data["hour"];
+            this.pix = _data["pix"];
+            this.credit = _data["credit"];
+            this.bankSlip = _data["bankSlip"];
+            this.totalAmount = _data["totalAmount"];
+        }
+    }
+
+    static fromJS(data: any): LineChartDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new LineChartDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["date"] = this.date;
+        data["hour"] = this.hour;
+        data["pix"] = this.pix;
+        data["credit"] = this.credit;
+        data["bankSlip"] = this.bankSlip;
+        data["totalAmount"] = this.totalAmount;
+        return data;
+    }
+}
+
+export interface ILineChartDataDto {
+    date?: string | undefined;
+    hour?: string | undefined;
+    pix?: number;
+    credit?: number;
+    bankSlip?: number;
+    totalAmount?: number;
+}
+
 export class ObjectApiResponse implements IObjectApiResponse {
     success?: boolean;
     statusCode?: HttpStatusCode;
@@ -5041,6 +5769,70 @@ export interface IObjectApiResponse {
     statusCode?: HttpStatusCode;
     message?: string | undefined;
     data?: any | undefined;
+}
+
+export class OverviewDataDto implements IOverviewDataDto {
+    approvedAmount?: number;
+    approvedCount?: number;
+    rejectedAmount?: number;
+    rejectedCount?: number;
+    cancelledAmount?: number;
+    cancelledCount?: number;
+    pendingAmount?: number;
+    pendingCount?: number;
+
+    constructor(data?: IOverviewDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.approvedAmount = _data["approvedAmount"];
+            this.approvedCount = _data["approvedCount"];
+            this.rejectedAmount = _data["rejectedAmount"];
+            this.rejectedCount = _data["rejectedCount"];
+            this.cancelledAmount = _data["cancelledAmount"];
+            this.cancelledCount = _data["cancelledCount"];
+            this.pendingAmount = _data["pendingAmount"];
+            this.pendingCount = _data["pendingCount"];
+        }
+    }
+
+    static fromJS(data: any): OverviewDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OverviewDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["approvedAmount"] = this.approvedAmount;
+        data["approvedCount"] = this.approvedCount;
+        data["rejectedAmount"] = this.rejectedAmount;
+        data["rejectedCount"] = this.rejectedCount;
+        data["cancelledAmount"] = this.cancelledAmount;
+        data["cancelledCount"] = this.cancelledCount;
+        data["pendingAmount"] = this.pendingAmount;
+        data["pendingCount"] = this.pendingCount;
+        return data;
+    }
+}
+
+export interface IOverviewDataDto {
+    approvedAmount?: number;
+    approvedCount?: number;
+    rejectedAmount?: number;
+    rejectedCount?: number;
+    cancelledAmount?: number;
+    cancelledCount?: number;
+    pendingAmount?: number;
+    pendingCount?: number;
 }
 
 export class PaymentCallbackDto implements IPaymentCallbackDto {
@@ -5203,6 +5995,46 @@ export interface IPayoutRejectionDto {
     rejectionReason: string;
 }
 
+export class PieChartDataDto implements IPieChartDataDto {
+    paymentType?: string | undefined;
+    count?: number;
+
+    constructor(data?: IPieChartDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.paymentType = _data["paymentType"];
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): PieChartDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PieChartDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["paymentType"] = this.paymentType;
+        data["count"] = this.count;
+        return data;
+    }
+}
+
+export interface IPieChartDataDto {
+    paymentType?: string | undefined;
+    count?: number;
+}
+
 export enum PixKeyType {
     _0 = 0,
     _1 = 1,
@@ -5215,11 +6047,9 @@ export class PixKeyValidationDto implements IPixKeyValidationDto {
     isValid?: boolean;
     pixKey?: string | undefined;
     pixKeyType?: string | undefined;
-    keyOwnerName?: string | undefined;
-    keyOwnerDocument?: string | undefined;
-    bankName?: string | undefined;
     validationId?: string | undefined;
     errorMessage?: string | undefined;
+    validatedAt?: Date;
 
     constructor(data?: IPixKeyValidationDto) {
         if (data) {
@@ -5235,11 +6065,9 @@ export class PixKeyValidationDto implements IPixKeyValidationDto {
             this.isValid = _data["isValid"];
             this.pixKey = _data["pixKey"];
             this.pixKeyType = _data["pixKeyType"];
-            this.keyOwnerName = _data["keyOwnerName"];
-            this.keyOwnerDocument = _data["keyOwnerDocument"];
-            this.bankName = _data["bankName"];
             this.validationId = _data["validationId"];
             this.errorMessage = _data["errorMessage"];
+            this.validatedAt = _data["validatedAt"] ? new Date(_data["validatedAt"].toString()) : <any>undefined;
         }
     }
 
@@ -5255,11 +6083,9 @@ export class PixKeyValidationDto implements IPixKeyValidationDto {
         data["isValid"] = this.isValid;
         data["pixKey"] = this.pixKey;
         data["pixKeyType"] = this.pixKeyType;
-        data["keyOwnerName"] = this.keyOwnerName;
-        data["keyOwnerDocument"] = this.keyOwnerDocument;
-        data["bankName"] = this.bankName;
         data["validationId"] = this.validationId;
         data["errorMessage"] = this.errorMessage;
+        data["validatedAt"] = this.validatedAt ? this.validatedAt.toISOString() : <any>undefined;
         return data;
     }
 }
@@ -5268,11 +6094,9 @@ export interface IPixKeyValidationDto {
     isValid?: boolean;
     pixKey?: string | undefined;
     pixKeyType?: string | undefined;
-    keyOwnerName?: string | undefined;
-    keyOwnerDocument?: string | undefined;
-    bankName?: string | undefined;
     validationId?: string | undefined;
     errorMessage?: string | undefined;
+    validatedAt?: Date;
 }
 
 export class PixKeyValidationDtoApiResponse implements IPixKeyValidationDtoApiResponse {
@@ -5425,6 +6249,294 @@ export interface IProblemDetails {
     instance?: string | undefined;
 
     [key: string]: any;
+}
+
+export class RefundRequestDto implements IRefundRequestDto {
+    transactionId!: string;
+    amount!: number;
+    reason!: string;
+    externalReference?: string | undefined;
+
+    constructor(data?: IRefundRequestDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.transactionId = _data["transactionId"];
+            this.amount = _data["amount"];
+            this.reason = _data["reason"];
+            this.externalReference = _data["externalReference"];
+        }
+    }
+
+    static fromJS(data: any): RefundRequestDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RefundRequestDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["transactionId"] = this.transactionId;
+        data["amount"] = this.amount;
+        data["reason"] = this.reason;
+        data["externalReference"] = this.externalReference;
+        return data;
+    }
+}
+
+export interface IRefundRequestDto {
+    transactionId: string;
+    amount: number;
+    reason: string;
+    externalReference?: string | undefined;
+}
+
+export class RefundResponseDto implements IRefundResponseDto {
+    id?: string;
+    transactionId?: string;
+    amount?: number;
+    status?: string | undefined;
+    reason?: string | undefined;
+    externalReference?: string | undefined;
+    createdAt?: Date;
+    processedAt?: Date | undefined;
+    failReason?: string | undefined;
+
+    constructor(data?: IRefundResponseDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.transactionId = _data["transactionId"];
+            this.amount = _data["amount"];
+            this.status = _data["status"];
+            this.reason = _data["reason"];
+            this.externalReference = _data["externalReference"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.processedAt = _data["processedAt"] ? new Date(_data["processedAt"].toString()) : <any>undefined;
+            this.failReason = _data["failReason"];
+        }
+    }
+
+    static fromJS(data: any): RefundResponseDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RefundResponseDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["transactionId"] = this.transactionId;
+        data["amount"] = this.amount;
+        data["status"] = this.status;
+        data["reason"] = this.reason;
+        data["externalReference"] = this.externalReference;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["processedAt"] = this.processedAt ? this.processedAt.toISOString() : <any>undefined;
+        data["failReason"] = this.failReason;
+        return data;
+    }
+}
+
+export interface IRefundResponseDto {
+    id?: string;
+    transactionId?: string;
+    amount?: number;
+    status?: string | undefined;
+    reason?: string | undefined;
+    externalReference?: string | undefined;
+    createdAt?: Date;
+    processedAt?: Date | undefined;
+    failReason?: string | undefined;
+}
+
+export class RefundResponseDtoApiResponse implements IRefundResponseDtoApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: RefundResponseDto;
+
+    constructor(data?: IRefundResponseDtoApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            this.data = _data["data"] ? RefundResponseDto.fromJS(_data["data"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): RefundResponseDtoApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new RefundResponseDtoApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        data["data"] = this.data ? this.data.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IRefundResponseDtoApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: RefundResponseDto;
+}
+
+export class RefundResponseDtoIEnumerableApiResponse implements IRefundResponseDtoIEnumerableApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: RefundResponseDto[] | undefined;
+
+    constructor(data?: IRefundResponseDtoIEnumerableApiResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.success = _data["success"];
+            this.statusCode = _data["statusCode"];
+            this.message = _data["message"];
+            if (Array.isArray(_data["data"])) {
+                this.data = [] as any;
+                for (let item of _data["data"])
+                    this.data!.push(RefundResponseDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RefundResponseDtoIEnumerableApiResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new RefundResponseDtoIEnumerableApiResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["success"] = this.success;
+        data["statusCode"] = this.statusCode;
+        data["message"] = this.message;
+        if (Array.isArray(this.data)) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        return data;
+    }
+}
+
+export interface IRefundResponseDtoIEnumerableApiResponse {
+    success?: boolean;
+    statusCode?: HttpStatusCode;
+    message?: string | undefined;
+    data?: RefundResponseDto[] | undefined;
+}
+
+export class TransactionDataDto implements ITransactionDataDto {
+    id?: string;
+    customer?: string | undefined;
+    sellerId?: string;
+    createdAt?: Date;
+    paidAt?: Date | undefined;
+    status?: string | undefined;
+    amount?: number;
+    paymentType?: string | undefined;
+    description?: string | undefined;
+
+    constructor(data?: ITransactionDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.customer = _data["customer"];
+            this.sellerId = _data["sellerId"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.paidAt = _data["paidAt"] ? new Date(_data["paidAt"].toString()) : <any>undefined;
+            this.status = _data["status"];
+            this.amount = _data["amount"];
+            this.paymentType = _data["paymentType"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any): TransactionDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["customer"] = this.customer;
+        data["sellerId"] = this.sellerId;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["paidAt"] = this.paidAt ? this.paidAt.toISOString() : <any>undefined;
+        data["status"] = this.status;
+        data["amount"] = this.amount;
+        data["paymentType"] = this.paymentType;
+        data["description"] = this.description;
+        return data;
+    }
+}
+
+export interface ITransactionDataDto {
+    id?: string;
+    customer?: string | undefined;
+    sellerId?: string;
+    createdAt?: Date;
+    paidAt?: Date | undefined;
+    status?: string | undefined;
+    amount?: number;
+    paymentType?: string | undefined;
+    description?: string | undefined;
 }
 
 export enum TransactionStatus {
