@@ -14,7 +14,6 @@ const DepositModal = ({ wallet, onDeposit, onClose }) => {
   const [depositId, setDepositId] = useState("");
   const [copied, setCopied] = useState(false);
 
-  // Update countdown timer for QR code expiration
   useEffect(() => {
     if (!expiresAt) return;
 
@@ -47,13 +46,11 @@ const DepositModal = ({ wallet, onDeposit, onClose }) => {
     setDepositStep("processing");
 
     try {
-      // Call the onDeposit function which should return PIX payment details
       const response = await onDeposit(amount, description, reference);
 
       if (response && response.qrCode) {
         setQrCodeData(response.qrCode);
         setDepositId(response.id || "");
-        // Set expiry time to 30 minutes from now
         const expiry = new Date();
         expiry.setMinutes(expiry.getMinutes() + 30);
         setExpiresAt(expiry);
@@ -74,7 +71,6 @@ const DepositModal = ({ wallet, onDeposit, onClose }) => {
     });
   };
 
-  // Initial deposit form
   const renderDepositForm = () => (
     <>
       <h3 className="font-bold text-xl mb-6 flex items-center gap-2">
@@ -163,7 +159,6 @@ const DepositModal = ({ wallet, onDeposit, onClose }) => {
     </>
   );
 
-  // Loading state while generating PIX code
   const renderProcessing = () => (
     <div className="py-8 text-center">
       <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
@@ -176,7 +171,6 @@ const DepositModal = ({ wallet, onDeposit, onClose }) => {
     </div>
   );
 
-  // QR code display after successful generation
   const renderQrCode = () => (
     <>
       <h3 className="font-bold text-xl mb-4 text-center">

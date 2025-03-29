@@ -332,15 +332,10 @@ const WalletManagement = () => {
 
     startLoading("Gerando QR Code PIX...");
     try {
-      // Create a deposit request that will generate a PIX QR code
       const depositRequest = {
         sellerId: selectedSellerId,
         walletId: activeWallet.id,
         amount: parseFloat(amount),
-        sellerName: "Usuário PulsePay", // This would be replaced with actual user data
-        sellerEmail: "usuario@example.com", // This would be replaced with actual user data
-        sellerDocument: "12345678900", // This would be replaced with actual user data
-        sellerDocumentType: "CPF", // This could be CPF or CNPJ
       };
 
       const response = await paymentService.createDeposit(depositRequest);
@@ -367,21 +362,18 @@ const WalletManagement = () => {
     }
   };
 
-  // Handle withdrawal
   const handleWithdraw = async (amount, description, reference) => {
     if (!activeWallet?.id) {
       showErrorNotification("Erro", "ID da carteira não encontrado");
       return;
     }
 
-    // Verify wallet type for withdrawals
     if (!canWithdrawFromWallet(activeWallet)) {
       showErrorNotification(
         "Carteira incorreta",
         "Por favor, use a carteira de saque para esta operação"
       );
 
-      // Try to set the appropriate wallet
       if (withdrawalWallet) {
         setActiveWallet(withdrawalWallet);
       } else if (generalWallet) {
@@ -425,7 +417,6 @@ const WalletManagement = () => {
     }
   };
 
-  // Handle transfer between wallets
   const handleTransfer = async () => {
     const { sourceWallet, destinationWallet, amount, description } =
       transferData;
@@ -450,7 +441,6 @@ const WalletManagement = () => {
 
     startLoading("Processando transferência entre carteiras...");
     try {
-      // Call the transfer API
       const response = await paymentService.transferFunds(
         sourceWallet.id,
         destinationWallet.id,
@@ -487,7 +477,6 @@ const WalletManagement = () => {
     }
   };
 
-  // Set default wallet
   const setWalletAsDefault = async (walletId) => {
     startLoading("Definindo carteira padrão...");
     try {
@@ -518,7 +507,6 @@ const WalletManagement = () => {
     }
   };
 
-  // Switch to a different wallet
   const switchToWallet = async (newWallet) => {
     setActiveWallet(newWallet);
     if (newWallet?.id) {
@@ -527,7 +515,6 @@ const WalletManagement = () => {
     setShowWalletSelector(false);
   };
 
-  // Create wallets based on type
   const handleCreateWalletByType = async (type, isDefault = true) => {
     try {
       await createWallet(type, isDefault);
@@ -540,7 +527,6 @@ const WalletManagement = () => {
     }
   };
 
-  // Create new wallet
   const createWallet = async (walletType, isDefault = true) => {
     try {
       startLoading(`Criando carteira de ${getWalletTypeLabel(walletType)}...`);
@@ -574,7 +560,6 @@ const WalletManagement = () => {
     }
   };
 
-  // Show error notification
   const showErrorNotification = (title, message) => {
     api.error({
       message: title,
@@ -583,7 +568,6 @@ const WalletManagement = () => {
     });
   };
 
-  // Show success notification
   const showSuccessNotification = (title, message) => {
     api.success({
       message: title,
@@ -592,12 +576,10 @@ const WalletManagement = () => {
     });
   };
 
-  // Check wallet types existence
   const hasDepositWallet = Boolean(depositWallet);
   const hasWithdrawalWallet = Boolean(withdrawalWallet);
   const hasGeneralWallet = Boolean(generalWallet);
 
-  // Determine wallet configuration
   const getWalletConfiguration = () => {
     if (hasGeneralWallet) {
       return "Configuração com Carteira Única";
@@ -610,18 +592,14 @@ const WalletManagement = () => {
     }
   };
 
-  // Prepare for transfer between wallets
   const prepareTransfer = () => {
-    // Set default source and destination based on available wallets
     let source = null;
     let destination = null;
 
-    // Most common flow is from deposit to withdrawal wallet
     if (depositWallet && withdrawalWallet) {
       source = depositWallet;
       destination = withdrawalWallet;
     } else if (generalWallet) {
-      // General wallet can transfer to itself
       source = generalWallet;
       destination = generalWallet;
     }
@@ -655,7 +633,6 @@ const WalletManagement = () => {
     </dialog>
   );
 
-  // Render withdraw modal
   const renderWithdrawModal = () => (
     <dialog
       id="withdraw_modal"
@@ -675,7 +652,6 @@ const WalletManagement = () => {
     </dialog>
   );
 
-  // Render wallet selector modal
   const renderWalletSelectorModal = () => (
     <dialog
       id="wallet_selector_modal"
@@ -701,7 +677,6 @@ const WalletManagement = () => {
     </dialog>
   );
 
-  // Render wallet type selection modal
   const renderWalletTypeSelectionModal = () => (
     <dialog
       id="wallet_type_selection_modal"
@@ -720,7 +695,6 @@ const WalletManagement = () => {
     </dialog>
   );
 
-  // Render transfer modal
   const renderTransferModal = () => (
     <dialog
       id="transfer_modal"
@@ -860,7 +834,6 @@ const WalletManagement = () => {
     </dialog>
   );
 
-  // Render wallet summary with clear visuals for each wallet type
   const renderWalletSummary = () => {
     if (wallets.length === 0) return null;
 
@@ -884,7 +857,6 @@ const WalletManagement = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Deposit Wallet Card */}
           {hasDepositWallet && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-emerald-200 dark:border-emerald-900 overflow-hidden">
               <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-200 dark:border-emerald-900/50">
@@ -957,7 +929,6 @@ const WalletManagement = () => {
             </div>
           )}
 
-          {/* Withdrawal Wallet Card */}
           {hasWithdrawalWallet && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-rose-200 dark:border-rose-900 overflow-hidden">
               <div className="p-4 bg-rose-50 dark:bg-rose-900/20 border-b border-rose-200 dark:border-rose-900/50">
@@ -1031,7 +1002,6 @@ const WalletManagement = () => {
             </div>
           )}
 
-          {/* General Wallet Card */}
           {hasGeneralWallet && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-indigo-200 dark:border-indigo-900 overflow-hidden">
               <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-200 dark:border-indigo-900/50">
@@ -1124,7 +1094,6 @@ const WalletManagement = () => {
           mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
@@ -1155,7 +1124,6 @@ const WalletManagement = () => {
           </div>
         </div>
 
-        {/* Seller selector when none is selected */}
         {!sellerLoading && sellers.length > 0 && !selectedSellerId && (
           <div className="p-10 text-center bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
             <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1177,7 +1145,6 @@ const WalletManagement = () => {
           </div>
         )}
 
-        {/* Empty state when no sellers */}
         {!sellerLoading && sellers.length === 0 && (
           <div className="p-10 text-center bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
             <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1208,7 +1175,6 @@ const WalletManagement = () => {
           />
         )}
 
-        {/* Wallet details section */}
         {activeWallet && (
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-8">
             <div className="border-b border-slate-200 dark:border-slate-700">
