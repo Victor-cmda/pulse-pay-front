@@ -303,18 +303,6 @@ export default {
   -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
   --output boleto.pdf`,
       },
-      notifyPix: {
-        description: "Receives PIX payment notification",
-        parameters: {
-          transactionId: "PIX transaction ID",
-          status: "Transaction status (approved, rejected, etc)",
-          amount: "Payment amount in cents",
-        },
-        responses: {
-          success: "Notification received successfully",
-        },
-        requestExample: `curl -X GET "https://pulsepay.technocenterinformatica.com.br/sandbox/notify-pix?transaction_id=3fa85f64-5717-4562-b3fc-2c963f66afa6&status=approved&amount=10050"`,
-      },
     },
   },
   payouts: {
