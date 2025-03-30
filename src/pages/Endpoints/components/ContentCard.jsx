@@ -1,4 +1,3 @@
-// src/pages/Endpoints/components/ContentCard.jsx
 import React from "react";
 import {
   Card,
@@ -10,9 +9,9 @@ import {
 import OverviewContent from "./content/OverViewContent";
 import GettingStartedContent from "./content/GettingStartedContent";
 import AuthenticationContent from "./content/AuthenticationContent";
+import WebhooksContent from "./content/WebhooksContent";
 
 const ContentCard = ({ endpoint, t }) => {
-  // Render different content based on the endpoint id
   const renderContent = () => {
     switch (endpoint.id) {
       case "overview":
@@ -21,6 +20,8 @@ const ContentCard = ({ endpoint, t }) => {
         return <GettingStartedContent t={t} />;
       case "authentication-overview":
         return <AuthenticationContent t={t} />;
+      case "webhooks-overview":
+        return <WebhooksContent t={t} />;
       default:
         return <p>Conteúdo não disponível</p>;
     }

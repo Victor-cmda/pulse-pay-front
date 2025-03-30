@@ -1,21 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import enTranslations from "../i18n/en";
-import ptTranslations from "../i18n/pt";
-import esTranslations from "../i18n/es";
 
 // Objeto com as traduções disponíveis
 const translations = {
   en: enTranslations,
-  pt: ptTranslations,
-  es: esTranslations,
 };
 
 // Opções de idiomas disponíveis para seleção
-export const languageOptions = [
-  { value: "pt", label: "Português", flag: "🇧🇷" },
-  { value: "en", label: "English", flag: "🇺🇸" },
-  { value: "es", label: "Español", flag: "🇪🇸" },
-];
+export const languageOptions = [{ value: "en", label: "English", flag: "🇺🇸" }];
 
 // Criação do contexto
 const LanguageContext = createContext();
@@ -34,7 +26,7 @@ export const LanguageProvider = ({ children }) => {
   // Tenta ler o idioma do localStorage, ou usa o idioma do navegador, ou pt como fallback
   const getBrowserLanguage = () => {
     const browserLang = navigator.language.split("-")[0];
-    return ["pt", "en", "es"].includes(browserLang) ? browserLang : "pt";
+    return ["en"].includes(browserLang) ? browserLang : "pt";
   };
 
   const [language, setLanguage] = useState(() => {
@@ -43,7 +35,7 @@ export const LanguageProvider = ({ children }) => {
   });
 
   // Tradução atual baseada no idioma selecionado
-  const t = translations[language] || translations.pt;
+  const t = translations[language] || translations.en;
 
   // Salva o idioma escolhido no localStorage
   useEffect(() => {

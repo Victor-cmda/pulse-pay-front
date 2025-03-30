@@ -63,13 +63,12 @@ export default {
     multipleMethods: {
       title: "Multiple Methods",
       content:
-        "Support for various payment methods, including PIX, bank slips and transfers.",
+        "Support for various payment methods, including PIX, and transfers.",
     },
   },
   mainFeatures: {
     title: "Main features",
     pixPayments: "Generation of instant PIX payments",
-    bankSlips: "Issuance of bank slips",
     pixKeyValidation: "PIX key validation",
     paymentNotifications: "Real-time payment status notifications",
     transactionStatus: "Transaction status query",
@@ -95,7 +94,7 @@ export default {
     integrate: {
       title: "Integrate with your application",
       content:
-        "Follow the reference documentation to implement the necessary endpoints. You can start with simple flows like PIX generation or bank slips.",
+        "Follow the reference documentation to implement the necessary endpoints. You can start with simple flows like PIX generation.",
     },
     goToProduction: {
       title: "Go to production",
@@ -161,11 +160,6 @@ export default {
       title: "PIX",
       description:
         "Instant payment system developed by the Central Bank of Brazil. It allows transfers and payments in seconds, any time of day, every day of the year.",
-    },
-    bankSlip: {
-      title: "Bank Slip",
-      description:
-        "Brazilian payment method where the customer receives a document with a barcode that can be paid at banks, banking correspondents, ATMs or internet banking.",
     },
     pixKey: {
       title: "PIX Key",
@@ -233,7 +227,7 @@ export default {
     responses: "Responses",
   },
   payments: {
-    title: "Payments",
+    title: "PixIn",
     description: "Endpoints for generating and querying payments",
     endpoints: {
       pixPayment: {
@@ -255,58 +249,21 @@ export default {
   -H "Content-Type: application/json" \\
   -d '{
     "amount": 100.50,
+    "orderId": "123456789",
+    "customerId": "customer-123456",
+    "name": "Cliente Teste",
+    "email": "cliente.teste@example.com",
+    "document": "12345678900",
+    "documentType": "CPF",
     "description": "Service payment",
     "expirationDate": "2023-12-31T23:59:59Z",
-    "callbackUrl": "https://your-callback-url.com/notifications"
+    "requires_same_owner": True
   }'`,
-      },
-      boletoPayment: {
-        description: "Issues a bank slip for payment",
-        body: {
-          amount: "Bank slip amount",
-          description: "Payment description",
-          customerName: "Customer/payer name",
-          customerDocument: "Customer/payer CPF/CNPJ",
-          dueDate: "Bank slip due date (ISO 8601 format)",
-          callbackUrl: "URL to receive payment status notifications",
-        },
-        responses: {
-          success: "Bank slip generated successfully",
-          badRequest: "Invalid request",
-          unauthorized: "Authentication failed",
-        },
-        requestExample: `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/boleto \\
-  -H "Authorization: Bearer your_access_token" \\
-  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "amount": 299.99,
-    "description": "Product payment",
-    "customerName": "Example Customer",
-    "customerDocument": "12345678900",
-    "dueDate": "2023-12-31",
-    "callbackUrl": "https://your-callback-url.com/notifications"
-  }'`,
-      },
-      boletoPdf: {
-        description: "Gets the PDF of a previously generated bank slip",
-        parameters: {
-          id: "Bank slip ID",
-        },
-        responses: {
-          success: "Bank slip PDF returned successfully",
-          notFound: "Bank slip not found",
-          badRequest: "Invalid request",
-        },
-        requestExample: `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
-  -H "Authorization: Bearer your_access_token" \\
-  -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
-  --output boleto.pdf`,
       },
     },
   },
   payouts: {
-    title: "Transfers",
+    title: "PixOut",
     description: "Endpoints for PIX key validation and money transfers",
     validatePixKey: {
       title: "Validate PIX Key",

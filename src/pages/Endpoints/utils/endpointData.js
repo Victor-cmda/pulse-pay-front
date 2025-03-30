@@ -1,5 +1,3 @@
-// src/pages/Endpoints/utils/endpointData.js
-
 export function getEndpointsData(t) {
   return [
     {
@@ -41,10 +39,10 @@ export function getEndpointsData(t) {
           path: "/oauth/v2/token",
           description:
             t.authentication.endpoints?.generateToken?.description ||
-            "Gera um token de acesso OAuth 2.0 através de credenciais do cliente",
+            "Generate an OAuth 2.0 access token using client credentials",
           authentication:
             t.authentication.endpoints?.generateToken?.authentication ||
-            "Basic Auth (Client ID e Client Secret)",
+            "Basic Auth (Client ID and Client Secret)",
           parameters: [],
           headers: [
             {
@@ -54,7 +52,7 @@ export function getEndpointsData(t) {
               description:
                 t.authentication.endpoints?.generateToken?.headers
                   ?.authorization ||
-                "Basic authentication com Client ID e Client Secret codificados em Base64",
+                "Basic authentication with Client ID and Client Secret encoded in Base64",
             },
           ],
           responses: [
@@ -62,18 +60,17 @@ export function getEndpointsData(t) {
               status: 200,
               description:
                 t.authentication.endpoints?.generateToken?.responses?.success ||
-                "Token gerado com sucesso",
+                "Token generated successfully",
               example: {
-                access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                token_type: "Bearer",
-                expires_in: 3600,
+                accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                expiresIn: 3600,
               },
             },
             {
               status: 401,
               description:
                 t.authentication.endpoints?.generateToken?.responses
-                  ?.unauthorized || "Credenciais inválidas ou ausentes",
+                  ?.unauthorized || "Invalid or missing credentials",
               example: { message: "Invalid credentials" },
             },
           ],
@@ -87,10 +84,10 @@ export function getEndpointsData(t) {
     },
     {
       id: "payments",
-      title: t.payments?.title || "Pagamentos",
+      title: t.payments?.title || "Payments",
       description:
         t.payments?.description ||
-        "Endpoints para geração e consulta de pagamentos",
+        "Endpoints for generating and querying payments",
       endpoints: [
         {
           id: "pixPayment",
@@ -98,7 +95,7 @@ export function getEndpointsData(t) {
           path: "/pix",
           description:
             t.payments?.endpoints?.pixPayment?.description ||
-            "Gera um pagamento via PIX",
+            "Generate a payment via PIX",
           authentication: t.common?.authentication?.bearer || "Bearer Token",
           parameters: [],
           headers: [
@@ -108,14 +105,14 @@ export function getEndpointsData(t) {
               type: "string",
               description:
                 t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
+                "Bearer token obtained via authentication endpoint",
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
               description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
             },
             {
               name: "Content-Type",
@@ -133,7 +130,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payments?.endpoints?.pixPayment?.body?.amount ||
-                  "Valor do pagamento",
+                  "Payment amount",
               },
               {
                 name: "description",
@@ -141,7 +138,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payments?.endpoints?.pixPayment?.body?.description ||
-                  "Descrição do pagamento",
+                  "Payment description",
               },
               {
                 name: "expirationDate",
@@ -149,7 +146,7 @@ export function getEndpointsData(t) {
                 required: false,
                 description:
                   t.payments?.endpoints?.pixPayment?.body?.expirationDate ||
-                  "Data de expiração do pagamento (formato ISO 8601)",
+                  "Payment expiration date (ISO 8601 format)",
               },
               {
                 name: "callbackUrl",
@@ -157,7 +154,7 @@ export function getEndpointsData(t) {
                 required: false,
                 description:
                   t.payments?.endpoints?.pixPayment?.body?.callbackUrl ||
-                  "URL para receber notificações de status do pagamento",
+                  "URL to receive payment status notifications",
               },
             ],
           },
@@ -166,13 +163,17 @@ export function getEndpointsData(t) {
               status: 200,
               description:
                 t.payments?.endpoints?.pixPayment?.responses?.success ||
-                "Pagamento processado com sucesso",
+                "Payment processed successfully",
               example: {
-                message: "Pagamento processado com sucesso",
+                message: "Payment processed successfully",
                 details: {
                   paymentId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                   qrCode:
                     "00020101021226890014br.gov.bcb.pix2557brcode.example.com/pix/v2/cobv/9d36b84fc70b428ca84f8cc95e9ac3a4...",
+                  status: "Pending",
+                  transactionId: "06001000000013274929612867402",
+                  orderId: "2ab8ace1-21e4-4f01-86fe-ee433ff811c1",
+                  expirationQrCode: "2023-12-31T23:59:59Z",
                 },
               },
             },
@@ -180,14 +181,14 @@ export function getEndpointsData(t) {
               status: 400,
               description:
                 t.payments?.endpoints?.pixPayment?.responses?.badRequest ||
-                "Requisição inválida",
+                "Invalid request",
               example: { error: "Invalid request parameters" },
             },
             {
               status: 401,
               description:
                 t.payments?.endpoints?.pixPayment?.responses?.unauthorized ||
-                "Autenticação falhou",
+                "Authentication failed",
               example: { error: "Unauthorized access" },
             },
           ],
@@ -199,208 +200,9 @@ export function getEndpointsData(t) {
     -H "Content-Type: application/json" \\
     -d '{
       "amount": 100.50,
-      "description": "Pagamento de serviço",
+      "description": "Service payment",
       "expirationDate": "2023-12-31T23:59:59Z",
-      "callbackUrl": "https://your-callback-url.com/notifications"
     }'`,
-        },
-        {
-          id: "boletoPayment",
-          method: "POST",
-          path: "/boleto",
-          description:
-            t.payments?.endpoints?.boletoPayment?.description ||
-            "Emite um boleto bancário para pagamento",
-          authentication: t.common?.authentication?.bearer || "Bearer Token",
-          parameters: [],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
-            },
-            {
-              name: "Content-Type",
-              required: true,
-              type: "string",
-              description: t.common?.headers?.contentType || "application/json",
-            },
-          ],
-          body: {
-            type: "object",
-            properties: [
-              {
-                name: "amount",
-                type: "number",
-                required: true,
-                description:
-                  t.payments?.endpoints?.boletoPayment?.body?.amount ||
-                  "Valor do boleto",
-              },
-              {
-                name: "description",
-                type: "string",
-                required: true,
-                description:
-                  t.payments?.endpoints?.boletoPayment?.body?.description ||
-                  "Descrição do pagamento",
-              },
-              {
-                name: "customerName",
-                type: "string",
-                required: true,
-                description:
-                  t.payments?.endpoints?.boletoPayment?.body?.customerName ||
-                  "Nome do cliente/pagador",
-              },
-              {
-                name: "customerDocument",
-                type: "string",
-                required: true,
-                description:
-                  t.payments?.endpoints?.boletoPayment?.body
-                    ?.customerDocument || "CPF/CNPJ do cliente/pagador",
-              },
-              {
-                name: "dueDate",
-                type: "string",
-                required: true,
-                description:
-                  t.payments?.endpoints?.boletoPayment?.body?.dueDate ||
-                  "Data de vencimento do boleto (formato ISO 8601)",
-              },
-              {
-                name: "callbackUrl",
-                type: "string",
-                required: false,
-                description:
-                  t.payments?.endpoints?.boletoPayment?.body?.callbackUrl ||
-                  "URL para receber notificações de status do pagamento",
-              },
-            ],
-          },
-          responses: [
-            {
-              status: 200,
-              description:
-                t.payments?.endpoints?.boletoPayment?.responses?.success ||
-                "Boleto gerado com sucesso",
-              example: {
-                message: "Boleto bancário gerado com sucesso",
-                details: {
-                  bankSlipId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  barcode:
-                    "34191.79001 01043.510047 91020.150008 5 88790000029999",
-                  pdfUrl:
-                    "https://pulsepay.technocenterinformatica.com.br/sandbox/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf",
-                },
-              },
-            },
-            {
-              status: 400,
-              description:
-                t.payments?.endpoints?.boletoPayment?.responses?.badRequest ||
-                "Requisição inválida",
-              example: { error: "Invalid request parameters" },
-            },
-            {
-              status: 401,
-              description:
-                t.payments?.endpoints?.boletoPayment?.responses?.unauthorized ||
-                "Autenticação falhou",
-              example: { error: "Unauthorized access" },
-            },
-          ],
-          requestExample:
-            t.payments?.endpoints?.boletoPayment?.requestExample ||
-            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/boleto \\
-    -H "Authorization: Bearer your_access_token" \\
-    -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
-    -H "Content-Type: application/json" \\
-    -d '{
-      "amount": 299.99,
-      "description": "Pagamento de produto",
-      "customerName": "Cliente Exemplo",
-      "customerDocument": "12345678900",
-      "dueDate": "2023-12-31",
-      "callbackUrl": "https://your-callback-url.com/notifications"
-    }'`,
-        },
-        {
-          id: "boletoPdf",
-          method: "GET",
-          path: "/boleto/{id}/pdf",
-          description:
-            t.payments?.endpoints?.boletoPdf?.description ||
-            "Obtém o PDF de um boleto bancário gerado anteriormente",
-          authentication: t.common?.authentication?.bearer || "Bearer Token",
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              type: "string",
-              description:
-                t.payments?.endpoints?.boletoPdf?.parameters?.id ||
-                "ID do boleto bancário",
-            },
-          ],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
-            },
-          ],
-          responses: [
-            {
-              status: 200,
-              description:
-                t.payments?.endpoints?.boletoPdf?.responses?.success ||
-                "PDF do boleto retornado com sucesso",
-              example: "PDF Document (binary)",
-            },
-            {
-              status: 404,
-              description:
-                t.payments?.endpoints?.boletoPdf?.responses?.notFound ||
-                "Boleto não encontrado",
-              example: { message: "Bank slip not found" },
-            },
-            {
-              status: 400,
-              description:
-                t.payments?.endpoints?.boletoPdf?.responses?.badRequest ||
-                "Requisição inválida",
-              example: { error: "Error message" },
-            },
-          ],
-          requestExample:
-            t.payments?.endpoints?.boletoPdf?.requestExample ||
-            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/boleto/3fa85f64-5717-4562-b3fc-2c963f66afa6/pdf \\
-    -H "Authorization: Bearer your_access_token" \\
-    -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
-    --output boleto.pdf`,
         },
       ],
     },
@@ -423,14 +225,14 @@ export function getEndpointsData(t) {
               type: "string",
               description:
                 t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
+                "Bearer token obtained via authentication endpoint",
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
               description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
             },
             {
               name: "Content-Type",
@@ -448,7 +250,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.validatePixKey?.body?.pixKeyType ||
-                  "Tipo da chave PIX (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
+                  "PIX key type (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
               },
               {
                 name: "pixKeyValue",
@@ -456,7 +258,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.validatePixKey?.body?.pixKeyValue ||
-                  "Valor da chave PIX",
+                  "PIX key value",
               },
             ],
           },
@@ -465,40 +267,38 @@ export function getEndpointsData(t) {
               status: 200,
               description:
                 t.payouts?.endpoints?.validatePixKey?.responses?.success ||
-                "Chave PIX validada com sucesso",
+                "Operation completed successfully.",
               example: {
                 data: {
                   keyType: "CPF",
                   keyValue: "12345678900",
-                  bankName: "Banco Exemplo",
-                  accountHolderName: "Nome do Titular",
-                  documentType: "CPF",
-                  documentValue: "123.456.789-00",
+                  validationId: "CA36AEB163524AF9C5675472A977A98A",
+                  errorMessage: null,
                   isValid: true,
                 },
                 statusCode: 200,
-                message: "Chave PIX validada com sucesso",
+                message: "Operation completed successfully.",
               },
             },
             {
               status: 400,
               description:
                 t.payouts?.endpoints?.validatePixKey?.responses?.badRequest ||
-                "Chave PIX inválida",
+                "Invalid PIX key",
               example: {
                 statusCode: 400,
-                message: "Chave PIX inválida ou não encontrada",
+                message: "Invalid or not found PIX key",
               },
             },
             {
               status: 500,
               description:
                 t.payouts?.endpoints?.validatePixKey?.responses?.serverError ||
-                "Erro interno",
+                "Internal error",
               example: {
                 statusCode: 500,
                 message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
+                  "An internal error occurred while processing your request.",
               },
             },
           ],
@@ -527,14 +327,14 @@ export function getEndpointsData(t) {
               type: "string",
               description:
                 t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
+                "Bearer token obtained via authentication endpoint",
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
               description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
             },
             {
               name: "Content-Type",
@@ -552,7 +352,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.createPayment?.body?.amount ||
-                  "Valor a ser transferido",
+                  "Amount to be transferred",
               },
               {
                 name: "description",
@@ -560,7 +360,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.createPayment?.body?.description ||
-                  "Descrição da transferência",
+                  "Transfer description",
               },
               {
                 name: "pixKeyType",
@@ -568,7 +368,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.createPayment?.body?.pixKeyType ||
-                  "Tipo da chave PIX (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
+                  "PIX key type (CPF, CNPJ, EMAIL, PHONE, RANDOM)",
               },
               {
                 name: "pixKeyValue",
@@ -576,7 +376,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.createPayment?.body?.pixKeyValue ||
-                  "Valor da chave PIX",
+                  "PIX key value",
               },
               {
                 name: "recipientName",
@@ -584,7 +384,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.createPayment?.body?.recipientName ||
-                  "Nome do destinatário",
+                  "Recipient name",
               },
               {
                 name: "recipientDocument",
@@ -592,7 +392,7 @@ export function getEndpointsData(t) {
                 required: true,
                 description:
                   t.payouts?.endpoints?.createPayment?.body
-                    ?.recipientDocument || "CPF/CNPJ do destinatário",
+                    ?.recipientDocument || "Recipient CPF/CNPJ",
               },
               {
                 name: "externalReference",
@@ -601,62 +401,64 @@ export function getEndpointsData(t) {
                 description:
                   t.payouts?.endpoints?.createPayment?.body
                     ?.externalReference ||
-                  "Referência externa para controle do cliente",
+                  "External reference for client control",
               },
             ],
           },
           responses: [
             {
-              status: 201,
+              status: 200,
               description:
                 t.payouts?.endpoints?.createPayment?.responses?.created ||
-                "Transferência criada com sucesso",
+                "Transfer created successfully",
               example: {
                 data: {
-                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  id: "deafdc44-f52a-4e7f-bd54-8d4103851597",
                   amount: 100.5,
-                  description: "Pagamento para Fornecedor XYZ",
+                  description: "Withdrawal requested by XYZ",
                   status: "Pending",
+                  requestedAt: "2025-03-30T05:14:26.961006Z",
+                  processedAt: null,
                   pixKeyType: "CPF",
                   pixKeyValue: "12345678900",
-                  recipientName: "Nome do Destinatário",
-                  recipientDocument: "123.456.789-00",
-                  externalReference: "REF-001",
-                  createdAt: "2023-12-15T10:30:00Z",
+                  requestedAt: "2023-12-15T10:30:00Z",
+                  validationId: "CA36AEB163524AF9C5675472A977A98A",
+                  paymentId: "",
                 },
-                statusCode: 201,
-                message: "Pagamento criado com sucesso",
+                statusCode: 200,
+                message: "Operation completed successfully.",
               },
             },
             {
               status: 400,
               description:
                 t.payouts?.endpoints?.createPayment?.responses?.badRequest ||
-                "Requisição inválida",
+                "Invalid request",
               example: {
                 statusCode: 400,
-                message: "Dados de pagamento inválidos",
+                message: "Invalid payment data",
               },
             },
             {
               status: 409,
               description:
                 t.payouts?.endpoints?.createPayment?.responses?.conflict ||
-                "Conflito",
+                "Conflict",
               example: {
                 statusCode: 409,
-                message: "Já existe um pagamento com essa referência externa",
+                message:
+                  "A payment with this external reference already exists",
               },
             },
             {
               status: 500,
               description:
                 t.payouts?.endpoints?.createPayment?.responses?.serverError ||
-                "Erro interno",
+                "Internal error",
               example: {
                 statusCode: 500,
                 message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
+                  "An internal error occurred while processing your request.",
               },
             },
           ],
@@ -668,12 +470,8 @@ export function getEndpointsData(t) {
     -H "Content-Type: application/json" \\
     -d '{
       "amount": 100.50,
-      "description": "Pagamento para Fornecedor XYZ",
-      "pixKeyType": "CPF",
-      "pixKeyValue": "12345678900",
-      "recipientName": "Nome do Destinatário",
-      "recipientDocument": "123.456.789-00",
-      "externalReference": "REF-001"
+      "validationId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "description": "Withdrawal requested by XYZ",
     }'`,
         },
         {
@@ -690,7 +488,7 @@ export function getEndpointsData(t) {
               type: "guid",
               description:
                 t.payouts?.endpoints?.getPayment?.parameters?.id ||
-                "ID único do pagamento",
+                "Unique payment ID",
             },
           ],
           headers: [
@@ -700,14 +498,14 @@ export function getEndpointsData(t) {
               type: "string",
               description:
                 t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
+                "Bearer token obtained via authentication endpoint",
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
               description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
             },
           ],
           responses: [
@@ -715,44 +513,41 @@ export function getEndpointsData(t) {
               status: 200,
               description:
                 t.payouts?.endpoints?.getPayment?.responses?.success ||
-                "Consulta realizada com sucesso",
+                "Query completed successfully",
               example: {
                 data: {
                   id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                   amount: 100.5,
-                  description: "Pagamento para Fornecedor XYZ",
+                  description: "Payment to Supplier XYZ",
                   status: "Completed",
                   pixKeyType: "CPF",
                   pixKeyValue: "12345678900",
-                  recipientName: "Nome do Destinatário",
-                  recipientDocument: "123.456.789-00",
-                  externalReference: "REF-001",
-                  createdAt: "2023-12-15T10:30:00Z",
-                  completedAt: "2023-12-15T10:32:15Z",
+                  validationId: "CA36AEB163524AF9C5675472A977A98A",
+                  paymentId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                 },
                 statusCode: 200,
-                message: "Dados do pagamento recuperados com sucesso",
+                message: "Payment data retrieved successfully",
               },
             },
             {
               status: 404,
               description:
                 t.payouts?.endpoints?.getPayment?.responses?.notFound ||
-                "Pagamento não encontrado",
+                "Payment not found",
               example: {
                 statusCode: 404,
-                message: "Pagamento não encontrado",
+                message: "Payment not found",
               },
             },
             {
               status: 500,
               description:
                 t.payouts?.endpoints?.getPayment?.responses?.serverError ||
-                "Erro interno",
+                "Internal error",
               example: {
                 statusCode: 500,
                 message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
+                  "An internal error occurred while processing your request.",
               },
             },
           ],
@@ -765,67 +560,166 @@ export function getEndpointsData(t) {
       ],
     },
     {
-      id: "transactions",
-      title: t.transactions?.title || "Transações",
+      id: "refunds",
+      title: t.refunds?.title || "Refunds",
       description:
-        t.transactions?.description ||
-        "Endpoints para consulta e gerenciamento de transações",
+        t.refunds?.description ||
+        "Endpoints for requesting and querying refunds",
       endpoints: [
         {
-          id: "getTransactions",
-          method: "GET",
-          path: "/transactions",
+          id: "requestRefund",
+          method: "POST",
+          path: "/refunds",
           description:
-            t.transactions?.endpoints?.getTransactions?.description ||
-            "Lista todas as transações do vendedor",
+            t.refunds?.endpoints?.requestRefund?.description ||
+            "Request a refund for a transaction",
+          authentication: t.common?.authentication?.bearer || "Bearer Token",
+          parameters: [],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.authorization ||
+                "Bearer token obtained via authentication endpoint",
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
+            },
+            {
+              name: "Content-Type",
+              required: true,
+              type: "string",
+              description: t.common?.headers?.contentType || "application/json",
+            },
+          ],
+          body: {
+            type: "object",
+            properties: [
+              {
+                name: "transaction_id",
+                type: "string",
+                required: true,
+                description:
+                  t.refunds?.endpoints?.requestRefund?.body?.transaction_id ||
+                  "ID of the transaction to be refunded",
+              },
+              {
+                name: "amount",
+                type: "number",
+                required: true,
+                description:
+                  t.refunds?.endpoints?.requestRefund?.body?.amount ||
+                  "Amount to be refunded (must be less than or equal to the original transaction amount)",
+              },
+              {
+                name: "reason",
+                type: "string",
+                required: true,
+                description:
+                  t.refunds?.endpoints?.requestRefund?.body?.reason ||
+                  "Reason for the refund",
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 201,
+              description:
+                t.refunds?.endpoints?.requestRefund?.responses?.created ||
+                "Refund requested successfully",
+              example: {
+                data: {
+                  refund_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  transaction_id: "4fa85f64-5717-4562-b3fc-2c963f66afa7",
+                  amount: 50.0,
+                  status: "Pending",
+                  reason: "Product returned by customer",
+                  created_at: "2025-03-15T14:30:00Z",
+                  processed_at: null,
+                },
+                statusCode: 201,
+                message: "Refund requested successfully",
+              },
+            },
+            {
+              status: 400,
+              description:
+                t.refunds?.endpoints?.requestRefund?.responses?.badRequest ||
+                "Invalid request",
+              example: {
+                statusCode: 400,
+                message: "Only completed transactions can be refunded",
+              },
+            },
+            {
+              status: 404,
+              description:
+                t.refunds?.endpoints?.requestRefund?.responses?.notFound ||
+                "Transaction not found",
+              example: {
+                statusCode: 404,
+                message:
+                  "Transaction with ID 4fa85f64-5717-4562-b3fc-2c963f66afa7 not found",
+              },
+            },
+            {
+              status: 422,
+              description:
+                t.refunds?.endpoints?.requestRefund?.responses?.unprocessable ||
+                "Insufficient funds",
+              example: {
+                statusCode: 422,
+                message:
+                  "Insufficient balance in the Withdrawal wallet to process the refund",
+              },
+            },
+            {
+              status: 500,
+              description:
+                t.refunds?.endpoints?.requestRefund?.responses?.serverError ||
+                "Internal error",
+              example: {
+                statusCode: 500,
+                message:
+                  "An internal error occurred while processing your request.",
+              },
+            },
+          ],
+          requestExample:
+            t.refunds?.endpoints?.requestRefund?.requestExample ||
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/refunds \\
+ -H "Authorization: Bearer your_access_token" \\
+ -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+ -H "Content-Type: application/json" \\
+ -d '{
+   "transaction_id": "4fa85f64-5717-4562-b3fc-2c963f66afa7",
+   "amount": 50.00,
+   "reason": "Product returned by customer"
+ }'`,
+        },
+        {
+          id: "getRefund",
+          method: "GET",
+          path: "/refunds/{id}",
+          description:
+            t.refunds?.endpoints?.getRefund?.description ||
+            "Query the status of a specific refund",
           authentication: t.common?.authentication?.bearer || "Bearer Token",
           parameters: [
             {
-              name: "startDate",
-              in: "query",
-              required: false,
-              type: "string",
+              name: "id",
+              in: "path",
+              required: true,
+              type: "guid",
               description:
-                t.transactions?.endpoints?.getTransactions?.parameters
-                  ?.startDate ||
-                "Data de início para filtro (formato ISO 8601)",
-            },
-            {
-              name: "endDate",
-              in: "query",
-              required: false,
-              type: "string",
-              description:
-                t.transactions?.endpoints?.getTransactions?.parameters
-                  ?.endDate || "Data de fim para filtro (formato ISO 8601)",
-            },
-            {
-              name: "status",
-              in: "query",
-              required: false,
-              type: "string",
-              description:
-                t.transactions?.endpoints?.getTransactions?.parameters
-                  ?.status ||
-                "Status das transações (Pending, Completed, Failed, etc)",
-            },
-            {
-              name: "page",
-              in: "query",
-              required: false,
-              type: "integer",
-              description:
-                t.transactions?.endpoints?.getTransactions?.parameters?.page ||
-                "Página para paginação (padrão: 1)",
-            },
-            {
-              name: "pageSize",
-              in: "query",
-              required: false,
-              type: "integer",
-              description:
-                t.transactions?.endpoints?.getTransactions?.parameters
-                  ?.pageSize || "Tamanho da página para paginação (padrão: 20)",
+                t.refunds?.endpoints?.getRefund?.parameters?.id ||
+                "Unique refund ID",
             },
           ],
           headers: [
@@ -835,14 +729,145 @@ export function getEndpointsData(t) {
               type: "string",
               description:
                 t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
+                "Bearer token obtained via authentication endpoint",
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
               description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
+            },
+          ],
+          responses: [
+            {
+              status: 200,
+              description:
+                t.refunds?.endpoints?.getRefund?.responses?.success ||
+                "Query completed successfully",
+              example: {
+                data: {
+                  refund_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  transaction_id: "4fa85f64-5717-4562-b3fc-2c963f66afa7",
+                  amount: 50.0,
+                  status: "Completed",
+                  reason: "Product returned by customer",
+                  created_at: "2025-03-15T14:30:00Z",
+                  processed_at: "2025-03-15T14:45:22Z",
+                },
+                statusCode: 200,
+                message: "Refund found successfully",
+              },
+            },
+            {
+              status: 404,
+              description:
+                t.refunds?.endpoints?.getRefund?.responses?.notFound ||
+                "Refund not found",
+              example: {
+                statusCode: 404,
+                message:
+                  "Refund with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 not found",
+              },
+            },
+            {
+              status: 500,
+              description:
+                t.refunds?.endpoints?.getRefund?.responses?.serverError ||
+                "Internal error",
+              example: {
+                statusCode: 500,
+                message:
+                  "An internal error occurred while processing your request.",
+              },
+            },
+          ],
+          requestExample:
+            t.refunds?.endpoints?.getRefund?.requestExample ||
+            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/refunds/3fa85f64-5717-4562-b3fc-2c963f66afa6 \\
+ -H "Authorization: Bearer your_access_token" \\
+ -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+        },
+      ],
+    },
+    {
+      id: "transactions",
+      title: t.transactions?.title || "Transactions",
+      description:
+        t.transactions?.description ||
+        "Endpoints for querying and managing transactions",
+      endpoints: [
+        {
+          id: "getTransactions",
+          method: "GET",
+          path: "/transactions",
+          description:
+            t.transactions?.endpoints?.getTransactions?.description ||
+            "List all seller transactions",
+          authentication: t.common?.authentication?.bearer || "Bearer Token",
+          parameters: [
+            {
+              name: "startDate",
+              in: "query",
+              required: false,
+              type: "string",
+              description:
+                t.transactions?.endpoints?.getTransactions?.parameters
+                  ?.startDate || "Start date for filtering (ISO 8601 format)",
+            },
+            {
+              name: "endDate",
+              in: "query",
+              required: false,
+              type: "string",
+              description:
+                t.transactions?.endpoints?.getTransactions?.parameters
+                  ?.endDate || "End date for filtering (ISO 8601 format)",
+            },
+            {
+              name: "status",
+              in: "query",
+              required: false,
+              type: "string",
+              description:
+                t.transactions?.endpoints?.getTransactions?.parameters
+                  ?.status ||
+                "Transaction status (Pending, Completed, Failed, etc)",
+            },
+            {
+              name: "page",
+              in: "query",
+              required: false,
+              type: "integer",
+              description:
+                t.transactions?.endpoints?.getTransactions?.parameters?.page ||
+                "Page for pagination (default: 1)",
+            },
+            {
+              name: "pageSize",
+              in: "query",
+              required: false,
+              type: "integer",
+              description:
+                t.transactions?.endpoints?.getTransactions?.parameters
+                  ?.pageSize || "Page size for pagination (default: 20)",
+            },
+          ],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.authorization ||
+                "Bearer token obtained via authentication endpoint",
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
             },
           ],
           responses: [
@@ -850,7 +875,7 @@ export function getEndpointsData(t) {
               status: 200,
               description:
                 t.transactions?.endpoints?.getTransactions?.responses
-                  ?.success || "Lista de transações retornada com sucesso",
+                  ?.success || "Transaction list returned successfully",
               example: {
                 data: [
                   {
@@ -858,7 +883,7 @@ export function getEndpointsData(t) {
                     type: "Payment",
                     amount: 100.5,
                     status: "Completed",
-                    description: "Pagamento para Fornecedor XYZ",
+                    description: "Payment to Supplier XYZ",
                     createdAt: "2023-12-15T10:30:00Z",
                     completedAt: "2023-12-15T10:32:15Z",
                   },
@@ -867,7 +892,7 @@ export function getEndpointsData(t) {
                     type: "Withdrawal",
                     amount: 50.0,
                     status: "Pending",
-                    description: "Saque para conta bancária",
+                    description: "Withdrawal to bank account",
                     createdAt: "2023-12-16T14:20:00Z",
                     completedAt: null,
                   },
@@ -879,28 +904,28 @@ export function getEndpointsData(t) {
                   totalPages: 1,
                 },
                 statusCode: 200,
-                message: "Transações recuperadas com sucesso",
+                message: "Transactions retrieved successfully",
               },
             },
             {
               status: 400,
               description:
                 t.transactions?.endpoints?.getTransactions?.responses
-                  ?.badRequest || "Requisição inválida",
+                  ?.badRequest || "Invalid request",
               example: {
                 statusCode: 400,
-                message: "Parâmetros de consulta inválidos",
+                message: "Invalid query parameters",
               },
             },
             {
               status: 500,
               description:
                 t.transactions?.endpoints?.getTransactions?.responses
-                  ?.serverError || "Erro interno",
+                  ?.serverError || "Internal error",
               example: {
                 statusCode: 500,
                 message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
+                  "An internal error occurred while processing your request.",
               },
             },
           ],
@@ -916,7 +941,7 @@ export function getEndpointsData(t) {
           path: "/transaction/{id}",
           description:
             t.transactions?.endpoints?.getTransaction?.description ||
-            "Consulta os detalhes de uma transação específica",
+            "Query the details of a specific transaction",
           authentication: t.common?.authentication?.bearer || "Bearer Token",
           parameters: [
             {
@@ -926,7 +951,7 @@ export function getEndpointsData(t) {
               type: "guid",
               description:
                 t.transactions?.endpoints?.getTransaction?.parameters?.id ||
-                "ID único da transação",
+                "Unique transaction ID",
             },
           ],
           headers: [
@@ -936,14 +961,14 @@ export function getEndpointsData(t) {
               type: "string",
               description:
                 t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
+                "Bearer token obtained via authentication endpoint",
             },
             {
               name: "SellerId",
               required: true,
               type: "string",
               description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
             },
           ],
           responses: [
@@ -951,16 +976,16 @@ export function getEndpointsData(t) {
               status: 200,
               description:
                 t.transactions?.endpoints?.getTransaction?.responses?.success ||
-                "Transação encontrada com sucesso",
+                "Transaction found successfully",
               example: {
                 data: {
                   id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                   type: "Payment",
                   amount: 100.5,
                   status: "Completed",
-                  description: "Pagamento para Fornecedor XYZ",
+                  description: "Payment to Supplier XYZ",
                   recipientInfo: {
-                    name: "Nome do Destinatário",
+                    name: "Recipient's Name",
                     document: "123.456.789-00",
                     pixKeyType: "CPF",
                     pixKeyValue: "12345678900",
@@ -970,28 +995,28 @@ export function getEndpointsData(t) {
                   completedAt: "2023-12-15T10:32:15Z",
                 },
                 statusCode: 200,
-                message: "Transação recuperada com sucesso",
+                message: "Transaction retrieved successfully",
               },
             },
             {
               status: 404,
               description:
                 t.transactions?.endpoints?.getTransaction?.responses
-                  ?.notFound || "Transação não encontrada",
+                  ?.notFound || "Transaction not found",
               example: {
                 statusCode: 404,
-                message: "Transação não encontrada",
+                message: "Transaction not found",
               },
             },
             {
               status: 500,
               description:
                 t.transactions?.endpoints?.getTransaction?.responses
-                  ?.serverError || "Erro interno",
+                  ?.serverError || "Internal error",
               example: {
                 statusCode: 500,
                 message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
+                  "An internal error occurred while processing your request.",
               },
             },
           ],
@@ -1008,285 +1033,14 @@ export function getEndpointsData(t) {
       title: t.webhooks?.title || "Webhooks",
       description:
         t.webhooks?.description ||
-        "Endpoints para configuração e gerenciamento de webhooks",
+        "Receive real-time notifications about payment-related events",
       endpoints: [
         {
-          id: "getWebhooks",
-          method: "GET",
-          path: "/webhooks",
-          description:
-            t.webhooks?.endpoints?.getWebhooks?.description ||
-            "Lista todos os webhooks configurados",
-          authentication: t.common?.authentication?.bearer || "Bearer Token",
-          parameters: [],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
-            },
-          ],
-          responses: [
-            {
-              status: 200,
-              description:
-                t.webhooks?.endpoints?.getWebhooks?.responses?.success ||
-                "Lista de webhooks retornada com sucesso",
-              example: {
-                "data": [
-                  {
-                    "id": "456oc8d8-13e0-4db8-92b5-8dc54a433a97",
-                    "customer_id": "2985746",
-                    "transaction_id": "193846",
-                    "amount": "213.21",
-                    "status": "paid",
-                    "type": "payment",
-                    "payment_status": "paid",
-                    "exchange": "5.52"
-                  }
-                ],
-                "statusCode": 200,
-                "message": "Webhooks recuperados com sucesso"
-              }
-            },
-            {
-              status: 500,
-              description:
-                t.webhooks?.endpoints?.getWebhooks?.responses?.serverError ||
-                "Erro interno",
-              example: {
-                statusCode: 500,
-                message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
-              },
-            },
-          ],
-          requestExample:
-            t.webhooks?.endpoints?.getWebhooks?.requestExample ||
-            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
- -H "Authorization: Bearer your_access_token" \\
- -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
-        },
-        {
-          id: "createWebhook",
-          method: "POST",
-          path: "/webhooks",
-          description:
-            t.webhooks?.endpoints?.createWebhook?.description ||
-            "Cria uma nova configuração de webhook",
-          authentication: t.common?.authentication?.bearer || "Bearer Token",
-          parameters: [],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
-            },
-            {
-              name: "Content-Type",
-              required: true,
-              type: "string",
-              description: t.common?.headers?.contentType || "application/json",
-            },
-          ],
-          body: {
-            type: "object",
-            properties: [
-              {
-                name: "url",
-                type: "string",
-                required: true,
-                description:
-                  t.webhooks?.endpoints?.createWebhook?.body?.url ||
-                  "URL para envio das notificações",
-              },
-              {
-                name: "events",
-                type: "array",
-                required: true,
-                description:
-                  t.webhooks?.endpoints?.createWebhook?.body?.events ||
-                  "Lista de eventos para os quais o webhook será acionado",
-              },
-              {
-                name: "isActive",
-                type: "boolean",
-                required: false,
-                description:
-                  t.webhooks?.endpoints?.createWebhook?.body?.isActive ||
-                  "Indica se o webhook está ativo",
-              },
-            ],
-          },
-          responses: [
-            {
-              status: 201,
-              description:
-                t.webhooks?.endpoints?.createWebhook?.responses?.created ||
-                "Webhook criado com sucesso",
-              example: {
-                data: {
-                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  url: "https://example.com/webhook",
-                  events: ["payment.created", "payment.completed"],
-                  isActive: true,
-                  createdAt: "2023-12-15T10:30:00Z",
-                },
-                statusCode: 201,
-                message: "Webhook criado com sucesso",
-              },
-            },
-            {
-              status: 400,
-              description:
-                t.webhooks?.endpoints?.createWebhook?.responses?.badRequest ||
-                "Requisição inválida",
-              example: {
-                statusCode: 400,
-                message: "Dados de webhook inválidos",
-              },
-            },
-            {
-              status: 500,
-              description:
-                t.webhooks?.endpoints?.createWebhook?.responses?.serverError ||
-                "Erro interno",
-              example: {
-                statusCode: 500,
-                message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
-              },
-            },
-          ],
-          requestExample:
-            t.webhooks?.endpoints?.createWebhook?.requestExample ||
-            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
- -H "Authorization: Bearer your_access_token" \\
- -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
- -H "Content-Type: application/json" \\
- -d '{
-   "url": "https://example.com/webhook",
-   "events": ["payment.created", "payment.completed"],
-   "isActive": true
- }'`,
-        },
-        {
-          id: "testWebhook",
-          method: "POST",
-          path: "/webhook/{id}/test",
-          description:
-            t.webhooks?.endpoints?.testWebhook?.description ||
-            "Envia um evento de teste para um webhook",
-          authentication: t.common?.authentication?.bearer || "Bearer Token",
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              type: "guid",
-              description:
-                t.webhooks?.endpoints?.testWebhook?.parameters?.id ||
-                "ID único do webhook",
-            },
-          ],
-          headers: [
-            {
-              name: "Authorization",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.authorization ||
-                "Bearer token obtido via endpoint de autenticação",
-            },
-            {
-              name: "SellerId",
-              required: true,
-              type: "string",
-              description:
-                t.common?.headers?.sellerId || "ID do vendedor no formato GUID",
-            },
-            {
-              name: "Content-Type",
-              required: true,
-              type: "string",
-              description: t.common?.headers?.contentType || "application/json",
-            },
-          ],
-          body: {
-            type: "object",
-            properties: [
-              {
-                name: "eventType",
-                type: "string",
-                required: true,
-                description:
-                  t.webhooks?.endpoints?.testWebhook?.body?.eventType ||
-                  "Tipo do evento a ser testado",
-              },
-            ],
-          },
-          responses: [
-            {
-              status: 200,
-              description:
-                t.webhooks?.endpoints?.testWebhook?.responses?.success ||
-                "Evento de teste enviado com sucesso",
-              example: {
-                statusCode: 200,
-                message: "Evento de teste enviado com sucesso",
-              },
-            },
-            {
-              status: 404,
-              description:
-                t.webhooks?.endpoints?.testWebhook?.responses?.notFound ||
-                "Webhook não encontrado",
-              example: {
-                statusCode: 404,
-                message: "Webhook não encontrado",
-              },
-            },
-            {
-              status: 500,
-              description:
-                t.webhooks?.endpoints?.testWebhook?.responses?.serverError ||
-                "Erro interno",
-              example: {
-                statusCode: 500,
-                message:
-                  "Ocorreu um erro interno ao processar sua solicitação.",
-              },
-            },
-          ],
-          requestExample:
-            t.webhooks?.endpoints?.testWebhook?.requestExample ||
-            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
- -H "Authorization: Bearer your_access_token" \\
- -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
- -H "Content-Type: application/json" \\
- -d '{
-   "eventType": "payment.completed"
- }'`,
+          id: "webhooks-overview",
+          method: "",
+          path: "Webhooks Overview",
+          description: "How to configure and receive event notifications",
+          content: true,
         },
       ],
     },
