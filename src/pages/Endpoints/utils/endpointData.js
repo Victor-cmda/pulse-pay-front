@@ -1042,6 +1042,287 @@ export function getEndpointsData(t) {
           description: "How to configure and receive event notifications",
           content: true,
         },
+        {
+          id: "getWebhooks",
+          method: "GET",
+          path: "/webhooks",
+          description:
+            t.webhooks?.endpoints?.getWebhooks?.description ||
+            "Lists all configured webhooks",
+          authentication: t.common?.authentication?.bearer || "Bearer Token",
+          parameters: [],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.authorization ||
+                "Bearer token obtained via authentication endpoint",
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
+            },
+          ],
+          responses: [
+            {
+              status: 200,
+              description:
+                t.webhooks?.endpoints?.getWebhooks?.responses?.success ||
+                "List of webhooks returned successfully",
+              example: {
+                data: [
+                  {
+                    id: "456oc8d8-13e0-4db8-92b5-8dc54a433a97",
+                    customer_id: "2985746",
+                    transaction_id: "193846",
+                    amount: "213.21",
+                    status: "paid",
+                    type: "payment",
+                    payment_status: "paid",
+                    exchange: "5.52",
+                  },
+                ],
+                statusCode: 200,
+                message: "Webhooks retrieved successfully",
+              },
+            },
+            {
+              status: 500,
+              description:
+                t.webhooks?.endpoints?.getWebhooks?.responses?.serverError ||
+                "Internal error",
+              example: {
+                statusCode: 500,
+                message:
+                  "An internal error occurred while processing your request.",
+              },
+            },
+          ],
+          requestExample:
+            t.webhooks?.endpoints?.getWebhooks?.requestExample ||
+            `curl -X GET https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
+ -H "Authorization: Bearer your_access_token" \\
+ -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6"`,
+          note: "This endpoint is only available in the sandbox environment",
+        },
+        {
+          id: "createWebhook",
+          method: "POST",
+          path: "/webhooks",
+          description:
+            t.webhooks?.endpoints?.createWebhook?.description ||
+            "Creates a new webhook configuration",
+          authentication: t.common?.authentication?.bearer || "Bearer Token",
+          parameters: [],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.authorization ||
+                "Bearer token obtained via authentication endpoint",
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
+            },
+            {
+              name: "Content-Type",
+              required: true,
+              type: "string",
+              description: t.common?.headers?.contentType || "application/json",
+            },
+          ],
+          body: {
+            type: "object",
+            properties: [
+              {
+                name: "url",
+                type: "string",
+                required: true,
+                description:
+                  t.webhooks?.endpoints?.createWebhook?.body?.url ||
+                  "URL for sending notifications",
+              },
+              {
+                name: "events",
+                type: "array",
+                required: true,
+                description:
+                  t.webhooks?.endpoints?.createWebhook?.body?.events ||
+                  "List of events for which the webhook will be triggered",
+              },
+              {
+                name: "isActive",
+                type: "boolean",
+                required: false,
+                description:
+                  t.webhooks?.endpoints?.createWebhook?.body?.isActive ||
+                  "Indicates whether the webhook is active",
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 201,
+              description:
+                t.webhooks?.endpoints?.createWebhook?.responses?.created ||
+                "Webhook created successfully",
+              example: {
+                data: {
+                  id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  url: "https://example.com/webhook",
+                  events: ["payment.created", "payment.completed"],
+                  isActive: true,
+                  createdAt: "2023-12-15T10:30:00Z",
+                },
+                statusCode: 201,
+                message: "Webhook created successfully",
+              },
+            },
+            {
+              status: 400,
+              description:
+                t.webhooks?.endpoints?.createWebhook?.responses?.badRequest ||
+                "Invalid request",
+              example: {
+                statusCode: 400,
+                message: "Invalid webhook data",
+              },
+            },
+            {
+              status: 500,
+              description:
+                t.webhooks?.endpoints?.createWebhook?.responses?.serverError ||
+                "Internal error",
+              example: {
+                statusCode: 500,
+                message:
+                  "An internal error occurred while processing your request.",
+              },
+            },
+          ],
+          requestExample:
+            t.webhooks?.endpoints?.createWebhook?.requestExample ||
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhooks \\
+ -H "Authorization: Bearer your_access_token" \\
+ -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+ -H "Content-Type: application/json" \\
+ -d '{
+   "url": "https://example.com/webhook",
+   "events": ["payment.created", "payment.completed"],
+   "isActive": true
+ }'`,
+          note: "This endpoint is only available in the sandbox environment",
+        },
+        {
+          id: "testWebhook",
+          method: "POST",
+          path: "/webhook/{id}/test",
+          description:
+            t.webhooks?.endpoints?.testWebhook?.description ||
+            "Sends a test event to a webhook",
+          authentication: t.common?.authentication?.bearer || "Bearer Token",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              type: "guid",
+              description:
+                t.webhooks?.endpoints?.testWebhook?.parameters?.id ||
+                "Unique webhook ID",
+            },
+          ],
+          headers: [
+            {
+              name: "Authorization",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.authorization ||
+                "Bearer token obtained via authentication endpoint",
+            },
+            {
+              name: "SellerId",
+              required: true,
+              type: "string",
+              description:
+                t.common?.headers?.sellerId || "Seller ID in GUID format",
+            },
+            {
+              name: "Content-Type",
+              required: true,
+              type: "string",
+              description: t.common?.headers?.contentType || "application/json",
+            },
+          ],
+          body: {
+            type: "object",
+            properties: [
+              {
+                name: "eventType",
+                type: "string",
+                required: true,
+                description:
+                  t.webhooks?.endpoints?.testWebhook?.body?.eventType ||
+                  "Type of event to be tested",
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 200,
+              description:
+                t.webhooks?.endpoints?.testWebhook?.responses?.success ||
+                "Test event sent successfully",
+              example: {
+                statusCode: 200,
+                message: "Test event sent successfully",
+              },
+            },
+            {
+              status: 404,
+              description:
+                t.webhooks?.endpoints?.testWebhook?.responses?.notFound ||
+                "Webhook not found",
+              example: {
+                statusCode: 404,
+                message: "Webhook not found",
+              },
+            },
+            {
+              status: 500,
+              description:
+                t.webhooks?.endpoints?.testWebhook?.responses?.serverError ||
+                "Internal error",
+              example: {
+                statusCode: 500,
+                message:
+                  "An internal error occurred while processing your request.",
+              },
+            },
+          ],
+          requestExample:
+            t.webhooks?.endpoints?.testWebhook?.requestExample ||
+            `curl -X POST https://pulsepay.technocenterinformatica.com.br/sandbox/webhook/3fa85f64-5717-4562-b3fc-2c963f66afa6/test \\
+ -H "Authorization: Bearer your_access_token" \\
+ -H "SellerId: 3fa85f64-5717-4562-b3fc-2c963f66afa6" \\
+ -H "Content-Type: application/json" \\
+ -d '{
+   "eventType": "payment.completed"
+ }'`,
+          note: "This endpoint is only available in the sandbox environment",
+        },
       ],
     },
   ];

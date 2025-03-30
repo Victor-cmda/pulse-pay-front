@@ -658,6 +658,59 @@ app.listen(3000, () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sandbox Warning Card - to be added after the "Configuring Webhooks in PulsePay" card */}
+      <Card className="mb-6 border-2 border-yellow-300 dark:border-yellow-700">
+        <CardHeader className="bg-yellow-50 dark:bg-yellow-900/30">
+          <CardTitle className="text-lg flex items-center">
+            <svg
+              className="h-5 w-5 text-yellow-500 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Sandbox Environment Only
+          </CardTitle>
+          <CardDescription>
+            The following instructions and API endpoints are only available in
+            the sandbox environment
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="space-y-4">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              Please note that the webhook management features described below
+              are specifically designed for testing and development purposes in
+              the PulsePay sandbox environment. These features allow you to:
+            </p>
+
+            <ul className="space-y-2 pl-5 list-disc text-sm text-slate-700 dark:text-slate-300">
+              <li>Programmatically configure webhooks using the API</li>
+              <li>Test event delivery without processing real transactions</li>
+              <li>
+                Experiment with different event types and response handling
+              </li>
+            </ul>
+
+            <div className="flex gap-3 p-4 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium mb-1">Important</p>
+                <p className="text-sm">
+                  In the production environment, webhooks should be configured
+                  exclusively through the PulsePay dashboard interface. The API
+                  endpoints described below will not be available in production.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
